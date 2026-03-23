@@ -7,360 +7,7 @@
 
   <!-- Google Font -->
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
-
-  <style>
-    :root {
-      --primary: #5a3e2b;
-      --accent: #c69c6d;
-      --bg: #faf7f2;
-      --text: #2b2b2b;
-    }
-
-	html {
-	  scroll-behavior: smooth;
-	}
-
-    body {
-      margin: 0;
-      font-family: 'Inter', sans-serif;
-      color: var(--text);
-      background: var(--bg);
-      line-height: 1.6;
-	  letter-spacing: 0.2px;
-    }
-
-    h1, h2 {
-      font-family: 'Playfair Display', serif;
-      margin-bottom: 10px;
-    }
-
-    .container {
-      width: 90%;
-      max-width: 1100px;
-      margin: auto;
-    }
-
-    /* Header */
-    header {
-		display: flex;
-		justify-content: space-between;
-		align-items: center;
-		padding: 18px 5%;
-		background: rgba(255,255,255,0.95);
-		backdrop-filter: blur(6px);
-		border-bottom: 1px solid rgba(0,0,0,0.06);
-		position: sticky;
-		top: 0;
-		z-index: 1000;
-    }
-
-    .logo {
-		font-family: 'Playfair Display', serif;
-		color: var(--primary);
-		line-height: 1.1;
-    }
-    .logo strong {
-      display: block;
-      font-size: 20px;
-      letter-spacing: 2px;
-	}
-
-	.logo span {
-	  font-size: 12px;
-	  opacity: 0.7;
-	}
-
-    nav a {
-		margin-left: 24px;
-		text-decoration: none;
-		color: var(--text);
-		font-size: 14px;
-		letter-spacing: 0.5px;
-    }
-
-    /* Hero */
-    .hero {
-      position: relative;
-      text-align: center;
-      color: white;
-    }
-
-    .hero img {
-      width: 100%;
-      height: auto;
-    }
-
-	.hero-text {
-	  position: absolute;
-	  top: 50%;
-	  left: 10%;
-	  transform: translate(0, -50%);
-	  text-align: left;
-	  max-width: 380px;
-	}
-
-	.hero h1 {
-	    font-size: 52px;
-	    line-height: 1.15;
-	    letter-spacing: -0.5px;
-	}
-
-	.hero::before {
-	  content: "";
-	  position: absolute;
-	  inset: 0;
-	  background: linear-gradient(
-		to right,
-		rgba(0,0,0,0.55),
-		rgba(0,0,0,0.2),
-		transparent
-	  );
-	}
-
-	.hero p {
-	  font-size: 16px;
-	  opacity: 0.9;
-	  max-width: 350px;  
-	line-height: 1.6;
-	margin-top: 14px;
-	}
-
-	/* Default (text on left side) */
-	.flex .text {
-	  text-align: left;
-	  padding-right: 0px;
-	}
-
-	.text {
-	  max-width: 360px;
-	  flex: 0.9;
-	}
-
-	/* When reversed (text on right side) */
-	.flex.reverse .text {
-	  text-align: left;
-	  padding-left: 0px;
-	  padding-right: 0;
-	}
-
-    .btn {
-		display: inline-block;
-		margin-top: 20px;
-		padding: 12px 26px;
-		background: #4a2f1d;
-		color: white;
-		text-decoration: none;
-		border-radius: 2px;
-		font-size: 14px;
-		letter-spacing: 0.5px;
-		transition: all 0.2s ease;
-    }
-
-	.full-width img {
-	  width: 100%;
-	  display: block;
-	}
-
-	.btn:hover {
-	  background: #3b2517;
-	}
-
-    section {
-      padding: 90px 0;
-    }
-
-    .flex {
-	  display: flex;
-	  align-items: flex-start;
-	  gap: 36px;
-    }
-
-    .text, .image {
-      flex: 1;
-    }
-
-	.text h2 {
-	  margin-bottom: 12px;
-	  margin-top: 0;
-	  font-size: 26px;
-	}
-
-	.image {
-	  flex: 1.1;
-	}
-
-	.text p {
-	  margin-top: 6px;
-	  font-size: 15px;
-	  opacity: 0.9;
-	}
-
-    .flex img {
-      width: 100%;
-      border-radius: 6px;
-	  opacity: 0.92;
-	  height: auto;
-	  display: block;
-    }
-
-	section.custom-section {
-	  padding: 80px 0;
-	}
-
-    .reverse {
-      flex-direction: row-reverse;
-    }
-
-	.image img {
-	  max-height: 420px;
-	  object-fit: cover;
-	}
-
-    /* Why Section */
-    .why {
-      text-align: center;
-	  padding: 70px 0;
-    }
-
-    .why p {
-      max-width: 600px;
-      margin: auto;
-    }
-
-    /* CTA */
-    .cta {
-      text-align: center;
-      background: var(--primary);
-      color: white;
-      padding: 110px 20px;
-    }
-
-	.full-width {
-	  padding: 60px 0;
-	}
-
-	.image-note {
-	  font-size: 12px;
-	  opacity: 0.6;
-	  text-align: center;
-	  margin-top: 8px;
-	}
-
-	.clean-list {
-	  list-style: none;
-	  padding: 0;
-	  margin-top: 20px;
-	}
-
-	.clean-list li {
-	  font-size: 15px;
-	  margin-bottom: 12px;
-	  position: relative;
-	  padding-left: 0;
-	}
-
-    /* Footer */
-    footer {
-      background: #eee;
-      padding: 30px 5%;
-      text-align: center;
-    }
-
-	.education {
-	  padding: 100px 0;
-	}
-
-	.education h2 {
-	  text-align: center;
-	  margin-bottom: 40px;
-	}
-
-	.edu-item {
-	  margin-bottom: 28px;
-	}
-
-	.edu-item h3 {
-	  font-size: 16px;
-	  margin-bottom: 6px;
-	  font-weight: 500;
-	}
-
-	.edu-item p {
-	  font-size: 15px;
-	  opacity: 0.85;
-	  margin: 0;
-	  line-height: 1.6;
-	}
-
-	.faq {
-	  padding: 70px 0;
-	}
-
-	.faq h2 {
-	  text-align: center;
-	  margin-bottom: 40px;
-	}
-
-	.faq-item {
-	  margin-bottom: 28px;
-	}
-
-	.faq-item h3 {
-	  font-size: 16px;
-	  margin-bottom: 6px;
-	  font-weight: 500;
-	}
-
-	.faq-item p {
-	  font-size: 15px;
-	  opacity: 0.85;
-	  margin: 0;
-	  line-height: 1.6;
-	}
-
-    @media(max-width: 768px) {
-      .flex {
-        flex-direction: column;
-      }
-    }
-	
-	@media(max-width: 768px) {
-	  .hero h1 {
-		font-size: 32px;
-		line-height: 1.2;
-	  }
-
-	  .hero-text {
-		position: static;
-		transform: none;
-		text-align: left;
-		padding: 24px 20px;
-		max-width: 100%;
-	  }
-
-	  .hero {
-		color: var(--text);
-	  }
-
-	  .hero::before {
-		display: none;
-	  }
-
-	  section {
-		padding: 60px 0;
-	  }
-	  
-	  .hero p {
-		font-size: 15px;
-	  }
-  header {
-    background: #faf7f2;
-    backdrop-filter: none;
-  }
-  
-	}
-
-  </style>
+	<link rel="stylesheet" href="styles.css">
 </head>
 <body id="top">
 
@@ -372,7 +19,7 @@
 	</div>
     <nav>	  
 	  <a href="#top">Home</a>
-      <a href="#breads">Breads</a>
+      <a href="breads.html">Breads</a>
       <a href="#about">About</a>
       <a href="#contact">Contact</a>
     </nav>
@@ -384,7 +31,7 @@
     <div class="hero-text">
       <h1>Slow-fermented bread baked fresh each morning</h1>
       <p>Simple ingredients. Slow fermentation.</p>
-      <a href="#breads" class="btn">Explore Breads</a>
+      <a href="breads.html" class="btn">Explore Breads</a>
     </div>
   </section>
 
@@ -397,27 +44,27 @@
 	  </div>
 	</section>
 
-<section>
-  <div class="container flex">
-    
-    <div class="text">
-      <h2>What Makes Our Bread Different</h2>
-      <ul class="clean-list">
-        <li>No improvers</li>
-        <li>No bleaching agents</li>
-        <li>No commercial enhancers</li>
-        <li>No preservatives</li>
-        <li>Naturally fermented</li>
-        <li>Simple ingredients</li>
-      </ul>
-    </div>
+	<section>
+	  <div class="container flex">
+		
+		<div class="text">
+		  <h2>What Makes Our Bread Different</h2>
+		  <ul class="clean-list">
+			<li>No commercial enhancers and improvers</li>
+			<li>No bleaching agents</li>
+			<li>No bread softners</li>
+			<li>No preservatives</li>
+			<li>Naturally fermented</li>
+			<li>Simple ingredients</li>
+		  </ul>
+		</div>
 
-    <div class="image">
-      <img src="./Images/HomePage/WhatMakesOurBreadDifferent.jpg" alt="What Makes Our Bread Different">
-    </div>
+		<div class="image">
+		  <img src="./Images/HomePage/WhatMakesOurBreadDifferent.jpg" alt="What Makes Our Bread Different">
+		</div>
 
-  </div>
-</section>
+	  </div>
+	</section>
 
 	<section>
 	  <div class="container" style="max-width:800px;">
@@ -486,8 +133,8 @@
 		<h2>Understanding Our Bread</h2>
 
 		<div class="edu-item">
-		  <h3>Why our bread costs more</h3>
-		  <p>Our breads are made in small batches using time-intensive fermentation and without commercial additives. This requires more time, care, and ingredients compared to industrial bread.</p>
+		  <h3>Why is your bread priced higher than regular bread?</h3>
+		  <p>Our breads are made in small batches using time-intensive fermentation and without commercial additives. This requires more time, care, and ingredients compared to industrial bread, which is produced for scale and speed.</p>
 		</div>
 
 		<div class="edu-item">
@@ -497,19 +144,24 @@
 
 		<div class="edu-item">
 		  <h3>What is preferment?</h3>
-		  <p>Preferment is a technique where part of the dough is fermented in advance. It improves flavor, texture, and digestibility.</p>
+		  <p>Preferment is a technique where a portion of the dough is fermented in advance. In our process, this stage typically takes 12–15 hours. This allows the dough to develop naturally over time, improving flavor, structure, and overall quality without the need for additives.</p>
 		</div>
 
 		<div class="edu-item">
 		  <h3>Why our bread feels different</h3>
-		  <p>Without additives, our bread has a more natural texture and structure. Whole wheat breads may feel denser, reflecting the grain itself.</p>
+		  <p>Without additives, our bread has a more natural texture and structure. Whole wheat breads are denser, reflecting the grain itself.</p>
+		</div>
+
+		<div class="edu-item">
+		  <h3>Why does our bread dry faster?</h3>
+		  <p>Our breads are made without bread softeners and preservatives. Because of this, they can dry out more quickly if left exposed to air or stored in the refrigerator. This is a natural characteristic of bread made with simple ingredients. See storage for details.</p>
 		</div>
 
 	  </div>
 	</section>
 
-	<section id="faq" class="faq">
-	  <div class="container" style="max-width:700px;">
+	<section id="faq" class="faq" >
+	  <div class="container" style="max-width:800px;">
 		<h2>Frequently Asked Questions</h2>
 
 		<div class="faq-item">
@@ -523,13 +175,33 @@
 		</div>
 
 		<div class="faq-item">
+		  <h3>Do you bake every day?</h3>
+		  <p>We bake in limited batches based on orders. This helps us maintain quality and freshness rather than producing large quantities in advance.</p>
+		</div>
+
+		<div class="faq-item">
 		  <h3>What is the shelf life of your bread?</h3>
-		  <p>Our breads do not contain preservatives. They are best consumed within 2–3 days.</p>
+		  <p>Our breads do not contain preservatives. They are best consumed within 2–3 days. We suggest 2 days. For longer shelf life, you can freeze (not refrigerate) the slices and toast them when needed.</p>
+		</div>
+
+		<div class="faq-item">
+		  <h3>Are your breads free from gluten, dairy, or nuts?</h3>
+		  <p>No. Our breads contain gluten, and some varieties may include dairy or nuts. All products are prepared in the same kitchen, so traces of these ingredients may be present.</p>
+		</div>
+
+		<div class="faq-item">
+		  <h3>Why does your bread feel denser than packaged bread?</h3>
+		  <p>Our breads are made without improvers or enhancers. Whole wheat flour and natural fermentation result in a more natural structure, which can feel denser compared to commercial bread designed to be very soft and airy.</p>
+		</div>
+
+		<div class="faq-item">
+		  <h3>Will the texture of the bread always be the same?</h3>
+		  <p>Since we work with natural ingredients and small batches, slight variations in texture can occur. This is a normal part of real bread made without stabilizers or industrial controls.</p>
 		</div>
 
 		<div class="faq-item">
 		  <h3>How should I store the bread?</h3>
-		  <p>Store in a cool, dry place. For longer storage, refrigerate or freeze and toast before serving.</p>
+		  <p>Store in a cool, dry place and avoid leaving it exposed to air, as this can cause it to dry out. For longer storage, we recommend freezing sliced bread and toasting it when needed. Refrigeration is not recommended.</p>
 		</div>
 
 		<div class="faq-item">
@@ -545,6 +217,11 @@
 		<div class="faq-item">
 		  <h3>Can I request custom variations?</h3>
 		  <p>Some breads can be adjusted based on preference, such as changing the proportion of whole wheat. Availability depends on the dough and batch, so we recommend checking with us on WhatsApp before placing your order.</p>
+		</div>
+
+		<div class="faq-item">
+		  <h3>Do you offer 100% whole wheat bread?</h3>
+		  <p>100% whole wheat bread tends to be denser and less soft. We use blended flours to create a better balance of texture, flavor, and structure while still keeping a high proportion of whole wheat. If you’re looking for a higher whole wheat percentage, feel free to check with us on WhatsApp.</p>
 		</div>
 
 	  </div>

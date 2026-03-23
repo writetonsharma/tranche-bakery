@@ -1,0 +1,414 @@
+/* ========================================
+   VARIABLES
+======================================== */
+
+:root {
+  --primary: #5a3e2b;
+  --accent: #c69c6d;
+  --bg: #faf7f2;
+  --text: #2b2b2b;
+}
+
+
+/* ========================================
+   BASE
+======================================== */
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  font-family: 'Inter', sans-serif;
+  color: var(--text);
+  background: var(--bg);
+  line-height: 1.6;
+  letter-spacing: 0.2px;
+}
+
+h1, h2, h3 {
+  font-family: 'Playfair Display', serif;
+  margin-bottom: 10px;
+}
+
+.container {
+  width: 90%;
+  max-width: 1100px;
+  margin: auto;
+}
+
+section {
+  padding: 90px 0;
+}
+
+
+/* ========================================
+   HEADER
+======================================== */
+
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 18px 5%;
+  background: rgba(255,255,255,0.95);
+  backdrop-filter: blur(6px);
+  border-bottom: 1px solid rgba(0,0,0,0.06);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+
+.logo {
+  font-family: 'Playfair Display', serif;
+  color: var(--primary);
+  line-height: 1.1;
+}
+
+.logo strong {
+  display: block;
+  font-size: 20px;
+  letter-spacing: 2px;
+}
+
+.logo span {
+  font-size: 12px;
+  opacity: 0.7;
+}
+
+nav a {
+  margin-left: 24px;
+  text-decoration: none;
+  color: var(--text);
+  font-size: 14px;
+  letter-spacing: 0.5px;
+}
+
+
+/* ========================================
+   HERO
+======================================== */
+
+.hero {
+  position: relative;
+  text-align: center;
+  color: white;
+}
+
+.hero img {
+  width: 100%;
+  height: auto;
+}
+
+.hero-text {
+  position: absolute;
+  top: 50%;
+  left: 10%;
+  transform: translate(0, -50%);
+  text-align: left;
+  max-width: 380px;
+}
+
+.hero h1 {
+  font-size: 52px;
+  line-height: 1.15;
+  letter-spacing: -0.5px;
+}
+
+.hero p {
+  font-size: 16px;
+  opacity: 0.9;
+  max-width: 350px;
+  margin-top: 14px;
+}
+
+.hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to right,
+    rgba(0,0,0,0.55),
+    rgba(0,0,0,0.2),
+    transparent
+  );
+}
+
+
+/* ========================================
+   BUTTONS
+======================================== */
+
+.btn {
+  display: inline-block;
+  margin-top: 20px;
+  padding: 12px 26px;
+  background: #4a2f1d;
+  color: white;
+  text-decoration: none;
+  border-radius: 2px;
+  font-size: 14px;
+  letter-spacing: 0.5px;
+  transition: all 0.2s ease;
+}
+
+.btn:hover {
+  background: #3b2517;
+}
+
+
+/* ========================================
+   FLEX / LAYOUT
+======================================== */
+
+.flex {
+  display: flex;
+  align-items: flex-start;
+  gap: 36px;
+}
+
+.reverse {
+  flex-direction: row-reverse;
+}
+
+.text {
+  max-width: 360px;
+  flex: 0.9;
+}
+
+.image {
+  flex: 1.1;
+}
+
+.text h2 {
+  margin-top: 0;
+  margin-bottom: 12px;
+  font-size: 26px;
+}
+
+.text p {
+  margin-top: 6px;
+  font-size: 15px;
+  opacity: 0.9;
+}
+
+.flex img {
+  width: 100%;
+  border-radius: 6px;
+  opacity: 0.92;
+  display: block;
+}
+
+.image img {
+  max-height: 420px;
+  object-fit: cover;
+}
+
+
+/* ========================================
+   FULL WIDTH IMAGE
+======================================== */
+
+.full-width {
+  padding: 60px 0;
+}
+
+.full-width img {
+  width: 100%;
+  display: block;
+}
+
+.image-note {
+  font-size: 12px;
+  opacity: 0.6;
+  text-align: center;
+  margin-top: 8px;
+}
+
+
+/* ========================================
+   LISTS
+======================================== */
+
+.clean-list {
+  list-style: none;
+  padding: 0;
+  margin-top: 20px;
+}
+
+.clean-list li {
+  font-size: 15px;
+  margin-bottom: 12px;
+}
+
+
+/* ========================================
+   EDUCATION SECTION
+======================================== */
+
+.education {
+  padding: 100px 0;
+  text-align: left;
+}
+
+.education h2 {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.edu-item {
+  margin-bottom: 28px;
+}
+
+.edu-item h3 {
+  font-size: 16px;
+  margin-bottom: 6px;
+  font-weight: 500;
+}
+
+.edu-item h3,
+.faq-item h3 {
+  font-family: 'Inter', sans-serif;
+}
+
+.edu-item p {
+  font-size: 15px;
+  opacity: 0.85;
+  margin: 0;
+  line-height: 1.6;
+}
+
+
+/* ========================================
+   FAQ
+======================================== */
+
+.faq {
+  padding: 70px 0;
+  text-align: left;
+}
+
+.faq h2 {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.faq-item {
+  margin-bottom: 28px;
+}
+
+.faq-item h3 {
+  font-size: 16px;
+  margin-bottom: 6px;
+  font-weight: 500;
+}
+
+.faq-item p {
+  font-size: 15px;
+  opacity: 0.85;
+  margin: 0;
+  line-height: 1.6;
+}
+
+
+/* ========================================
+   CTA
+======================================== */
+
+.cta {
+  text-align: center;
+  background: var(--primary);
+  color: white;
+  padding: 110px 20px;
+}
+
+
+/* ========================================
+   FOOTER
+======================================== */
+
+footer {
+  background: #eee;
+  padding: 30px 5%;
+  text-align: center;
+}
+
+
+/* ========================================
+   PRODUCTS (BREADS PAGE)
+======================================== */
+
+.product {
+  display: flex;
+  align-items: flex-start;
+  gap: 36px;
+  margin-bottom: 60px;
+}
+
+.product.reverse {
+  flex-direction: row-reverse;
+}
+
+.product .image {
+  flex: 1.1;
+}
+
+.product .text {
+  flex: 0.9;
+  max-width: 360px;
+}
+
+.placeholder {
+  width: 100%;
+  height: 260px;
+  background: #eae6df;
+  border-radius: 6px;
+}
+
+
+/* ========================================
+   RESPONSIVE
+======================================== */
+
+@media(max-width: 768px) {
+
+  section {
+    padding: 60px 0;
+  }
+
+  .flex,
+  .product {
+    flex-direction: column;
+  }
+
+  .hero h1 {
+    font-size: 32px;
+    line-height: 1.2;
+  }
+
+  .hero-text {
+    position: static;
+    transform: none;
+    padding: 24px 20px;
+    max-width: 100%;
+    text-align: left;
+  }
+
+  .hero {
+    color: var(--text);
+  }
+
+  .hero::before {
+    display: none;
+  }
+
+  .hero p {
+    font-size: 15px;
+  }
+
+  header {
+    background: #faf7f2;
+    backdrop-filter: none;
+  }
+}
