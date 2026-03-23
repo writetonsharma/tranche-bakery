@@ -42,9 +42,9 @@
 		justify-content: space-between;
 		align-items: center;
 		padding: 18px 5%;
-		background: rgba(255,255,255,0.95);
+		background: #faf7f2;
 		backdrop-filter: blur(6px);
-		border-bottom: 1px solid rgba(0,0,0,0.05);
+		border-bottom: 1px solid rgba(0,0,0,0.06);
 		position: sticky;
 		top: 0;
 		z-index: 1000;
@@ -322,16 +322,32 @@
 	
 	@media(max-width: 768px) {
 	  .hero h1 {
-		font-size: 34px;
+		font-size: 32px;
+		line-height: 1.2;
 	  }
 
 	  .hero-text {
-		left: 5%;
-		max-width: 90%;
+		position: static;
+		transform: none;
+		text-align: left;
+		padding: 20px;
+		max-width: 100%;
+	  }
+
+	  .hero {
+		color: var(--text);
+	  }
+
+	  .hero::before {
+		display: none;
 	  }
 
 	  section {
 		padding: 60px 0;
+	  }
+	  
+	  .hero p {
+		font-size: 15px;
 	  }
 	}
 
