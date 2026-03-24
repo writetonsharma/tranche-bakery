@@ -205,6 +205,15 @@ nav a {
   object-fit: cover;
 }
 
+.image img:hover {
+  transform: scale(1.03);
+  transition: transform 0.4s ease;
+}
+
+.flex img {
+  box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+}
+
 
 /* ========================================
    FULL WIDTH IMAGE
@@ -305,12 +314,48 @@ nav a {
 }
 
 .faq-item p {
+  margin-top: 10px;
   font-size: 15px;
   opacity: 0.85;
-  margin: 0;
   line-height: 1.6;
 }
 
+.faq-item details {
+  border-bottom: 1px solid rgba(0,0,0,0.08);
+  padding: 16px 0;
+}
+
+.faq-item summary {
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 500;
+  list-style: none;
+  position: relative;
+}
+
+.faq-item summary::marker {
+  display: none;
+}
+
+.faq-item summary::after {
+  content: "+";
+  position: absolute;
+  right: 0;
+  font-size: 18px;
+}
+
+.faq-item details[open] summary::after {
+  content: "–";
+}
+
+.faq-item details[open] p {
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
 
 /* ========================================
    CTA
