@@ -5,6 +5,9 @@
 :root {
   --primary: #5a3e2b;
   --accent: #c69c6d;
+  --olive: #6e7750;
+  --olive-deep: #586240;
+  --olive-soft: #edf1e5;
   --bg: #faf7f2;
   --surface: #f3ece1;
   --surface-strong: #eadfce;
@@ -61,7 +64,7 @@ h1, h2, h3 {
   font-size: 12px;
   letter-spacing: 1.6px;
   text-transform: uppercase;
-  color: var(--primary);
+  color: var(--olive-deep);
   opacity: 0.72;
 }
 
@@ -173,7 +176,7 @@ nav a {
   display: inline-block;
   margin-top: 20px;
   padding: 12px 26px;
-  background: #4a2f1d;
+  background: linear-gradient(180deg, var(--olive) 0%, var(--olive-deep) 100%);
   color: white;
   text-decoration: none;
   border-radius: 2px;
@@ -183,7 +186,7 @@ nav a {
 }
 
 .btn:hover {
-  background: #3b2517;
+  background: linear-gradient(180deg, #626c48 0%, #4d5638 100%);
 }
 
 
@@ -304,7 +307,7 @@ nav a {
 }
 
 .standard-card {
-  background: linear-gradient(180deg, rgba(255,255,255,0.78), rgba(243,236,225,0.92));
+  background: linear-gradient(180deg, rgba(255,255,255,0.82), rgba(237,241,229,0.96));
   border: 1px solid rgba(90, 62, 43, 0.08);
   border-radius: 14px;
   padding: 22px;
@@ -330,6 +333,7 @@ nav a {
 
 .philosophy-section {
   padding: 25px 0 20px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.55), rgba(237,241,229,0.58));
 }
 
 .philosophy-grid {
@@ -359,11 +363,16 @@ nav a {
 }
 
 .philosophy-card {
-  background: rgba(255,255,255,0.68);
+  background: linear-gradient(180deg, rgba(255,255,255,0.82), rgba(243,236,225,0.72));
   border: 1px solid rgba(90, 62, 43, 0.08);
   border-radius: 14px;
   padding: 20px;
   box-shadow: 0 10px 24px rgba(90, 62, 43, 0.04);
+}
+
+.philosophy-card:first-child,
+.philosophy-card:last-child {
+  border-color: rgba(110, 119, 80, 0.18);
 }
 
 .philosophy-card h3 {
@@ -511,8 +520,8 @@ nav a {
 }
 
 .offer-card {
-  background: linear-gradient(180deg, rgba(90,62,43,0.07), rgba(198,156,109,0.1));
-  border: 1px solid rgba(90, 62, 43, 0.1);
+  background: linear-gradient(180deg, rgba(237,241,229,0.95), rgba(234,223,206,0.72));
+  border: 1px solid rgba(110, 119, 80, 0.18);
   border-radius: 14px;
   padding: 24px;
 }
@@ -599,6 +608,10 @@ footer {
 
 @media(max-width: 768px) {
 
+  body {
+    background: linear-gradient(180deg, #fcfaf6 0%, #f6f1e9 100%);
+  }
+
   header {
     gap: 12px;
     align-items: flex-start;
@@ -617,6 +630,19 @@ footer {
 
   section {
     padding: 60px 0;
+  }
+
+  .home section:nth-of-type(odd):not(.hero):not(.cta):not(.full-width) {
+    background: rgba(255,255,255,0.64);
+  }
+
+  .home .philosophy-section,
+  .home .small-batch-section,
+  .home .offer-strip,
+  .home .education,
+  .home .faq {
+    border-top: 1px solid rgba(90, 62, 43, 0.04);
+    border-bottom: 1px solid rgba(90, 62, 43, 0.04);
   }
 
   .philosophy-grid,
@@ -658,6 +684,7 @@ footer {
 
   .hero {
     color: var(--text);
+    background: linear-gradient(180deg, rgba(237,241,229,0.76), rgba(250,247,242,0.96));
   }
 
   .hero::before {
@@ -1097,8 +1124,8 @@ footer {
   align-items: center;
   padding: 8px 14px;
   border-radius: 999px;
-  background: rgba(90, 62, 43, 0.08);
-  border: 1px solid rgba(90, 62, 43, 0.1);
+  background: rgba(110, 119, 80, 0.11);
+  border: 1px solid rgba(110, 119, 80, 0.16);
   font-size: 13px;
   letter-spacing: 0.2px;
 }
