@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -28,6 +28,7 @@
 <div class="category-nav">
   <div class="container">
     <a href="#loaves">Loaves</a>
+		<a href="#french-flour">French Flour</a>
     <a href="#rolls">Rolls</a>
   </div>
 </div>
@@ -37,10 +38,21 @@
     <div class="container" style="text-align:center; max-width:700px;">
       <h1>Our Breads</h1>
       <p>
-        A selection of small-batch breads made with simple ingredients and slow fermentation.
+				A focused range of loaves and rolls made in small batches, with simple ingredients, slower fermentation, and real kitchen-made character.
       </p>
+	  <p class="catalog-note">Some products are already available to order while photography is still being completed. Where images are missing, the bread is still part of the menu.</p>
     </div>
   </section>
+
+	<section class="product-standards">
+	<div class="container standards-pill-row">
+	  <span class="standard-pill">Slow-fermented</span>
+	  <span class="standard-pill">Small-batch baked</span>
+	  <span class="standard-pill">No improvers or preservatives</span>
+	  <span class="standard-pill">Photographed as baked</span>
+	</div>
+	<p class="photo-note">All product images on this page are of our own breads, photographed as baked in our kitchen.</p>
+	</section>
 
   <!-- Loaves -->
   <section id="loaves">
@@ -52,27 +64,22 @@
 	<div class="product">
 		<div class="image gallery">
 		  <img class="main-img" src="Images/Products/EnrichedWhite/EnrichedWhiteFull.jpg" alt="Enriched White Bread">
-		  <div class="info-icon" onclick="toggleTooltip(this)">&#9432;</div>
 		  <div class="thumbs">
 			<img src="Images/Products/EnrichedWhite/EnrichedWhiteFull.jpg" onclick="changeImage(this)" class="active">
 			<img src="Images/Products/EnrichedWhite/EnrichedWhiteCloseup-edited-1600.jpg" onclick="changeImage(this)">
 			<img src="Images/Products/EnrichedWhite/EnrichedWhiteSlices-edited-1600.jpg" onclick="changeImage(this)">
 		  </div>
-		<div class="tooltip">
-			<strong>Real breads, photographed as they are.</strong><br>
-			No enhancements or styling -- just honest baking.
-		  </div>
 		</div>
 	  <div class="text">
-		<h3>Enriched White Bread</h3>
+		<h3>Enriched White Loaf</h3>
 		<p>
-		A soft, rich everyday loaf made with milk and butter for a tender crumb and balanced sweetness.
+		A soft enriched loaf made with milk and butter for a tender crumb, gentle richness, and an easy everyday finish.
 		</p>
 		<ul>
 		  <li>Soft, plush texture</li>
 		  <li>Lightly sweet and buttery finish</li>
 		  <li>Great for toast and sandwiches</li>
-		  <li>No additives or preservatives</li>
+		  <li>Best suited to everyday slicing</li>
 		</ul>
 
 		<button class="toggle-btn">View Details &#8595;</button>
@@ -120,43 +127,33 @@
 
 		  <div class="gallery variant-gallery active" data-variant-panel="50">
 			<img class="main-img" src="Images/Products/wholewheat/WholeWheatFull.jpg" alt="Whole Wheat Bread 50%">
-			<div class="info-icon" onclick="toggleTooltip(this)">&#9432;</div>
 			<div class="thumbs">
 			  <img src="Images/Products/wholewheat/WholeWheatFull.jpg" onclick="changeImage(this)" class="active">
 			  <img src="Images/Products/wholewheat/WholeWheatCloseupTop.jpg" onclick="changeImage(this)">
 			  <img src="Images/Products/wholewheat/WholeWheatCloseup1.jpg" onclick="changeImage(this)">
 			  <img src="Images/Products/wholewheat/WholeWheatCloseup2.jpg" onclick="changeImage(this)">
 			</div>
-			<div class="tooltip">
-			  <strong>Real breads, photographed as they are.</strong><br>
-			  No enhancements or styling -- just honest baking.
-			</div>
 		  </div>
 
 		  <div class="gallery variant-gallery" data-variant-panel="80" hidden>
 			<img class="main-img" src="Images/Products/wholewheat/80/WholeWheat80Full.jpg" alt="Whole Wheat Bread 80%">
-			<div class="info-icon" onclick="toggleTooltip(this)">&#9432;</div>
 			<div class="thumbs">
 			  <img src="Images/Products/wholewheat/80/WholeWheat80Full.jpg" onclick="changeImage(this)" class="active">
 			  <img src="Images/Products/wholewheat/80/WholeWheat80Closeup.jpg" onclick="changeImage(this)">
 			  <img src="Images/Products/wholewheat/80/WholeWheat80Slices.jpg" onclick="changeImage(this)">
 			</div>
-			<div class="tooltip">
-			  <strong>Real breads, photographed as they are.</strong><br>
-			  No enhancements or styling -- just honest baking.
-			</div>
 		  </div>
 		</div>
 	  <div class="text">
-		<h3>Whole Wheat Bread</h3>
+		<h3>Whole Wheat Loaf</h3>
 		<p>
-		Our everyday whole wheat loaf, available in 50% or 80% whole wheat based on your preference.
+		Our everyday whole wheat loaf, available in 50% or 80% whole wheat depending on how soft or grain-forward you want it.
 		</p>
 		<ul>
 		  <li>Choose between 50% and 80% whole wheat</li>
 		  <li>50% is softer, 80% is denser and more robust</li>
-		  <li>Made for everyday use</li>
-		  <li>No additives or preservatives</li>
+		  <li>Balanced for regular toast and sandwiches</li>
+		  <li>Wheaty flavor without commercial softeners</li>
 		</ul>
 
 		<button class="toggle-btn">View Details &#8595;</button>
@@ -205,26 +202,21 @@
 	<div class="product">
 		<div class="image gallery">
 		  <img class="main-img" src="Images/Products/WalnutSlices1.jpg" alt="Walnut Honey Bread">
-		  <div class="info-icon" onclick="toggleTooltip(this)">&#9432;</div>
 		  <div class="thumbs">
 			<img src="Images/Products/WalnutSlices1.jpg" onclick="changeImage(this)" class="active">
 			<img src="Images/Products/WalnutCloseSlices3.jpg" onclick="changeImage(this)">
 			<img src="Images/Products/WalnutCloseSlices.jpg" onclick="changeImage(this)">
 		  </div>
-		<div class="tooltip">
-			<strong>Real breads, photographed as they are.</strong><br>
-			No enhancements or styling -- just honest baking.
-		  </div>
 		</div>
 	  <div class="text">
-		<h3>Walnut & Honey Bread</h3>
+		<h3>Honey & Walnut Loaf</h3>
 		<p>
-		A wholesome loaf made with our blend of whole wheat flour, toasted walnuts, and raw honey  giving it a hint of natural sweetness and a rich, nutty texture.
+		A whole wheat-forward loaf with toasted walnuts and raw honey, giving it a gentle sweetness and a rich, nutty bite.
 		</p>
 		<ul>
 		  <li>15% toasted walnuts</li>
 		  <li>Lightly sweetened with honey</li>
-		  <li>No additives or preservatives</li>
+		  <li>Soft crumb with nutty contrast</li>
 		</ul>
 
 		<button class="toggle-btn">View Details &#8595;</button>
@@ -266,28 +258,23 @@
 	<div class="product">
 		<div class="image gallery">
 		  <img class="main-img" src="Images/Products/Olive/OliveFull.jpg" alt="Olive Bread">
-		  <div class="info-icon" onclick="toggleTooltip(this)">&#9432;</div>
 		  <div class="thumbs">
 			<img src="Images/Products/Olive/OliveFull.jpg" onclick="changeImage(this)" class="active">
 			<img src="Images/Products/Olive/OliveCloseup1.jpg" onclick="changeImage(this)">
 			<img src="Images/Products/Olive/OliveCloseup2.jpg" onclick="changeImage(this)">
 			<img src="Images/Products/Olive/OliveSlicesCloseup.jpg" onclick="changeImage(this)">
 		  </div>
-		<div class="tooltip">
-			<strong>Real breads, photographed as they are.</strong><br>
-			No enhancements or styling -- just honest baking.
-		  </div>
 		</div>
 	  <div class="text">
-		<h3>Olive Bread</h3>
+		<h3>Olive Loaf</h3>
 		<p>
-		A savory loaf with olives folded into slow-fermented dough for a rich, briny bite and soft crumb.
+		A savory slow-fermented loaf studded with olives, with a soft crumb and a gentle briny finish.
 		</p>
 		<ul>
 		  <li>Olive-forward savory flavor</li>
 		  <li>Soft interior with light chew</li>
 		  <li>Ideal for toast and sandwiches</li>
-		  <li>No additives or preservatives</li>
+		  <li>Works well with cheese and soups</li>
 		</ul>
 
 		<button class="toggle-btn">View Details &#8595;</button>
@@ -323,15 +310,238 @@
 	  </div>
 	</div>
 
+	<div class="product">
+	  <div class="image placeholder"></div>
+	  <div class="text">
+		<h3>Onion Loaf</h3>
+		<p>A savory loaf with a deeper baked flavor, made for customers who prefer a more aromatic, meal-friendly bread.</p>
+		<ul>
+		  <li>Gentle onion sweetness with savory depth</li>
+		  <li>Balanced crumb for toast and sandwiches</li>
+		  <li>Currently listed before final photography is added</li>
+		</ul>
+
+		<button class="toggle-btn">View Details &#8595;</button>
+		<div class="details">
+		  <p><strong>Ingredients</strong><br>
+		  Flour blend, onions, yeast, salt, water.
+		  </p>
+
+		  <p><strong>What to Expect</strong><br>
+		  A savory loaf with a soft crumb, a fuller aroma, and mild sweetness from the onions as they bake into the dough.</p>
+
+		  <p><strong>Baker's Details</strong></p>
+		  <p>
+		  Flour: Our house bread flour blend<br>
+		  Hydration: 68-72%<br>
+		  Onion: varies by batch<br>
+		  Salt: 2%<br>
+		  Yeast: 1%
+		  </p>
+
+		  <p><strong>Weight</strong><br>
+		  Approx 800g</p>
+		  <p>
+		  Best consumed within 2-3 days.
+		  </p>
+
+		  <a href="https://wa.me/91XXXXXXXXXX?text=Hi%20TRANCH%C3%89%2C%20I%20want%20to%20order%20the%20onion%20loaf." class="btn" target="_blank" rel="noopener">Order on WhatsApp</a>
+		</div>
+	  </div>
+	</div>
+
+	<div class="product reverse">
+	  <div class="image placeholder"></div>
+	  <div class="text">
+		<h3>Honey &amp; Oat Loaf</h3>
+		<p>A soft loaf with a rounded oat finish and a mild touch of honey, designed to sit between wholesome and comforting.</p>
+		<ul>
+		  <li>Soft crumb with subtle oat character</li>
+		  <li>Light honey sweetness, not dessert-like</li>
+		  <li>Currently listed before final photography is added</li>
+		</ul>
+
+		<button class="toggle-btn">View Details &#8595;</button>
+		<div class="details">
+		  <p><strong>Ingredients</strong><br>
+		  Flour blend, oats, honey, yeast, salt, water.
+		  </p>
+
+		  <p><strong>What to Expect</strong><br>
+		  A softer loaf with a mild chew, a little oat texture, and a gentle honey finish that works well for breakfast and toast.</p>
+
+		  <p><strong>Baker's Details</strong></p>
+		  <p>
+		  Flour: Our house bread flour blend<br>
+		  Oats: varies by batch<br>
+		  Honey: varies by batch<br>
+		  Hydration: 68-72%<br>
+		  Salt: 2%<br>
+		  Yeast: 1%
+		  </p>
+
+		  <p><strong>Weight</strong><br>
+		  Approx 800g</p>
+		  <p>
+		  Best consumed within 2-3 days.
+		  </p>
+
+		  <a href="https://wa.me/91XXXXXXXXXX?text=Hi%20TRANCH%C3%89%2C%20I%20want%20to%20order%20the%20honey%20and%20oat%20loaf." class="btn" target="_blank" rel="noopener">Order on WhatsApp</a>
+		</div>
+	  </div>
+	</div>
+
       <div class="product reverse">
         <div class="image placeholder"></div>
         <div class="text">
           <h3>Multigrain Loaf</h3>
-          <p>Available in 20%, 50%, or 80% whole wheat.</p>
+					<p>A grain-rich loaf built on a fixed 50:50 whole wheat and white flour base for a balanced bite, softer crumb, and multigrain depth.</p>
+		  <ul>
+			<li>Nutty flavor with more texture throughout</li>
+			<li>Standard 50:50 whole wheat and white flour formula</li>
+			<li>Images will be added as this product is photographed</li>
+		  </ul>
         </div>
       </div>
 
     </div>
+  </section>
+
+  <section id="french-flour" class="premium-range">
+	<div class="container">
+	  <h2 class="section-divider">
+		<span>French Flour Collection</span>
+	  </h2>
+	  <div class="premium-range-intro">
+		<p class="premium-kicker">Premium Segment</p>
+		<p>This collection is built around imported French T-style flour and is designed to sit above the everyday range. These are our own breads made with French flour, not named French specialty breads. Final pricing will be announced separately, but the collection itself is now defined.</p>
+	  </div>
+
+	  <div class="product premium-product">
+		<div class="image placeholder premium-placeholder"></div>
+		<div class="text">
+		  <p class="premium-label">French Flour Collection</p>
+		  <h3>French Whole Grain Loaf</h3>
+		  <p>A full whole grain loaf made with imported French T150 flour, designed for deeper wheat character, darker crumb, and a more serious whole grain finish.</p>
+		  <ul>
+			<li>Made with imported French T150 flour</li>
+			<li>Deeper grain flavor and fuller structure</li>
+			<li>Built for customers who want a stronger whole grain loaf</li>
+		  </ul>
+
+		  <button class="toggle-btn">View Details &#8595;</button>
+		  <div class="details">
+			<p><strong>Ingredients</strong><br>
+			Imported French T150 flour, yeast, salt, water.
+			</p>
+
+			<p><strong>What to Expect</strong><br>
+			A deeper whole grain loaf with fuller aroma, more pronounced wheat flavor, and a denser, more structured crumb than the everyday whole wheat range.</p>
+
+			<p><strong>Baker's Details</strong></p>
+			<p>
+			French T150 flour: 100%<br>
+			Hydration: 75-80%<br>
+			Salt: 2%<br>
+			Yeast: 1%
+			</p>
+
+			<p><strong>Weight</strong><br>
+			Approx 800g</p>
+			<p>
+			Pricing will be announced separately.
+			</p>
+
+			<a href="https://wa.me/91XXXXXXXXXX?text=Hi%20TRANCH%C3%89%2C%20I%20want%20to%20know%20more%20about%20the%20French%20Whole%20Grain%20Loaf." class="btn" target="_blank" rel="noopener">Enquire on WhatsApp</a>
+		  </div>
+		</div>
+	  </div>
+
+	  <div class="product reverse premium-product">
+		<div class="image placeholder premium-placeholder"></div>
+		<div class="text">
+		  <p class="premium-label">French Flour Collection</p>
+		  <h3>French Seeded Loaf</h3>
+		  <p>A more textured seeded loaf made with imported French T150 flour, designed to feel more rustic, more aromatic, and more elevated than the standard multigrain loaf.</p>
+		  <ul>
+			<li>Made with imported French T150 flour</li>
+			<li>15% seed mix for added texture and depth</li>
+			<li>Premium alternative to the regular multigrain loaf</li>
+		  </ul>
+
+		  <button class="toggle-btn">View Details &#8595;</button>
+		  <div class="details">
+			<p><strong>Ingredients</strong><br>
+			Imported French T150 flour, flax seeds, chia seeds, pumpkin seeds, sunflower seeds, sesame seeds, yeast, salt, water.
+			</p>
+
+			<p><strong>What to Expect</strong><br>
+			A hearty loaf with a fuller bite, layered seed texture, and a deeper finish than the standard 50:50 multigrain loaf.</p>
+
+			<p><strong>Baker's Details</strong></p>
+			<p>
+			French T150 flour: 100%<br>
+			Seed mix: 15%<br>
+			Hydration: 75%<br>
+			Salt: 2%<br>
+			Yeast: 1%
+			</p>
+
+			<p><strong>Weight</strong><br>
+			Approx 800g</p>
+			<p>
+			Pricing will be announced separately.
+			</p>
+
+			<a href="https://wa.me/91XXXXXXXXXX?text=Hi%20TRANCH%C3%89%2C%20I%20want%20to%20know%20more%20about%20the%20French%20Seeded%20Loaf." class="btn" target="_blank" rel="noopener">Enquire on WhatsApp</a>
+		  </div>
+		</div>
+	  </div>
+
+	  <div class="product premium-product">
+		<div class="image placeholder premium-placeholder"></div>
+		<div class="text">
+		  <p class="premium-label">French Flour Collection</p>
+		  <h3>French Enriched Loaf</h3>
+		  <p>An enriched loaf made with a blend of French T150 and T65 flour for a softer crumb, richer mouthfeel, and a more refined finish than the everyday enriched loaf.</p>
+		  <ul>
+			<li>Made with a blend of French T150 and T65 flour</li>
+			<li>Softer, richer premium enriched loaf</li>
+			<li>Designed as the gentlest entry into the French flour range</li>
+		  </ul>
+
+		  <button class="toggle-btn">View Details &#8595;</button>
+		  <div class="details">
+			<p><strong>Ingredients</strong><br>
+			Imported French T150 flour, imported French T65 flour, whole milk, white butter, sugar, salt, yeast.
+			</p>
+
+			<p><strong>What to Expect</strong><br>
+			A softer and more refined enriched loaf with gentle sweetness, tender crumb, and a richer finish than the standard enriched white loaf.</p>
+
+			<p><strong>Baker's Details</strong></p>
+			<p>
+			French T150 flour: 20%<br>
+			French T65 flour: 80%<br>
+			Hydration: 68-72%<br>
+			Whole milk: 40%<br>
+			White butter: 7%<br>
+			Sugar: 5%<br>
+			Salt: 2%<br>
+			Yeast: 1%
+			</p>
+
+			<p><strong>Weight</strong><br>
+			Approx 800g</p>
+			<p>
+			Pricing will be announced separately.
+			</p>
+
+			<a href="https://wa.me/91XXXXXXXXXX?text=Hi%20TRANCH%C3%89%2C%20I%20want%20to%20know%20more%20about%20the%20French%20Enriched%20Loaf." class="btn" target="_blank" rel="noopener">Enquire on WhatsApp</a>
+		  </div>
+		</div>
+	  </div>
+	</div>
   </section>
 
   <!-- Rolls -->
@@ -341,33 +551,27 @@
 		  <span>Rolls</span>
 		</h2>
 		<p class="rolls-intro">
-		  We offer rolls across different whole wheat levels through separate products: 20%, 50%, and 80% whole wheat.
-		  Choose based on your preference -- softer and lighter at lower whole wheat, or more wheaty and denser at higher whole wheat.
+		  Our rolls are offered at different whole wheat levels so you can choose between a softer bite and a more grain-forward, hearty crumb.
 		</p>
 
       <div class="product">
 		<div class="image gallery">
 		  <img class="main-img" src="Images/Products/Rolls/WholeWheat/BreadRolls.jpg" alt="Whole Wheat Rolls">
-		  <div class="info-icon" onclick="toggleTooltip(this)">&#9432;</div>
 		  <div class="thumbs">
 			<img src="Images/Products/Rolls/WholeWheat/BreadRolls.jpg" onclick="changeImage(this)" class="active">
 			<img src="Images/Products/Rolls/WholeWheat/WholeWheat1.jpg" onclick="changeImage(this)">
 			<img src="Images/Products/Rolls/WholeWheat/WholeWheat2.jpg" onclick="changeImage(this)">
 			<img src="Images/Products/Rolls/WholeWheat/WholeWheat3.jpg" onclick="changeImage(this)">
 		  </div>
-		<div class="tooltip">
-			<strong>Real breads, photographed as they are.</strong><br>
-			No enhancements or styling -- just honest baking.
-		  </div>
 		</div>
         <div class="text">
-          <h3>Whole Wheat Classic Rolls</h3>
-          <p>Set of 6 hearty rolls, baked fresh in small batches for everyday meals.</p>
+		  <h3>Whole Wheat Rolls</h3>
+		  <p>Set of 6 hearty rolls with deeper whole wheat flavor and a more substantial bite.</p>
           <ul>
             <li>Classic wholesome roll with a denser bite</li>
-            <li>Great for breakfast, sliders, and mini sandwiches</li>
-            <li>Baked fresh in small batches</li>
-            <li>No additives or preservatives</li>
+			<li>Made for breakfast plates, sliders, and mini sandwiches</li>
+			<li>Baked fresh in small batches</li>
+			<li>More grain-forward than the softer roll options</li>
           </ul>
 
 		  <button class="toggle-btn">View Details &#8595;</button>
@@ -402,25 +606,20 @@
       <div class="product">
 		<div class="image gallery">
 		  <img class="main-img" src="Images/Products/Rolls/MultiGrain/MultiGrainRoll1.jpg" alt="Multigrain Rolls">
-		  <div class="info-icon" onclick="toggleTooltip(this)">&#9432;</div>
 		  <div class="thumbs">
 			<img src="Images/Products/Rolls/MultiGrain/MultiGrainRoll1.jpg" onclick="changeImage(this)" class="active">
 			<img src="Images/Products/Rolls/MultiGrain/MultiGrainRoll2.jpg" onclick="changeImage(this)">
 			<img src="Images/Products/Rolls/MultiGrain/MultiGrainRoll3.jpg" onclick="changeImage(this)">
 		  </div>
-		<div class="tooltip">
-			<strong>Real breads, photographed as they are.</strong><br>
-			No enhancements or styling -- just honest baking.
-		  </div>
 		</div>
         <div class="text">
-          <h3>Multigrain Classic Rolls</h3>
-          <p>Set of 6 soft, everyday rolls with a balanced texture and flavor.</p>
+		  <h3>Multigrain Rolls</h3>
+		  <p>Set of 6 everyday rolls with a softer bite than the whole wheat version and a balanced grain profile.</p>
           <ul>
             <li>Classic soft roll with a balanced bite</li>
-            <li>Great for breakfast, sliders, and mini sandwiches</li>
+			<li>Good for breakfast, sliders, and mini sandwiches</li>
             <li>Softer than whole wheat rolls</li>
-            <li>No additives or preservatives</li>
+			<li>Balanced texture with multigrain depth</li>
           </ul>
 
 		  <button class="toggle-btn">View Details &#8595;</button>
@@ -455,13 +654,13 @@
       <div class="product">
         <div class="image placeholder"></div>
         <div class="text">
-          <h3>Enriched Milk Rolls</h3>
-          <p>Set of 6 soft enriched rolls with a lighter whole wheat profile.</p>
+					<h3>Enriched Buns</h3>
+		  <p>Set of 6 soft enriched buns with a tender crumb, light sweetness, and a lighter whole wheat profile.</p>
           <ul>
-            <li>Classic soft roll with tender crumb</li>
-            <li>Great for breakfast, sliders, and mini sandwiches</li>
+			<li>Classic soft bun with tender crumb</li>
+			<li>Good for breakfast, sliders, and mini sandwiches</li>
             <li>Softer and lighter compared to higher whole wheat rolls</li>
-            <li>No additives or preservatives</li>
+			<li>Enriched with milk and butter</li>
           </ul>
 
 		  <button class="toggle-btn">View Details &#8595;</button>
@@ -471,7 +670,7 @@
 			</p>
 			  
 			<p><strong>What to Expect</strong><br>
-			A softer enriched roll with a balanced flavor and tender bite.</p>
+			A soft enriched bun with a tender bite, gentle sweetness, and enough structure for breakfast sandwiches or sliders.</p>
 			  
 			<p><strong>Baker's Details</strong></p>
 			<p>
@@ -486,12 +685,12 @@
 			</p>
 			
 			<p><strong>Weight</strong><br>
-			Set of 6 rolls</p>
+			Set of 6 buns</p>
 			<p>
 			Best consumed within 2-3 days.
 			</p>
 
-			<a href="https://wa.me/91XXXXXXXXXX?text=Hi%20TRANCH%C3%89%2C%20I%20want%20to%20order%20enriched%20milk%20rolls." class="btn" target="_blank" rel="noopener">Order on WhatsApp</a>
+			<a href="https://wa.me/91XXXXXXXXXX?text=Hi%20TRANCH%C3%89%2C%20I%20want%20to%20order%20the%20enriched%20buns." class="btn" target="_blank" rel="noopener">Order on WhatsApp</a>
 		  </div>
         </div>
       </div>
@@ -502,7 +701,7 @@
   <!-- CTA -->
   <section class="cta">
     <h2>Order for the next bake</h2>
-    <p>Message on WhatsApp to check availability</p>
+		<p>Message on WhatsApp to check availability and reserve your order.</p>
     <a href="https://wa.me/91XXXXXXXXXX?text=Hi%20TRANCH%C3%89%2C%20I%20want%20to%20check%20availability%20for%20the%20next%20bake." class="btn" target="_blank" rel="noopener">Message on WhatsApp</a>
   </section>
 
@@ -589,29 +788,6 @@
 
 		  el.classList.add('active');
 		}
-		
-		function toggleTooltip(iconEl) {
-		  const gallery = iconEl.closest(".gallery");
-		  if (!gallery) return;
-
-		  const tooltip = gallery.querySelector(".tooltip");
-		  if (!tooltip) return;
-
-		  document.querySelectorAll(".tooltip.show").forEach(t => {
-			if (t !== tooltip) t.classList.remove("show");
-		  });
-
-		  tooltip.classList.toggle("show");
-		}
-
-		// Optional: close when clicking outside
-		document.addEventListener("click", function(e) {
-		  if (!e.target.closest(".gallery")) {
-			document.querySelectorAll(".tooltip.show").forEach(tooltip => {
-			  tooltip.classList.remove("show");
-			});
-		  }
-		});
 
 	const sections = document.querySelectorAll("section[id]");
 	const navLinks = document.querySelectorAll(".category-nav a");
