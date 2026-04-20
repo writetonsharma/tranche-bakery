@@ -487,8 +487,10 @@ footer {
   position: absolute;
   left: 24px;
   bottom: 24px;
+  max-width: calc(100% - 48px);
   font-family: 'Playfair Display', serif;
   font-size: 24px;
+  line-height: 1.15;
   color: rgba(90, 62, 43, 0.72);
 }
 
@@ -499,6 +501,22 @@ footer {
 
 @media(max-width: 768px) {
 
+  header {
+    gap: 12px;
+    align-items: flex-start;
+  }
+
+  nav {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    row-gap: 8px;
+  }
+
+  nav a {
+    margin-left: 16px;
+  }
+
   section {
     padding: 60px 0;
   }
@@ -506,6 +524,16 @@ footer {
   .flex,
   .products .product {
     flex-direction: column;
+  }
+
+  .products .product.reverse {
+    flex-direction: column;
+  }
+
+  .products .product .image,
+  .products .product .text {
+    width: 100%;
+    flex: none;
   }
 
   .hero h1 {
@@ -536,6 +564,48 @@ footer {
   header {
     background: #faf7f2;
     backdrop-filter: none;
+  }
+
+  .category-nav {
+    top: 78px;
+  }
+
+  .category-nav .container {
+    justify-content: flex-start;
+    gap: 24px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    padding-bottom: 2px;
+  }
+
+  .category-nav .container::-webkit-scrollbar {
+    display: none;
+  }
+
+  .thumbs {
+    overflow-x: auto;
+    padding-bottom: 4px;
+    scrollbar-width: none;
+  }
+
+  .thumbs::-webkit-scrollbar {
+    display: none;
+  }
+
+  .placeholder {
+    min-height: 220px;
+  }
+
+  .placeholder::after {
+    left: 18px;
+    right: 18px;
+    bottom: 18px;
+    max-width: none;
+    font-size: 18px;
+  }
+
+  .premium-range-intro {
+    margin-bottom: 22px;
   }
 }
 
