@@ -116,7 +116,7 @@
 		</div>
 
 		<div class="image">
-      <img src="./Images/HomePage/WhatMakesOurBreadDifferent.jpg" alt="What Makes Our Bread Different" loading="lazy" decoding="async">
+      <img src="./Images/HomePage/WhatMakesOurBreadDifferent.jpg" alt="What Makes Our Bread Different" decoding="async">
 		</div>
 
 	  </div>
@@ -151,7 +151,7 @@
         <p>Soft and lightly sweet, with a tender crumb that works beautifully for toast, sandwiches, and everyday eating.</p>
       </div>
       <div class="image">
-		<img src="./Images/HomePage/MilkBreadSlice.jpg" alt="Milk bread slices" loading="lazy" decoding="async">
+    <img src="./Images/HomePage/MilkBreadSlice.jpg" alt="Milk bread slices" decoding="async">
       </div>
     </div>
   </section>
@@ -163,13 +163,13 @@
         <p>A hearty 50:50 whole wheat and white flour loaf with grains and seeds throughout, giving it a nutty finish, balanced softness, and plenty of texture.</p>
       </div>
       <div class="image">
-		<img src="./Images/HomePage/MultigrainSliceCloseup.jpg" alt="Multigrain bread slice close-up" loading="lazy" decoding="async">
+    <img src="./Images/HomePage/MultigrainSliceCloseup.jpg" alt="Multigrain bread slice close-up" decoding="async">
       </div>
     </div>
   </section>
 
 	<section class="full-width">
-    <img src="./Images/HomePage/MultiGrainPortrait.jpg" alt="Freshly baked multigrain bread loaf" loading="lazy" decoding="async">
+    <img src="./Images/HomePage/MultiGrainPortrait.jpg" alt="Freshly baked multigrain bread loaf" decoding="async">
 	  <p class="image-note">All images are from our kitchen.</p>
 	</section>
 
@@ -180,7 +180,7 @@
         <p>Small-batch rolls with a wholesome crumb and balanced texture, made for breakfast plates, sliders, and everyday meals.</p>
       </div>
       <div class="image">
-		<img src="./Images/HomePage/BreadRolls.jpg" alt="Multigrain and whole wheat bread rolls" loading="lazy" decoding="async">
+    <img src="./Images/HomePage/BreadRolls.jpg" alt="Multigrain and whole wheat bread rolls" decoding="async">
       </div>
     </div>
   </section>
@@ -375,6 +375,24 @@ function alignHashTarget() {
   });
 }
 
+function stabilizeHashTarget() {
+  if (!window.location.hash) return;
+
+  let framesRemaining = 24;
+
+  function step() {
+    alignHashTarget();
+    framesRemaining -= 1;
+
+    if (framesRemaining > 0) {
+      window.requestAnimationFrame(step);
+    }
+  }
+
+  window.requestAnimationFrame(step);
+  [150, 350, 700].forEach(delay => window.setTimeout(alignHashTarget, delay));
+}
+
 // Optional: close when clicking outside
 document.addEventListener("click", function(e) {
   const tooltip = document.getElementById("tooltip");
@@ -385,13 +403,18 @@ document.addEventListener("click", function(e) {
   }
 });
 
-function scheduleHashAlignment() {
-  alignHashTarget();
-  [180, 500, 1000].forEach(delay => window.setTimeout(alignHashTarget, delay));
+if ("scrollRestoration" in history) {
+  history.scrollRestoration = "manual";
 }
 
-window.addEventListener("load", scheduleHashAlignment);
-window.addEventListener("pageshow", scheduleHashAlignment);
+window.addEventListener("DOMContentLoaded", stabilizeHashTarget);
+window.addEventListener("load", stabilizeHashTarget);
+window.addEventListener("pageshow", stabilizeHashTarget);
+window.addEventListener("hashchange", stabilizeHashTarget);
+
+if (document.fonts && document.fonts.ready) {
+  document.fonts.ready.then(stabilizeHashTarget);
+}
 </script>
 </body>
 </html>
