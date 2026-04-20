@@ -1,9 +1,9 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Our Breads — TRANCHÉ</title>
+  <title>Our Breads - TRANCHÉ</title>
 
   <!-- Reuse same fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
@@ -11,19 +11,26 @@
 	
 </head>
 
-<body id="top">
+<body id="top" class="products">
 
   <!-- Header -->
 <header>
-  <div class="logo">
+  <a class="logo" href="index.html" aria-label="Go to home">
     <strong>TRANCHÉ</strong>
     <span>Bakery</span>
-  </div>
+  </a>
   <nav>
     <a href="index.html">Home</a>
     <a href="breads.html">Breads</a>
   </nav>
 </header>
+
+<div class="category-nav">
+  <div class="container">
+    <a href="#loaves">Loaves</a>
+    <a href="#rolls">Rolls</a>
+  </div>
+</div>
 
   <!-- Intro -->
   <section>
@@ -36,17 +43,285 @@
   </section>
 
   <!-- Loaves -->
-  <section>
-    <div class="container">
-      <h2>Loaves</h2>
+  <section id="loaves">
+	<div class="container">
+      <h2 class="section-divider">
+		  <span>Loaves</span>
+		</h2>
 
-      <div class="product">
-        <div class="image placeholder"></div>
-        <div class="text">
-          <h3>Whole Wheat Loaf</h3>
-          <p>Available in 50% or 80% whole wheat.</p>
-        </div>
-      </div>
+	<div class="product">
+		<div class="image gallery">
+		  <img class="main-img" src="Images/Products/EnrichedWhite/EnrichedWhiteFull.jpg" alt="Enriched White Bread">
+		  <div class="info-icon" onclick="toggleTooltip(this)">&#9432;</div>
+		  <div class="thumbs">
+			<img src="Images/Products/EnrichedWhite/EnrichedWhiteFull.jpg" onclick="changeImage(this)" class="active">
+			<img src="Images/Products/EnrichedWhite/EnrichedWhiteCloseup-edited-1600.jpg" onclick="changeImage(this)">
+			<img src="Images/Products/EnrichedWhite/EnrichedWhiteSlices-edited-1600.jpg" onclick="changeImage(this)">
+		  </div>
+		<div class="tooltip">
+			<strong>Real breads, photographed as they are.</strong><br>
+			No enhancements or styling -- just honest baking.
+		  </div>
+		</div>
+	  <div class="text">
+		<h3>Enriched White Bread</h3>
+		<p>
+		A soft, rich everyday loaf made with milk and butter for a tender crumb and balanced sweetness.
+		</p>
+		<ul>
+		  <li>Soft, plush texture</li>
+		  <li>Lightly sweet and buttery finish</li>
+		  <li>Great for toast and sandwiches</li>
+		  <li>No additives or preservatives</li>
+		</ul>
+
+		<button class="toggle-btn">View Details &#8595;</button>
+		<div class="details">
+		<p><strong>Ingredients</strong><br>
+		Whole wheat flour, white flour, whole milk, white butter, sugar, salt, yeast.
+		</p>
+		  
+		  <p><strong>What to Expect</strong><br>
+		  Softer than whole wheat loaves, with a richer mouthfeel from milk and butter.</p>
+		  
+		  <p><strong>Baker's Details</strong></p>
+			<p>
+			Whole wheat flour: 20%<br>
+			White flour: 80%<br>
+			Hydration: 70%<br>
+			Whole milk: 40%<br>
+			White butter: 7%<br>
+			Sugar: 5%<br>
+			Salt: 2%<br>
+			Yeast: 1%
+			<p>
+			Dough weight: ~870g<br>
+			Final baked weight: ~800g
+			</p>
+			</p>
+		
+		  <p><strong>Weight</strong><br>
+		  Approx 800g</p>
+		  <p>
+		  Best consumed within 2-3 days.
+		  </p>
+  
+		  <a href="https://wa.me/91XXXXXXXXXX?text=Hi%20TRANCH%C3%89%2C%20I%20want%20to%20order%20this%20bread." class="btn" target="_blank" rel="noopener">Order on WhatsApp</a>
+		</div>
+	  </div>
+	</div>
+
+	<div class="product">
+		<div class="image wholewheat-image">
+		  <div class="variant-switch" aria-label="Whole wheat variant">
+			<button class="variant-btn active" type="button" data-variant="50">50% Whole Wheat</button>
+			<button class="variant-btn" type="button" data-variant="80">80% Whole Wheat</button>
+		  </div>
+
+		  <div class="gallery variant-gallery active" data-variant-panel="50">
+			<img class="main-img" src="Images/Products/wholewheat/WholeWheatFull.jpg" alt="Whole Wheat Bread 50%">
+			<div class="info-icon" onclick="toggleTooltip(this)">&#9432;</div>
+			<div class="thumbs">
+			  <img src="Images/Products/wholewheat/WholeWheatFull.jpg" onclick="changeImage(this)" class="active">
+			  <img src="Images/Products/wholewheat/WholeWheatCloseupTop.jpg" onclick="changeImage(this)">
+			  <img src="Images/Products/wholewheat/WholeWheatCloseup1.jpg" onclick="changeImage(this)">
+			  <img src="Images/Products/wholewheat/WholeWheatCloseup2.jpg" onclick="changeImage(this)">
+			</div>
+			<div class="tooltip">
+			  <strong>Real breads, photographed as they are.</strong><br>
+			  No enhancements or styling -- just honest baking.
+			</div>
+		  </div>
+
+		  <div class="gallery variant-gallery" data-variant-panel="80" hidden>
+			<img class="main-img" src="Images/Products/wholewheat/80/WholeWheat80Full.jpg" alt="Whole Wheat Bread 80%">
+			<div class="info-icon" onclick="toggleTooltip(this)">&#9432;</div>
+			<div class="thumbs">
+			  <img src="Images/Products/wholewheat/80/WholeWheat80Full.jpg" onclick="changeImage(this)" class="active">
+			  <img src="Images/Products/wholewheat/80/WholeWheat80Closeup.jpg" onclick="changeImage(this)">
+			  <img src="Images/Products/wholewheat/80/WholeWheat80Slices.jpg" onclick="changeImage(this)">
+			</div>
+			<div class="tooltip">
+			  <strong>Real breads, photographed as they are.</strong><br>
+			  No enhancements or styling -- just honest baking.
+			</div>
+		  </div>
+		</div>
+	  <div class="text">
+		<h3>Whole Wheat Bread</h3>
+		<p>
+		Our everyday whole wheat loaf, available in 50% or 80% whole wheat based on your preference.
+		</p>
+		<ul>
+		  <li>Choose between 50% and 80% whole wheat</li>
+		  <li>50% is softer, 80% is denser and more robust</li>
+		  <li>Made for everyday use</li>
+		  <li>No additives or preservatives</li>
+		</ul>
+
+		<button class="toggle-btn">View Details &#8595;</button>
+		<div class="details">
+		<p><strong>Ingredients</strong><br>
+		Whole wheat flour, refined flour, yeast, salt, water.
+		</p>
+		  
+		  <p><strong>What to Expect</strong><br>
+		    50% gives a softer, lighter bite while 80% has a stronger wheat flavor and denser structure.</p>
+
+		  <p><strong>Customization</strong><br>
+		  Available in 50% or 80% whole wheat. Choose based on your preference
+		  for softness vs whole grain intensity. As whole wheat content increases,
+		  the loaf becomes denser with a more pronounced wheaty flavor; lower whole
+		  wheat gives a more balanced taste and softer texture.
+		  </p>
+  
+		  <p><strong>Baker's Details</strong></p>
+			<p>
+			Whole wheat flour: <span data-wholewheat-pct>50%</span><br>
+			White flour: <span data-whiteflour-pct>50%</span><br>
+			Hydration: <span data-hydration-pct>70-75%</span><br>
+			Salt: 2%<br>
+			Yeast: 1%<br>
+			Lemon juice: 0.2%
+			<p>
+			Dough weight: <span data-dough-weight>~870g</span><br>
+			Final baked weight: <span data-final-weight>~800g</span>
+			</p>
+			</p>
+		
+		  <p><strong>Weight</strong><br>
+		  Approx 800g</p>
+		  <p>
+		  Best consumed within 2-3 days. <br/>
+		  Store in a cool place and avoid direct air.
+		  </p>
+  
+		  
+		  <a href="https://wa.me/91XXXXXXXXXX?text=Hi%20TRANCH%C3%89%2C%20I%20want%20to%20order%20this%20bread." class="btn" target="_blank" rel="noopener">Order on WhatsApp</a>
+		</div>
+	  </div>
+	</div>
+	
+	<div class="product">
+		<div class="image gallery">
+		  <img class="main-img" src="Images/Products/WalnutSlices1.jpg" alt="Walnut Honey Bread">
+		  <div class="info-icon" onclick="toggleTooltip(this)">&#9432;</div>
+		  <div class="thumbs">
+			<img src="Images/Products/WalnutSlices1.jpg" onclick="changeImage(this)" class="active">
+			<img src="Images/Products/WalnutCloseSlices3.jpg" onclick="changeImage(this)">
+			<img src="Images/Products/WalnutCloseSlices.jpg" onclick="changeImage(this)">
+		  </div>
+		<div class="tooltip">
+			<strong>Real breads, photographed as they are.</strong><br>
+			No enhancements or styling -- just honest baking.
+		  </div>
+		</div>
+	  <div class="text">
+		<h3>Walnut & Honey Bread</h3>
+		<p>
+		A wholesome loaf made with our blend of whole wheat flour, toasted walnuts, and raw honey  giving it a hint of natural sweetness and a rich, nutty texture.
+		</p>
+		<ul>
+		  <li>15% toasted walnuts</li>
+		  <li>Lightly sweetened with honey</li>
+		  <li>No additives or preservatives</li>
+		</ul>
+
+		<button class="toggle-btn">View Details &#8595;</button>
+		<div class="details">
+		<p><strong>Ingredients</strong><br>
+		Our house blend of predominantly whole wheat flour with a small portion of refined flour,
+		walnuts, honey, yeast, salt, lemon juice, water.
+		</p>
+		  
+		  <p><strong>What to Expect</strong><br>
+		  Soft crumb, mild chew, nutty crunch with a hint of sweetness.</p>
+		  
+		  <p><strong>Baker's Details</strong></p>
+			<p>
+			Hydration: 70%<br>
+			Walnuts: 15%<br>
+			Honey: 6%<br>
+			Salt: 2%<br>
+			Yeast: 1%<br>
+			Lemon juice: 0.2%
+			<p>
+			Dough weight: ~870g<br>
+			Final baked weight: ~800g
+			</p>
+			</p>
+		
+		  <p><strong>Weight</strong><br>
+		  Approx 800g</p>
+		  <p>
+		  Best consumed within 2-3 days.
+		  </p>
+  
+		  
+		  <a href="https://wa.me/91XXXXXXXXXX?text=Hi%20TRANCH%C3%89%2C%20I%20want%20to%20order%20this%20bread." class="btn" target="_blank" rel="noopener">Order on WhatsApp</a>
+		</div>
+	  </div>
+	</div>
+
+	<div class="product">
+		<div class="image gallery">
+		  <img class="main-img" src="Images/Products/Olive/OliveFull.jpg" alt="Olive Bread">
+		  <div class="info-icon" onclick="toggleTooltip(this)">&#9432;</div>
+		  <div class="thumbs">
+			<img src="Images/Products/Olive/OliveFull.jpg" onclick="changeImage(this)" class="active">
+			<img src="Images/Products/Olive/OliveCloseup1.jpg" onclick="changeImage(this)">
+			<img src="Images/Products/Olive/OliveCloseup2.jpg" onclick="changeImage(this)">
+			<img src="Images/Products/Olive/OliveSlicesCloseup.jpg" onclick="changeImage(this)">
+		  </div>
+		<div class="tooltip">
+			<strong>Real breads, photographed as they are.</strong><br>
+			No enhancements or styling -- just honest baking.
+		  </div>
+		</div>
+	  <div class="text">
+		<h3>Olive Bread</h3>
+		<p>
+		A savory loaf with olives folded into slow-fermented dough for a rich, briny bite and soft crumb.
+		</p>
+		<ul>
+		  <li>Olive-forward savory flavor</li>
+		  <li>Soft interior with light chew</li>
+		  <li>Ideal for toast and sandwiches</li>
+		  <li>No additives or preservatives</li>
+		</ul>
+
+		<button class="toggle-btn">View Details &#8595;</button>
+		<div class="details">
+		<p><strong>Ingredients</strong><br>
+		Flour blend, olives, yeast, salt, water.
+		</p>
+		  
+		  <p><strong>What to Expect</strong><br>
+		  Mildly tangy, savory notes from olives with balanced texture for everyday use.</p>
+		  
+		  <p><strong>Baker's Details</strong></p>
+			<p>
+			Flour: Our house high-whole-wheat flour blend<br>
+			Hydration: 68-72%<br>
+			Olives: 20%<br>
+			Salt: 1%<br>
+			Yeast: 1%
+			<p>
+			Dough weight: ~870g<br>
+			Final baked weight: ~800g
+			</p>
+			</p>
+		
+		  <p><strong>Weight</strong><br>
+		  Approx 800g</p>
+		  <p>
+		  Best consumed within 2-3 days.
+		  </p>
+  
+		  <a href="https://wa.me/91XXXXXXXXXX?text=Hi%20TRANCH%C3%89%2C%20I%20want%20to%20order%20this%20bread." class="btn" target="_blank" rel="noopener">Order on WhatsApp</a>
+		</div>
+	  </div>
+	</div>
 
       <div class="product reverse">
         <div class="image placeholder"></div>
@@ -60,15 +335,164 @@
   </section>
 
   <!-- Rolls -->
-  <section>
+  <section id="rolls">
     <div class="container">
-      <h2>Rolls</h2>
+		<h2 class="section-divider">
+		  <span>Rolls</span>
+		</h2>
+		<p class="rolls-intro">
+		  We offer rolls across different whole wheat levels through separate products: 20%, 50%, and 80% whole wheat.
+		  Choose based on your preference -- softer and lighter at lower whole wheat, or more wheaty and denser at higher whole wheat.
+		</p>
+
+      <div class="product">
+		<div class="image gallery">
+		  <img class="main-img" src="Images/Products/Rolls/WholeWheat/BreadRolls.jpg" alt="Whole Wheat Rolls">
+		  <div class="info-icon" onclick="toggleTooltip(this)">&#9432;</div>
+		  <div class="thumbs">
+			<img src="Images/Products/Rolls/WholeWheat/BreadRolls.jpg" onclick="changeImage(this)" class="active">
+			<img src="Images/Products/Rolls/WholeWheat/WholeWheat1.jpg" onclick="changeImage(this)">
+			<img src="Images/Products/Rolls/WholeWheat/WholeWheat2.jpg" onclick="changeImage(this)">
+			<img src="Images/Products/Rolls/WholeWheat/WholeWheat3.jpg" onclick="changeImage(this)">
+		  </div>
+		<div class="tooltip">
+			<strong>Real breads, photographed as they are.</strong><br>
+			No enhancements or styling -- just honest baking.
+		  </div>
+		</div>
+        <div class="text">
+          <h3>Whole Wheat Classic Rolls</h3>
+          <p>Set of 6 hearty rolls, baked fresh in small batches for everyday meals.</p>
+          <ul>
+            <li>Classic wholesome roll with a denser bite</li>
+            <li>Great for breakfast, sliders, and mini sandwiches</li>
+            <li>Baked fresh in small batches</li>
+            <li>No additives or preservatives</li>
+          </ul>
+
+		  <button class="toggle-btn">View Details &#8595;</button>
+		  <div class="details">
+			<p><strong>Ingredients</strong><br>
+			Whole wheat flour, white flour, yeast, salt, water.
+			</p>
+			  
+			<p><strong>What to Expect</strong><br>
+			A hearty roll with deeper whole wheat flavor and a denser bite.</p>
+			  
+			<p><strong>Baker's Details</strong></p>
+			<p>
+			Whole wheat flour: 80%<br>
+			White flour: 20%<br>
+			Hydration: 70%<br>
+			Salt: 2%<br>
+			Yeast: 1%
+			</p>
+			
+			<p><strong>Weight</strong><br>
+			Set of 6 rolls</p>
+			<p>
+			Best consumed within 2-3 days.
+			</p>
+
+			<a href="https://wa.me/91XXXXXXXXXX?text=Hi%20TRANCH%C3%89%2C%20I%20want%20to%20order%20whole%20wheat%20rolls." class="btn" target="_blank" rel="noopener">Order on WhatsApp</a>
+		  </div>
+        </div>
+      </div>
+
+      <div class="product">
+		<div class="image gallery">
+		  <img class="main-img" src="Images/Products/Rolls/MultiGrain/MultiGrainRoll1.jpg" alt="Multigrain Rolls">
+		  <div class="info-icon" onclick="toggleTooltip(this)">&#9432;</div>
+		  <div class="thumbs">
+			<img src="Images/Products/Rolls/MultiGrain/MultiGrainRoll1.jpg" onclick="changeImage(this)" class="active">
+			<img src="Images/Products/Rolls/MultiGrain/MultiGrainRoll2.jpg" onclick="changeImage(this)">
+			<img src="Images/Products/Rolls/MultiGrain/MultiGrainRoll3.jpg" onclick="changeImage(this)">
+		  </div>
+		<div class="tooltip">
+			<strong>Real breads, photographed as they are.</strong><br>
+			No enhancements or styling -- just honest baking.
+		  </div>
+		</div>
+        <div class="text">
+          <h3>Multigrain Classic Rolls</h3>
+          <p>Set of 6 soft, everyday rolls with a balanced texture and flavor.</p>
+          <ul>
+            <li>Classic soft roll with a balanced bite</li>
+            <li>Great for breakfast, sliders, and mini sandwiches</li>
+            <li>Softer than whole wheat rolls</li>
+            <li>No additives or preservatives</li>
+          </ul>
+
+		  <button class="toggle-btn">View Details &#8595;</button>
+		  <div class="details">
+			<p><strong>Ingredients</strong><br>
+			Whole wheat flour, white flour, multigrain mix, yeast, salt, water.
+			</p>
+			  
+			<p><strong>What to Expect</strong><br>
+			A softer roll with balanced flavor. Because whole wheat is lower than the whole wheat rolls, texture stays lighter and softer.</p>
+			  
+			<p><strong>Baker's Details</strong></p>
+			<p>
+			Whole wheat flour: 50%<br>
+			White flour: 50%<br>
+			Hydration: 70%<br>
+			Salt: 2%<br>
+			Yeast: 1%
+			</p>
+			
+			<p><strong>Weight</strong><br>
+			Set of 6 rolls</p>
+			<p>
+			Best consumed within 2-3 days.
+			</p>
+
+			<a href="https://wa.me/91XXXXXXXXXX?text=Hi%20TRANCH%C3%89%2C%20I%20want%20to%20order%20multigrain%20rolls." class="btn" target="_blank" rel="noopener">Order on WhatsApp</a>
+		  </div>
+        </div>
+      </div>
 
       <div class="product">
         <div class="image placeholder"></div>
         <div class="text">
-          <h3>Whole Wheat Rolls</h3>
-          <p>Set of 6. Available in 50% or 80% whole wheat.</p>
+          <h3>Enriched Milk Rolls</h3>
+          <p>Set of 6 soft enriched rolls with a lighter whole wheat profile.</p>
+          <ul>
+            <li>Classic soft roll with tender crumb</li>
+            <li>Great for breakfast, sliders, and mini sandwiches</li>
+            <li>Softer and lighter compared to higher whole wheat rolls</li>
+            <li>No additives or preservatives</li>
+          </ul>
+
+		  <button class="toggle-btn">View Details &#8595;</button>
+		  <div class="details">
+			<p><strong>Ingredients</strong><br>
+			Whole wheat flour, white flour, whole milk, white butter, sugar, yeast, salt, water.
+			</p>
+			  
+			<p><strong>What to Expect</strong><br>
+			A softer enriched roll with a balanced flavor and tender bite.</p>
+			  
+			<p><strong>Baker's Details</strong></p>
+			<p>
+			Whole wheat flour: 20%<br>
+			White flour: 80%<br>
+			Hydration: 70%<br>
+			Whole milk: 40%<br>
+			White butter: 7%<br>
+			Sugar: 5%<br>
+			Salt: 2%<br>
+			Yeast: 1%
+			</p>
+			
+			<p><strong>Weight</strong><br>
+			Set of 6 rolls</p>
+			<p>
+			Best consumed within 2-3 days.
+			</p>
+
+			<a href="https://wa.me/91XXXXXXXXXX?text=Hi%20TRANCH%C3%89%2C%20I%20want%20to%20order%20enriched%20milk%20rolls." class="btn" target="_blank" rel="noopener">Order on WhatsApp</a>
+		  </div>
         </div>
       </div>
 
@@ -79,8 +503,142 @@
   <section class="cta">
     <h2>Order for the next bake</h2>
     <p>Message on WhatsApp to check availability</p>
-    <a href="#" class="btn">Message on WhatsApp</a>
+    <a href="https://wa.me/91XXXXXXXXXX?text=Hi%20TRANCH%C3%89%2C%20I%20want%20to%20check%20availability%20for%20the%20next%20bake." class="btn" target="_blank" rel="noopener">Message on WhatsApp</a>
   </section>
+
+	<script>
+		/* ---------- Expand / Collapse ---------- */
+		document.querySelectorAll('.toggle-btn').forEach(button => {
+		  button.addEventListener('click', () => {
+
+			const product = button.closest('.product');
+
+			// close others (optional but premium feel)
+			document.querySelectorAll('.product').forEach(p => {
+			  if (p !== product) {
+				p.classList.remove('open');
+				const btn = p.querySelector('.toggle-btn');
+				if (btn) btn.innerHTML = "View Details &#8595;";
+			  }
+			});
+
+			// toggle current
+			product.classList.toggle('open');
+
+			button.innerHTML =
+			  product.classList.contains('open')
+			  ? "Hide Details &#8593;"
+			  : "View Details &#8595;";
+		  });
+		});
+
+		/* ---------- Whole Wheat Variant Switch ---------- */
+		document.querySelectorAll('.wholewheat-image').forEach(block => {
+		  const buttons = block.querySelectorAll('.variant-btn');
+		  const panels = block.querySelectorAll('.variant-gallery');
+		  const product = block.closest('.product');
+		  const wholeWheatPctEl = product.querySelector('[data-wholewheat-pct]');
+		  const whiteFlourPctEl = product.querySelector('[data-whiteflour-pct]');
+		  const hydrationPctEl = product.querySelector('[data-hydration-pct]');
+		  const doughWeightEl = product.querySelector('[data-dough-weight]');
+		  const finalWeightEl = product.querySelector('[data-final-weight]');
+
+		  buttons.forEach(button => {
+			button.addEventListener('click', () => {
+			  const selected = button.getAttribute('data-variant');
+
+			  buttons.forEach(btn => btn.classList.toggle('active', btn === button));
+
+			  panels.forEach(panel => {
+				const isSelected = panel.getAttribute('data-variant-panel') === selected;
+				panel.hidden = !isSelected;
+				panel.classList.toggle('active', isSelected);
+			  });
+
+			  if (wholeWheatPctEl && whiteFlourPctEl && hydrationPctEl && doughWeightEl && finalWeightEl) {
+				if (selected === '80') {
+				  wholeWheatPctEl.textContent = '80%';
+				  whiteFlourPctEl.textContent = '20%';
+				  hydrationPctEl.textContent = '75-80%';
+				  doughWeightEl.textContent = '~900g';
+				  finalWeightEl.textContent = '~800g';
+				} else {
+				  wholeWheatPctEl.textContent = '50%';
+				  whiteFlourPctEl.textContent = '50%';
+				  hydrationPctEl.textContent = '70-75%';
+				  doughWeightEl.textContent = '~870g';
+				  finalWeightEl.textContent = '~800g';
+				}
+			  }
+			});
+		  });
+		});
+
+
+		/* ---------- Image Gallery ---------- */
+		function changeImage(el) {
+		  const gallery = el.closest('.gallery');
+
+		  // change main image
+		  gallery.querySelector('.main-img').src = el.src;
+
+		  // update active thumbnail
+		  gallery.querySelectorAll('.thumbs img').forEach(img =>
+			img.classList.remove('active')
+		  );
+
+		  el.classList.add('active');
+		}
+		
+		function toggleTooltip(iconEl) {
+		  const gallery = iconEl.closest(".gallery");
+		  if (!gallery) return;
+
+		  const tooltip = gallery.querySelector(".tooltip");
+		  if (!tooltip) return;
+
+		  document.querySelectorAll(".tooltip.show").forEach(t => {
+			if (t !== tooltip) t.classList.remove("show");
+		  });
+
+		  tooltip.classList.toggle("show");
+		}
+
+		// Optional: close when clicking outside
+		document.addEventListener("click", function(e) {
+		  if (!e.target.closest(".gallery")) {
+			document.querySelectorAll(".tooltip.show").forEach(tooltip => {
+			  tooltip.classList.remove("show");
+			});
+		  }
+		});
+
+	const sections = document.querySelectorAll("section[id]");
+	const navLinks = document.querySelectorAll(".category-nav a");
+
+	window.addEventListener("scroll", () => {
+	  let current = "";
+
+	  sections.forEach(section => {
+		const sectionTop = section.offsetTop - 130; // adjust based on nav height
+		if (window.scrollY >= sectionTop) {
+		  current = section.getAttribute("id");
+		}
+	  });
+
+	  navLinks.forEach(link => {
+		link.classList.remove("active");
+		if (link.getAttribute("href") === "#" + current) {
+		  link.classList.add("active");
+		}
+	  });
+	});
+
+</script>
 
 </body>
 </html>
+
+
+
+
