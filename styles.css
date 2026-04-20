@@ -19,10 +19,6 @@
    BASE
 ======================================== */
 
-html {
-  scroll-behavior: smooth;
-}
-
 body {
   margin: 0;
   font-family: 'Inter', sans-serif;
@@ -870,9 +866,11 @@ footer {
 .gallery .main-img {
   width: 100%;
   height: auto;
+  aspect-ratio: 4 / 3;
   object-fit: contain; /* prevents cropping */
   border-radius: 10px;
   margin-bottom: 10px;
+  display: block;
 }
 
 .thumbs {
