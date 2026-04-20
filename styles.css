@@ -1,4 +1,4 @@
-﻿/* ========================================
+/* ========================================
    VARIABLES
 ======================================== */
 
@@ -6,6 +6,8 @@
   --primary: #5a3e2b;
   --accent: #c69c6d;
   --bg: #faf7f2;
+  --surface: #f3ece1;
+  --surface-strong: #eadfce;
   --text: #2b2b2b;
 }
 
@@ -36,6 +38,22 @@ h1, h2, h3 {
   width: 90%;
   max-width: 1100px;
   margin: auto;
+}
+
+.section-intro {
+  margin-top: 12px;
+  font-size: 15px;
+  opacity: 0.86;
+}
+
+.section-intro.centered {
+  text-align: center;
+}
+
+.catalog-note {
+  margin-top: 10px;
+  font-size: 14px;
+  opacity: 0.72;
 }
 
 section {
@@ -249,6 +267,53 @@ nav a {
   margin-bottom: 12px;
 }
 
+.centered-list {
+  text-align: center;
+}
+
+.small-batch-section {
+  text-align: center;
+}
+
+.small-batch-section .clean-list {
+  margin-top: 18px;
+}
+
+
+/* ========================================
+   STANDARDS
+======================================== */
+
+.standards-section {
+  padding: 0 0 30px;
+}
+
+.standards-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.standard-card {
+  background: linear-gradient(180deg, rgba(255,255,255,0.78), rgba(243,236,225,0.92));
+  border: 1px solid rgba(90, 62, 43, 0.08);
+  border-radius: 14px;
+  padding: 22px;
+  box-shadow: 0 10px 30px rgba(90, 62, 43, 0.05);
+}
+
+.standard-card h3 {
+  margin-top: 0;
+  margin-bottom: 8px;
+  font-size: 20px;
+}
+
+.standard-card p {
+  margin: 0;
+  font-size: 14px;
+  opacity: 0.88;
+}
+
 
 /* ========================================
    EDUCATION SECTION
@@ -412,8 +477,19 @@ footer {
 .placeholder {
   width: 100%;
   height: 260px;
-  background: #eae6df;
+  background: linear-gradient(135deg, var(--surface) 0%, var(--surface-strong) 100%);
   border-radius: 6px;
+  position: relative;
+}
+
+.placeholder::after {
+  content: "Photography coming soon";
+  position: absolute;
+  left: 24px;
+  bottom: 24px;
+  font-family: 'Playfair Display', serif;
+  font-size: 24px;
+  color: rgba(90, 62, 43, 0.72);
 }
 
 
@@ -826,5 +902,82 @@ footer {
 
 #rolls .rolls-intro + .product {
   margin-top: 56px !important;
+}
+
+.product-standards {
+  padding: 0 0 26px;
+}
+
+.standards-pill-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+}
+
+.standard-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: rgba(90, 62, 43, 0.08);
+  border: 1px solid rgba(90, 62, 43, 0.1);
+  font-size: 13px;
+  letter-spacing: 0.2px;
+}
+
+.photo-note {
+  margin: 12px auto 0;
+  max-width: 700px;
+  text-align: center;
+  font-size: 14px;
+  opacity: 0.76;
+}
+
+.premium-range {
+  padding-top: 30px;
+}
+
+.premium-range-intro {
+  max-width: 760px;
+  margin: 0 auto 30px;
+  text-align: center;
+}
+
+.premium-kicker {
+  margin-bottom: 8px;
+  font-size: 12px;
+  letter-spacing: 1.8px;
+  text-transform: uppercase;
+  color: var(--primary);
+  opacity: 0.75;
+}
+
+.premium-range-intro p:last-child {
+  margin: 0;
+  font-size: 15px;
+  opacity: 0.88;
+}
+
+.premium-label {
+  margin: 0 0 10px;
+  font-size: 11px;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+  opacity: 0.6;
+}
+
+.premium-product {
+  border-bottom-color: rgba(90, 62, 43, 0.12);
+}
+
+.premium-placeholder {
+  background: linear-gradient(135deg, #efe5d6 0%, #e5d4bc 100%);
+}
+
+@media(max-width: 900px) {
+  .standards-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
