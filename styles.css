@@ -513,6 +513,10 @@ nav a {
   padding: 10px 0 0;
 }
 
+#offers {
+  scroll-margin-top: 110px;
+}
+
 .offer-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -630,6 +634,10 @@ footer {
 
   section {
     padding: 60px 0;
+  }
+
+  #offers {
+    scroll-margin-top: 96px;
   }
 
   .home section:nth-of-type(odd):not(.hero):not(.cta):not(.full-width) {
