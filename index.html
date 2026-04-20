@@ -352,6 +352,23 @@ function toggleTooltip() {
   tooltip.classList.toggle("show");
 }
 
+function alignHashTarget() {
+  if (!window.location.hash) return;
+
+  const target = document.querySelector(window.location.hash);
+  if (!target) return;
+
+  const header = document.querySelector("header");
+  const headerHeight = header ? header.offsetHeight : 0;
+  const extraOffset = window.innerWidth <= 768 ? 14 : 18;
+  const top = target.getBoundingClientRect().top + window.pageYOffset - headerHeight - extraOffset;
+
+  window.scrollTo({
+    top,
+    behavior: "auto"
+  });
+}
+
 // Optional: close when clicking outside
 document.addEventListener("click", function(e) {
   const tooltip = document.getElementById("tooltip");
@@ -360,6 +377,11 @@ document.addEventListener("click", function(e) {
   if (!icon.contains(e.target) && !tooltip.contains(e.target)) {
     tooltip.classList.remove("show");
   }
+});
+
+window.addEventListener("load", function() {
+  alignHashTarget();
+  window.setTimeout(alignHashTarget, 350);
 });
 </script>
 </body>
