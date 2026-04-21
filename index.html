@@ -28,17 +28,19 @@
 
   <!-- Hero -->
   <section class="hero">
-	<img src="./Images/HomePage/HeroImage.jpg" alt="Bread" fetchpriority="high" decoding="async">
-	<div class="info-icon" onclick="toggleTooltip()">&#9432;</div>
+	<div class="hero-media">
+	  <img src="./Images/HomePage/HeroImage.jpg" alt="Bread" fetchpriority="high" decoding="async">
+	  <div class="info-icon" onclick="toggleTooltip()">&#9432;</div>
+	  <div id="tooltip" class="tooltip">
+	    <strong>Real breads, photographed as they are.</strong><br>
+	    No enhancements or styling -- just honest baking.
+	  </div>
+	</div>
     <div class="hero-text">
-      <h1>Slow-fermented bread baked fresh each morning</h1>
+      <h1>Slow-fermented bread, baked fresh in small batches</h1>
       <p>Small-batch loaves and rolls made with simple ingredients, patient fermentation, and no commercial shortcuts.</p>
       <a href="breads.html" class="btn">Explore Breads</a>
     </div>
-  <div id="tooltip" class="tooltip">
-    <strong>Real breads, photographed as they are.</strong><br>
-    No enhancements or styling -- just honest baking.
-  </div>
   </section>
 
 <!--
@@ -54,7 +56,7 @@
 	  <div class="container" style="text-align:center; max-width:700px;">
 		<h2>About TRANCHÉ</h2>
 		<p>
-      TRANCHÉ is a small-batch bakery focused on everyday breads that taste fuller, keep their character, and reflect the ingredients they are made from.
+      TRANCHÉ is a small-batch artisan bakery focused on everyday breads that taste fuller, keep their character, and reflect the ingredients they are made from. We prioritise freshness over shelf life, so the bread reaches you closer to how it was meant to be eaten.
 		</p>
 	  </div>
 	</section>
@@ -125,10 +127,10 @@
   <section class="small-batch-section">
     <div class="container" style="max-width:800px;">
 		<h2>Baked in Small Batches</h2>
-    <p class="section-intro centered">We bake in limited quantities so each batch gets the time and attention it needs. Many breads are baked closer to delivery, and orders are best placed with a little notice.</p>
+    <p class="section-intro centered">We bake in limited quantities so each batch gets the time and attention it needs. Orders confirmed by 6pm are prepared for next-morning delivery, so a little notice helps us plan the bake properly.</p>
     <ul class="clean-list centered-list">
 		  <li>Limited daily production</li>
-      <li>24 hours' notice preferred</li>
+		  <li>6pm cutoff for next-morning delivery</li>
 		  <li>Baked to order</li>
 		</ul>
 	  </div>
@@ -225,14 +227,14 @@
     <div class="faq-item">
       <details>
         <summary>How do I place an order?</summary>
-        <p>You can place your order via WhatsApp. We'll confirm availability and schedule your bake.</p>
+        <p>You can place your order via WhatsApp. Send your name, contact details, and order, and we'll confirm availability and schedule your bake.</p>
       </details>
     </div>
 
     <div class="faq-item">
       <details>
         <summary>When will my order be ready?</summary>
-        <p>Most orders are ready the next day. Because we bake in small batches, 24 hours' notice is preferred.</p>
+        <p>Orders confirmed by 6pm are usually baked for next-morning delivery. Because we bake in small batches, later requests may need to move to the following day depending on capacity.</p>
       </details>
     </div>
 
@@ -274,7 +276,7 @@
     <div class="faq-item">
       <details>
         <summary>How should I store the bread?</summary>
-        <p>Store bread in a cool, dry place and keep it covered so it does not dry out too quickly. For longer storage, freeze sliced bread and toast it when needed. Refrigeration is not recommended.</p>
+        <p>Our breads are best enjoyed the same day if you want to experience the crust at its best and the crumb at its softest. If you want to keep them for later, store them in a bread box or a covered container in a cool place. In summer, avoid leaving bread out for long periods because of the heat; refrigeration may be necessary, but it can make the bread firmer because we do not use bread softeners. For longer storage, freezing is the better option. As a general guide, bread kept outside may last around 2 days in summer and around 3 days in winter, but this can vary depending on weather, handling, and storage conditions, so it should not be taken as an exact rule.</p>
       </details>
     </div>
 
@@ -334,8 +336,8 @@
   <!-- CTA -->
   <section class="cta">
     <h2>Order for the next bake</h2>
-    <p>Message your name, contact details, and order on WhatsApp, and we will promptly get back to you.</p>
-    <a href="https://wa.me/91XXXXXXXXXX?text=Hi%20TRANCH%C3%89%2C%20I%20want%20to%20order%20for%20the%20next%20bake." class="btn" target="_blank" rel="noopener">Message on WhatsApp</a>
+    <p>Message your name, contact details, and order on WhatsApp before 6pm for next-morning delivery, and we will promptly get back to you.</p>
+    <a href="https://wa.me/91XXXXXXXXXX?text=Hi%20TRANCH%C3%89%2C%20my%20name%20is%20____.%20My%20contact%20number%20is%20____.%20I%20would%20like%20to%20order%20____%20for%20next-morning%20delivery." class="btn" target="_blank" rel="noopener">Message on WhatsApp</a>
   </section>
 
   <!-- Footer -->
