@@ -124,9 +124,14 @@ nav a {
   color: white;
 }
 
+.hero-media {
+  position: relative;
+}
+
 .hero img {
   width: 100%;
   height: auto;
+  display: block;
 }
 
 .hero-text {
@@ -1053,7 +1058,7 @@ footer {
   transition: all 0.2s ease;
 }
 
-.hero .tooltip {
+.hero-media .tooltip {
   right: 12px;
 }
 
@@ -1068,7 +1073,7 @@ footer {
   transform: translateY(0);
 }
 
-.hero,
+.hero-media,
 .gallery {
   position: relative;
 }
