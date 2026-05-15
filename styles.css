@@ -1195,6 +1195,14 @@ footer p {
   padding-left: 18px;
 }
 
+.product-quick-action {
+  margin-top: 18px;
+}
+
+.product-quick-action .btn {
+  margin-top: 0;
+}
+
 .product-info li {
   margin-bottom: 6px;
 }
