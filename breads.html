@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Our Breads - TRANCHÉ</title>
+	<title>Products - TRANCHÉ</title>
 
   <!-- Reuse same fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
@@ -13,34 +13,44 @@
 
 <body id="top" class="products">
 
-  <!-- Header -->
 <header>
-  <a class="logo" href="index.html" aria-label="Go to home">
-    <strong>TRANCHÉ</strong>
-    <span>Bakery</span>
-  </a>
-  <nav>
-    <a href="index.html">Home</a>
-    <a href="breads.html">Breads</a>
-		<a href="index.html#offers">Offers</a>
-  </nav>
+	<a class="logo" href="index.html" aria-label="Go to home">
+		<strong>TRANCHÉ</strong>
+		<span>Bakery</span>
+	</a>
+	<button class="menu-toggle" type="button" aria-expanded="false" aria-controls="site-nav" data-menu-toggle>
+		<span class="menu-toggle-bar"></span>
+		<span class="menu-toggle-bar"></span>
+		<span class="menu-toggle-bar"></span>
+		<span class="menu-toggle-label">Menu</span>
+	</button>
+	<nav id="site-nav" class="site-nav" aria-label="Primary">
+		<a href="index.html">Home</a>
+		<a href="breads.html">Products</a>
+		<a href="about.html">About</a>
+		<a href="faq.html">FAQ</a>
+		<a href="https://wa.me/91XXXXXXXXXX?text=Hi%20TRANCH%C3%89%2C%20I%20would%20like%20to%20place%20an%20order." class="nav-order" target="_blank" rel="noopener">Order</a>
+	</nav>
 </header>
+<div class="nav-backdrop" data-nav-backdrop hidden></div>
 
 <div class="category-nav">
   <div class="container">
-    <a href="#loaves">Loaves</a>
-    <a href="#rolls">Rolls</a>
+		<a href="#bread">Bread</a>
+		<a href="#buns-rolls">Buns & Rolls</a>
+		<a href="#breakfast-european">Breakfast & European</a>
+		<a href="#sweet-bakes">Sweet Bakes</a>
   </div>
 </div>
 
   <!-- Intro -->
   <section>
     <div class="container" style="text-align:center; max-width:700px;">
-      <h1>Our Breads</h1>
+			<h1>Products</h1>
       <p>
-				A focused range of loaves and rolls made in small batches, with simple ingredients, slower fermentation, and real kitchen-made character.
+				A growing range of European-inspired breads, buns, rolls, and upcoming bakes made in small batches with simple ingredients, slower fermentation, and real kitchen-made character.
       </p>
-	  <p class="catalog-note">Some products are already available to order while photography is still being completed. Where images are missing, the bread is still part of the menu.</p>
+	  <p class="catalog-note">Some items are already live with full photography and details. Others are listed ahead of final photography or final batch refinement so the overall menu structure is visible now.</p>
     </div>
   </section>
 
@@ -51,19 +61,24 @@
 	  <span class="standard-pill">No improvers or preservatives</span>
 	  <span class="standard-pill">Photographed as baked</span>
 	</div>
-	<p class="photo-note">All product images on this page are of our own breads, photographed as baked in our kitchen.</p>
+	<p class="photo-note">Where photography is available, all product images on this page are of our own breads, photographed as baked in our kitchen.</p>
 	</section>
 
-  <!-- Loaves -->
-  <section id="loaves">
+  <section id="bread">
 	<div class="container">
       <h2 class="section-divider">
-		  <span>Loaves</span>
+		  <span>Bread</span>
 		</h2>
+		<p class="rolls-intro">Everyday loaves sit alongside more distinctive signature breads so customers can scan familiar choices first and then move into richer flavors.</p>
+
+		<div class="product-subsection">
+		  <p class="premium-kicker">Everyday Loaves</p>
+		  <p class="subsection-copy">The daily range focuses on softness, regular slicing, whole wheat options, and loaves that fit breakfast and sandwich use.</p>
+		</div>
 
 	<div class="product">
 		<div class="image gallery">
-		  <img class="main-img" src="Images/Products/EnrichedWhite/EnrichedWhiteFull.jpg" alt="Enriched White Bread" decoding="async">
+		  <img class="main-img" src="Images/Products/EnrichedWhite/EnrichedWhiteFull.jpg" alt="Enriched White Bread" decoding="async" sizes="(max-width: 768px) 100vw, (max-width: 1200px) 58vw, 840px">
 		  <div class="thumbs">
 			<img src="Images/Products/EnrichedWhite/EnrichedWhiteFull-thumb.jpg" data-full="Images/Products/EnrichedWhite/EnrichedWhiteFull.jpg" onclick="changeImage(this)" class="active" decoding="async">
 			<img src="Images/Products/EnrichedWhite/EnrichedWhiteCloseup-edited-1600-thumb.jpg" data-full="Images/Products/EnrichedWhite/EnrichedWhiteCloseup-edited-1600.jpg" onclick="changeImage(this)" decoding="async">
@@ -72,9 +87,7 @@
 		</div>
 	  <div class="text">
 		<h3>Enriched White Loaf</h3>
-		<p>
-		A soft enriched loaf made with milk and butter for a tender crumb, gentle richness, and an easy everyday finish.
-		</p>
+		<p>A soft enriched loaf made with milk and butter for a tender crumb, gentle richness, and an easy everyday finish.</p>
 		<ul>
 		  <li>Soft, plush texture</li>
 		  <li>Lightly sweet and buttery finish</li>
@@ -87,10 +100,8 @@
 		<p><strong>Ingredients</strong><br>
 		Whole wheat flour, white flour, whole milk, white butter, sugar, salt, yeast.
 		</p>
-		  
 		  <p><strong>What to Expect</strong><br>
 		  Softer than whole wheat loaves, with a richer mouthfeel from milk and butter.</p>
-		  
 		  <p><strong>Baker's Details</strong></p>
 			<p>
 			Whole wheat flour: 20%<br>
@@ -106,13 +117,9 @@
 			Dough weight: ~870g<br>
 			Final baked weight: ~800g
 			</p>
-		
 		  <p><strong>Weight</strong><br>
 		  Approx 800g</p>
-		  <p>
-		  Best consumed within 2-3 days.
-		  </p>
-  
+		  <p>Best consumed within 2-3 days.</p>
 		  <a href="https://wa.me/91XXXXXXXXXX?text=Hi%20TRANCH%C3%89%2C%20I%20want%20to%20order%20the%20enriched%20white%20loaf." class="btn" target="_blank" rel="noopener">Order on WhatsApp</a>
 		</div>
 	  </div>
@@ -126,7 +133,7 @@
 		  </div>
 
 		  <div class="gallery variant-gallery active" data-variant-panel="50">
-			<img class="main-img" src="Images/Products/wholewheat/WholeWheatFull.jpg" alt="Whole Wheat Bread 50%" decoding="async">
+			<img class="main-img" src="Images/Products/wholewheat/WholeWheatFull.jpg" alt="Whole Wheat Bread 50%" decoding="async" sizes="(max-width: 768px) 100vw, (max-width: 1200px) 58vw, 840px">
 			<div class="thumbs">
 			  <img src="Images/Products/wholewheat/WholeWheatFull-thumb.jpg" data-full="Images/Products/wholewheat/WholeWheatFull.jpg" onclick="changeImage(this)" class="active" decoding="async">
 			  <img src="Images/Products/wholewheat/WholeWheatCloseupTop-thumb.jpg" data-full="Images/Products/wholewheat/WholeWheatCloseupTop.jpg" onclick="changeImage(this)" decoding="async">
@@ -136,7 +143,7 @@
 		  </div>
 
 		  <div class="gallery variant-gallery" data-variant-panel="80" hidden>
-			<img class="main-img" src="Images/Products/wholewheat/80/WholeWheat80Full.jpg" alt="Whole Wheat Bread 80%" decoding="async">
+			<img class="main-img" src="Images/Products/wholewheat/80/WholeWheat80Full.jpg" alt="Whole Wheat Bread 80%" decoding="async" sizes="(max-width: 768px) 100vw, (max-width: 1200px) 58vw, 840px">
 			<div class="thumbs">
 			  <img src="Images/Products/wholewheat/80/WholeWheat80Full-thumb.jpg" data-full="Images/Products/wholewheat/80/WholeWheat80Full.jpg" onclick="changeImage(this)" class="active" decoding="async">
 			  <img src="Images/Products/wholewheat/80/WholeWheat80Closeup-thumb.jpg" data-full="Images/Products/wholewheat/80/WholeWheat80Closeup.jpg" onclick="changeImage(this)" decoding="async">
@@ -146,9 +153,7 @@
 		</div>
 	  <div class="text">
 		<h3>Whole Wheat Loaf</h3>
-		<p>
-		Our everyday whole wheat loaf, available in 50% or 80% whole wheat depending on how soft or grain-forward you want it.
-		</p>
+		<p>Our everyday whole wheat loaf, available in 50% or 80% whole wheat depending on how soft or grain-forward you want it.</p>
 		<ul>
 		  <li>Choose between 50% and 80% whole wheat</li>
 		  <li>50% is softer, 80% is denser and more robust</li>
@@ -161,17 +166,11 @@
 		<p><strong>Ingredients</strong><br>
 		Whole wheat flour, refined flour, yeast, salt, water.
 		</p>
-		  
 		  <p><strong>What to Expect</strong><br>
 		    50% gives a softer, lighter bite while 80% has a stronger wheat flavor and denser structure.</p>
-
 		  <p><strong>Customization</strong><br>
-		  Available in 50% or 80% whole wheat. Choose based on your preference
-		  for softness vs whole grain intensity. As whole wheat content increases,
-		  the loaf becomes denser with a more pronounced wheaty flavor; lower whole
-		  wheat gives a more balanced taste and softer texture.
+		  Available in 50% or 80% whole wheat. Choose based on your preference for softness vs whole grain intensity.
 		  </p>
-  
 		  <p><strong>Baker's Details</strong></p>
 			<p>
 			Whole wheat flour: <span data-wholewheat-pct>50%</span><br>
@@ -185,23 +184,104 @@
 			Dough weight: <span data-dough-weight>~870g</span><br>
 			Final baked weight: <span data-final-weight>~800g</span>
 			</p>
-		
 		  <p><strong>Weight</strong><br>
 		  Approx 800g</p>
-		  <p>
-		  Best consumed within 2-3 days. <br/>
-		  Store in a cool place and avoid direct air.
-		  </p>
-  
-		  
+		  <p>Best consumed within 2-3 days. Store in a cool place and avoid direct air.</p>
 		  <a href="https://wa.me/91XXXXXXXXXX?text=Hi%20TRANCH%C3%89%2C%20I%20want%20to%20order%20the%20whole%20wheat%20loaf." class="btn" target="_blank" rel="noopener">Order on WhatsApp</a>
 		</div>
 	  </div>
 	</div>
-	
+
+	<div class="product reverse">
+	  <div class="image placeholder"></div>
+	  <div class="text">
+		<h3>Multigrain Loaf</h3>
+		<p>A grain-rich loaf built on a fixed 50:50 whole wheat and white flour base for a balanced bite, softer crumb, and multigrain depth.</p>
+		<ul>
+		  <li>Nutty flavor with more texture throughout</li>
+		  <li>Standard 50:50 whole wheat and white flour formula</li>
+		  <li>Photography and final details are being added</li>
+		</ul>
+
+		<button class="toggle-btn">View Details &#8595;</button>
+		<div class="details">
+		  <p><strong>Ingredients</strong><br>
+		  Whole wheat flour, white flour, multigrain mix, yeast, salt, water.
+		  </p>
+		  <p><strong>What to Expect</strong><br>
+		  A balanced everyday loaf with grain texture, a softer bite than high whole wheat bread, and more nuttiness through the crumb.</p>
+		  <p><strong>Baker's Details</strong><br>
+		  Whole wheat flour: 50%<br>
+		  White flour: 50%<br>
+		  Hydration: 70-75%<br>
+		  Multigrain inclusion: varies by batch<br>
+		  Salt: 2%<br>
+		  Yeast: 1%</p>
+		  <p><strong>Weight</strong><br>
+		  Approx 800g</p>
+		  <p>Currently listed before final photography is completed.</p>
+		  <a href="https://wa.me/91XXXXXXXXXX?text=Hi%20TRANCH%C3%89%2C%20I%20want%20to%20ask%20about%20the%20multigrain%20loaf." class="btn" target="_blank" rel="noopener">Ask on WhatsApp</a>
+		</div>
+	  </div>
+	</div>
+
+	<div class="product">
+	  <div class="image placeholder"></div>
+	  <div class="text">
+		<h3>Country Loaf</h3>
+		<p>A planned everyday loaf with a simple ingredient profile, balanced chew, and a more traditional table-bread character.</p>
+		<ul>
+		  <li>Simple flour, water, salt, and yeast structure</li>
+		  <li>Designed for table bread, toast, and savory meals</li>
+		  <li>Currently listed before photography and final batch notes are completed</li>
+		</ul>
+
+		<button class="toggle-btn">View Details &#8595;</button>
+		<div class="details">
+		  <p><strong>Planned Ingredients</strong><br>
+		  Flour blend, water, salt, yeast.
+		  </p>
+		  <p><strong>What to Expect</strong><br>
+		  A straightforward loaf with balanced chew, mild fermentation notes, and a more classic everyday profile.</p>
+		  <p><strong>Status</strong><br>
+		  Product structure is planned and will be refined further once final batches are locked and photographed.</p>
+		  <a href="https://wa.me/91XXXXXXXXXX?text=Hi%20TRANCH%C3%89%2C%20I%20want%20to%20ask%20about%20the%20country%20loaf." class="btn" target="_blank" rel="noopener">Ask on WhatsApp</a>
+		</div>
+	  </div>
+	</div>
+
+	<div class="product reverse">
+	  <div class="image placeholder"></div>
+	  <div class="text">
+		<h3>Sandwich Loaf</h3>
+		<p>A planned everyday loaf designed for cleaner slicing, softer structure, and repeat daily use for sandwiches and toast.</p>
+		<ul>
+		  <li>Built for regular slicing</li>
+		  <li>Softer and more square-profile than country-style loaves</li>
+		  <li>Currently listed before final photography is added</li>
+		</ul>
+
+		<button class="toggle-btn">View Details &#8595;</button>
+		<div class="details">
+		  <p><strong>Planned Ingredients</strong><br>
+		  Flour blend, water or milk depending on final formula, yeast, salt, and selected enrichments if required by the finished loaf.</p>
+		  <p><strong>What to Expect</strong><br>
+		  A softer, more regular slicing loaf built for sandwiches, breakfast toast, and everyday use.</p>
+		  <p><strong>Status</strong><br>
+		  Final production notes and photography will be added once the finished loaf is locked.</p>
+		  <a href="https://wa.me/91XXXXXXXXXX?text=Hi%20TRANCH%C3%89%2C%20I%20want%20to%20ask%20about%20the%20sandwich%20loaf." class="btn" target="_blank" rel="noopener">Ask on WhatsApp</a>
+		</div>
+	  </div>
+	</div>
+
+		<div class="product-subsection">
+		  <p class="premium-kicker">Signature Loaves</p>
+		  <p class="subsection-copy">These breads sit a little further away from the everyday loaf set and help the range feel more distinctive.</p>
+		</div>
+
 	<div class="product">
 		<div class="image gallery">
-		  <img class="main-img" src="Images/Products/WalnutSlices1.jpg" alt="Walnut Honey Bread" decoding="async">
+		  <img class="main-img" src="Images/Products/WalnutSlices1.jpg" alt="Walnut Honey Bread" decoding="async" sizes="(max-width: 768px) 100vw, (max-width: 1200px) 58vw, 840px">
 		  <div class="thumbs">
 			<img src="Images/Products/WalnutSlices1-thumb.jpg" data-full="Images/Products/WalnutSlices1.jpg" onclick="changeImage(this)" class="active" decoding="async">
 			<img src="Images/Products/WalnutCloseSlices3-thumb.jpg" data-full="Images/Products/WalnutCloseSlices3.jpg" onclick="changeImage(this)" decoding="async">
@@ -210,9 +290,7 @@
 		</div>
 	  <div class="text">
 		<h3>Honey & Walnut Loaf</h3>
-		<p>
-		A whole wheat-forward loaf with toasted walnuts and raw honey, giving it a gentle sweetness and a rich, nutty bite.
-		</p>
+		<p>A whole wheat-forward loaf with toasted walnuts and raw honey, giving it a gentle sweetness and a rich, nutty bite.</p>
 		<ul>
 		  <li>15% toasted walnuts</li>
 		  <li>Lightly sweetened with honey</li>
@@ -222,13 +300,10 @@
 		<button class="toggle-btn">View Details &#8595;</button>
 		<div class="details">
 		<p><strong>Ingredients</strong><br>
-		Our house blend of predominantly whole wheat flour with a small portion of refined flour,
-		walnuts, honey, yeast, salt, lemon juice, water.
+		Our house blend of predominantly whole wheat flour with a small portion of refined flour, walnuts, honey, yeast, salt, lemon juice, water.
 		</p>
-		  
 		  <p><strong>What to Expect</strong><br>
 		  Soft crumb, mild chew, nutty crunch with a hint of sweetness.</p>
-		  
 		  <p><strong>Baker's Details</strong></p>
 			<p>
 			Hydration: 70%<br>
@@ -242,14 +317,9 @@
 			Dough weight: ~870g<br>
 			Final baked weight: ~800g
 			</p>
-		
 		  <p><strong>Weight</strong><br>
 		  Approx 800g</p>
-		  <p>
-		  Best consumed within 2-3 days.
-		  </p>
-  
-		  
+		  <p>Best consumed within 2-3 days.</p>
 		  <a href="https://wa.me/91XXXXXXXXXX?text=Hi%20TRANCH%C3%89%2C%20I%20want%20to%20order%20the%20honey%20and%20walnut%20loaf." class="btn" target="_blank" rel="noopener">Order on WhatsApp</a>
 		</div>
 	  </div>
@@ -257,7 +327,7 @@
 
 	<div class="product">
 		<div class="image gallery">
-		  <img class="main-img" src="Images/Products/Olive/OliveFull.jpg" alt="Olive Bread" decoding="async">
+		  <img class="main-img" src="Images/Products/Olive/OliveFull.jpg" alt="Olive Bread" decoding="async" sizes="(max-width: 768px) 100vw, (max-width: 1200px) 58vw, 840px">
 		  <div class="thumbs">
 			<img src="Images/Products/Olive/OliveFull-thumb.jpg" data-full="Images/Products/Olive/OliveFull.jpg" onclick="changeImage(this)" class="active" decoding="async">
 			<img src="Images/Products/Olive/OliveCloseup1-thumb.jpg" data-full="Images/Products/Olive/OliveCloseup1.jpg" onclick="changeImage(this)" decoding="async">
@@ -267,9 +337,7 @@
 		</div>
 	  <div class="text">
 		<h3>Olive Loaf</h3>
-		<p>
-		A savory slow-fermented loaf studded with olives, with a soft crumb and a gentle briny finish.
-		</p>
+		<p>A savory slow-fermented loaf studded with olives, with a soft crumb and a gentle briny finish.</p>
 		<ul>
 		  <li>Olive-forward savory flavor</li>
 		  <li>Soft interior with light chew</li>
@@ -282,10 +350,8 @@
 		<p><strong>Ingredients</strong><br>
 		Flour blend, olives, yeast, salt, water.
 		</p>
-		  
 		  <p><strong>What to Expect</strong><br>
 		  Mildly tangy, savory notes from olives with balanced texture for everyday use.</p>
-		  
 		  <p><strong>Baker's Details</strong></p>
 			<p>
 			Flour: Our house high-whole-wheat flour blend<br>
@@ -298,13 +364,9 @@
 			Dough weight: ~870g<br>
 			Final baked weight: ~800g
 			</p>
-		
 		  <p><strong>Weight</strong><br>
 		  Approx 800g</p>
-		  <p>
-		  Best consumed within 2-3 days.
-		  </p>
-  
+		  <p>Best consumed within 2-3 days.</p>
 		  <a href="https://wa.me/91XXXXXXXXXX?text=Hi%20TRANCH%C3%89%2C%20I%20want%20to%20order%20the%20olive%20loaf." class="btn" target="_blank" rel="noopener">Order on WhatsApp</a>
 		</div>
 	  </div>
@@ -313,7 +375,7 @@
 	<div class="product">
 	  <div class="image placeholder"></div>
 	  <div class="text">
-		<h3>Onion Loaf</h3>
+		<h3>Caramelized Onion Loaf</h3>
 		<p>A savory loaf with a deeper baked flavor, made for customers who prefer a more aromatic, meal-friendly bread.</p>
 		<ul>
 		  <li>Gentle onion sweetness with savory depth</li>
@@ -326,26 +388,18 @@
 		  <p><strong>Ingredients</strong><br>
 		  Flour blend, onions, yeast, salt, water.
 		  </p>
-
 		  <p><strong>What to Expect</strong><br>
 		  A savory loaf with a soft crumb, a fuller aroma, and mild sweetness from the onions as they bake into the dough.</p>
-
-		  <p><strong>Baker's Details</strong></p>
-		  <p>
+		  <p><strong>Baker's Details</strong><br>
 		  Flour: Our house bread flour blend<br>
 		  Hydration: 68-72%<br>
 		  Onion: varies by batch<br>
 		  Salt: 2%<br>
-		  Yeast: 1%
-		  </p>
-
+		  Yeast: 1%</p>
 		  <p><strong>Weight</strong><br>
 		  Approx 800g</p>
-		  <p>
-		  Best consumed within 2-3 days.
-		  </p>
-
-		  <a href="https://wa.me/91XXXXXXXXXX?text=Hi%20TRANCH%C3%89%2C%20I%20want%20to%20order%20the%20onion%20loaf." class="btn" target="_blank" rel="noopener">Order on WhatsApp</a>
+		  <p>Best consumed within 2-3 days.</p>
+		  <a href="https://wa.me/91XXXXXXXXXX?text=Hi%20TRANCH%C3%89%2C%20I%20want%20to%20ask%20about%20the%20caramelized%20onion%20loaf." class="btn" target="_blank" rel="noopener">Ask on WhatsApp</a>
 		</div>
 	  </div>
 	</div>
@@ -366,59 +420,41 @@
 		  <p><strong>Ingredients</strong><br>
 		  Flour blend, oats, honey, yeast, salt, water.
 		  </p>
-
 		  <p><strong>What to Expect</strong><br>
 		  A softer loaf with a mild chew, a little oat texture, and a gentle honey finish that works well for breakfast and toast.</p>
-
-		  <p><strong>Baker's Details</strong></p>
-		  <p>
+		  <p><strong>Baker's Details</strong><br>
 		  Flour: Our house bread flour blend<br>
 		  Oats: varies by batch<br>
 		  Honey: varies by batch<br>
 		  Hydration: 68-72%<br>
 		  Salt: 2%<br>
-		  Yeast: 1%
-		  </p>
-
+		  Yeast: 1%</p>
 		  <p><strong>Weight</strong><br>
 		  Approx 800g</p>
-		  <p>
-		  Best consumed within 2-3 days.
-		  </p>
-
-		  <a href="https://wa.me/91XXXXXXXXXX?text=Hi%20TRANCH%C3%89%2C%20I%20want%20to%20order%20the%20honey%20and%20oat%20loaf." class="btn" target="_blank" rel="noopener">Order on WhatsApp</a>
+		  <p>Best consumed within 2-3 days.</p>
+		  <a href="https://wa.me/91XXXXXXXXXX?text=Hi%20TRANCH%C3%89%2C%20I%20want%20to%20ask%20about%20the%20honey%20and%20oat%20loaf." class="btn" target="_blank" rel="noopener">Ask on WhatsApp</a>
 		</div>
 	  </div>
 	</div>
 
-      <div class="product reverse">
-        <div class="image placeholder"></div>
-        <div class="text">
-          <h3>Multigrain Loaf</h3>
-					<p>A grain-rich loaf built on a fixed 50:50 whole wheat and white flour base for a balanced bite, softer crumb, and multigrain depth.</p>
-		  <ul>
-			<li>Nutty flavor with more texture throughout</li>
-			<li>Standard 50:50 whole wheat and white flour formula</li>
-			<li>Images will be added as this product is photographed</li>
-		  </ul>
-        </div>
-      </div>
-
     </div>
   </section>
-  <!-- Rolls -->
-  <section id="rolls">
+
+  <section id="buns-rolls">
     <div class="container">
 		<h2 class="section-divider">
-		  <span>Rolls</span>
+		  <span>Buns &amp; Rolls</span>
 		</h2>
-		<p class="rolls-intro">
-		  Our rolls are offered at different whole wheat levels so you can choose between a softer bite and a more grain-forward, hearty crumb.
-		</p>
+		<p class="rolls-intro">Classic rolls stay easy to understand, while signature buns create space for richer, more premium items as the range grows.</p>
+
+		<div class="product-subsection">
+		  <p class="premium-kicker">Classic Buns &amp; Rolls</p>
+		  <p class="subsection-copy">These are the core breakfast and sandwich buns: whole wheat, multigrain, milk-based buns, and staple burger formats.</p>
+		</div>
 
       <div class="product">
 		<div class="image gallery">
-		  <img class="main-img" src="Images/Products/Rolls/WholeWheat/BreadRolls.jpg" alt="Whole Wheat Rolls" decoding="async">
+		  <img class="main-img" src="Images/Products/Rolls/WholeWheat/BreadRolls.jpg" alt="Whole Wheat Rolls" decoding="async" sizes="(max-width: 768px) 100vw, (max-width: 1200px) 58vw, 840px">
 		  <div class="thumbs">
 			<img src="Images/Products/Rolls/WholeWheat/BreadRolls-thumb.jpg" data-full="Images/Products/Rolls/WholeWheat/BreadRolls.jpg" onclick="changeImage(this)" class="active" decoding="async">
 			<img src="Images/Products/Rolls/WholeWheat/WholeWheat1-thumb.jpg" data-full="Images/Products/Rolls/WholeWheat/WholeWheat1.jpg" onclick="changeImage(this)" decoding="async">
@@ -441,25 +477,17 @@
 			<p><strong>Ingredients</strong><br>
 			Whole wheat flour, white flour, yeast, salt, water.
 			</p>
-			  
 			<p><strong>What to Expect</strong><br>
 			A hearty roll with deeper whole wheat flavor and a denser bite.</p>
-			  
-			<p><strong>Baker's Details</strong></p>
-			<p>
+			<p><strong>Baker's Details</strong><br>
 			Whole wheat flour: 80%<br>
 			White flour: 20%<br>
 			Hydration: 70%<br>
 			Salt: 2%<br>
-			Yeast: 1%
-			</p>
-			
+			Yeast: 1%</p>
 			<p><strong>Weight</strong><br>
 			Set of 6 rolls</p>
-			<p>
-			Best consumed within 2-3 days.
-			</p>
-
+			<p>Best consumed within 2-3 days.</p>
 			<a href="https://wa.me/91XXXXXXXXXX?text=Hi%20TRANCH%C3%89%2C%20I%20want%20to%20order%20whole%20wheat%20rolls." class="btn" target="_blank" rel="noopener">Order on WhatsApp</a>
 		  </div>
         </div>
@@ -467,7 +495,7 @@
 
       <div class="product">
 		<div class="image gallery">
-		  <img class="main-img" src="Images/Products/Rolls/MultiGrain/MultiGrainRoll1.jpg" alt="Multigrain Rolls" decoding="async">
+		  <img class="main-img" src="Images/Products/Rolls/MultiGrain/MultiGrainRoll1.jpg" alt="Multigrain Rolls" decoding="async" sizes="(max-width: 768px) 100vw, (max-width: 1200px) 58vw, 840px">
 		  <div class="thumbs">
 			<img src="Images/Products/Rolls/MultiGrain/MultiGrainRoll1-thumb.jpg" data-full="Images/Products/Rolls/MultiGrain/MultiGrainRoll1.jpg" onclick="changeImage(this)" class="active" decoding="async">
 			<img src="Images/Products/Rolls/MultiGrain/MultiGrainRoll2-thumb.jpg" data-full="Images/Products/Rolls/MultiGrain/MultiGrainRoll2.jpg" onclick="changeImage(this)" decoding="async">
@@ -489,25 +517,17 @@
 			<p><strong>Ingredients</strong><br>
 			Whole wheat flour, white flour, multigrain mix, yeast, salt, water.
 			</p>
-			  
 			<p><strong>What to Expect</strong><br>
 			A softer roll with balanced flavor. Because whole wheat is lower than the whole wheat rolls, texture stays lighter and softer.</p>
-			  
-			<p><strong>Baker's Details</strong></p>
-			<p>
+			<p><strong>Baker's Details</strong><br>
 			Whole wheat flour: 50%<br>
 			White flour: 50%<br>
 			Hydration: 70%<br>
 			Salt: 2%<br>
-			Yeast: 1%
-			</p>
-			
+			Yeast: 1%</p>
 			<p><strong>Weight</strong><br>
 			Set of 6 rolls</p>
-			<p>
-			Best consumed within 2-3 days.
-			</p>
-
+			<p>Best consumed within 2-3 days.</p>
 			<a href="https://wa.me/91XXXXXXXXXX?text=Hi%20TRANCH%C3%89%2C%20I%20want%20to%20order%20multigrain%20rolls." class="btn" target="_blank" rel="noopener">Order on WhatsApp</a>
 		  </div>
         </div>
@@ -516,7 +536,7 @@
       <div class="product">
         <div class="image placeholder"></div>
         <div class="text">
-					<h3>Enriched Buns</h3>
+		  <h3>Milk Buns</h3>
 		  <p>Set of 6 soft enriched buns with a tender crumb, light sweetness, and a lighter whole wheat profile.</p>
           <ul>
 			<li>Classic soft bun with tender crumb</li>
@@ -530,12 +550,9 @@
 			<p><strong>Ingredients</strong><br>
 			Whole wheat flour, white flour, whole milk, white butter, sugar, yeast, salt, water.
 			</p>
-			  
 			<p><strong>What to Expect</strong><br>
 			A soft enriched bun with a tender bite, gentle sweetness, and enough structure for breakfast sandwiches or sliders.</p>
-			  
-			<p><strong>Baker's Details</strong></p>
-			<p>
+			<p><strong>Baker's Details</strong><br>
 			Whole wheat flour: 20%<br>
 			White flour: 80%<br>
 			Hydration: 70%<br>
@@ -543,16 +560,356 @@
 			White butter: 7%<br>
 			Sugar: 5%<br>
 			Salt: 2%<br>
-			Yeast: 1%
-			</p>
-			
+			Yeast: 1%</p>
 			<p><strong>Weight</strong><br>
 			Set of 6 buns</p>
-			<p>
-			Best consumed within 2-3 days.
-			</p>
+			<p>Best consumed within 2-3 days.</p>
+			<a href="https://wa.me/91XXXXXXXXXX?text=Hi%20TRANCH%C3%89%2C%20I%20want%20to%20ask%20about%20the%20milk%20buns." class="btn" target="_blank" rel="noopener">Ask on WhatsApp</a>
+		  </div>
+        </div>
+      </div>
 
-			<a href="https://wa.me/91XXXXXXXXXX?text=Hi%20TRANCH%C3%89%2C%20I%20want%20to%20order%20the%20enriched%20buns." class="btn" target="_blank" rel="noopener">Order on WhatsApp</a>
+      <div class="product reverse">
+        <div class="image placeholder"></div>
+        <div class="text">
+		  <h3>Sesame Burger Buns</h3>
+		  <p>A planned burger bun set built for softer eating quality with enough structure to hold fillings cleanly.</p>
+          <ul>
+			<li>Softer crumb with sesame finish</li>
+			<li>Designed for burgers and sandwiches</li>
+			<li>Currently listed before photography is completed</li>
+          </ul>
+
+		  <button class="toggle-btn">View Details &#8595;</button>
+		  <div class="details">
+			<p><strong>Planned Ingredients</strong><br>
+			Flour blend, sesame seeds, yeast, salt, water, and selected enrichments depending on the final bun style.</p>
+			<p><strong>What to Expect</strong><br>
+			A softer burger bun with a cleaner bite than a denser whole wheat roll, aimed at burgers and loaded sandwiches.</p>
+			<p><strong>Status</strong><br>
+			Product structure is planned and will be refined once the final bun is photographed and standardized.</p>
+			<a href="https://wa.me/91XXXXXXXXXX?text=Hi%20TRANCH%C3%89%2C%20I%20want%20to%20ask%20about%20the%20sesame%20burger%20buns." class="btn" target="_blank" rel="noopener">Ask on WhatsApp</a>
+		  </div>
+        </div>
+      </div>
+
+		<div class="product-subsection">
+		  <p class="premium-kicker">Specialty Buns &amp; Rolls</p>
+		  <p class="subsection-copy">These are the more premium or more specialized bun formats that can expand the range later.</p>
+		</div>
+
+      <div class="product">
+        <div class="image placeholder premium-placeholder"></div>
+        <div class="text">
+		  <h3>Potato Buns</h3>
+		  <p>A softer planned burger-style bun with potato in the formula for extra tenderness and a richer bite.</p>
+          <ul>
+			<li>More plush than classic rolls</li>
+			<li>Designed for burgers and filled sandwiches</li>
+			<li>Currently listed ahead of final photography</li>
+          </ul>
+
+		  <button class="toggle-btn">View Details &#8595;</button>
+		  <div class="details">
+			<p><strong>Planned Ingredients</strong><br>
+			Flour blend, potato, yeast, salt, water, and selected enrichments depending on the final batch.</p>
+			<p><strong>What to Expect</strong><br>
+			A tender bun with a softer pull and more rounded flavor than standard dinner-roll styles.</p>
+			<a href="https://wa.me/91XXXXXXXXXX?text=Hi%20TRANCH%C3%89%2C%20I%20want%20to%20ask%20about%20the%20potato%20buns." class="btn" target="_blank" rel="noopener">Ask on WhatsApp</a>
+		  </div>
+        </div>
+      </div>
+
+      <div class="product reverse">
+        <div class="image placeholder premium-placeholder"></div>
+        <div class="text">
+		  <h3>Brioche Buns</h3>
+		  <p>A planned richer bun with more butter and a softer, more premium finish than the everyday bun range.</p>
+          <ul>
+			<li>Richer than milk buns</li>
+			<li>Built for burgers and premium sandwiches</li>
+			<li>Photography and final details pending</li>
+          </ul>
+
+		  <button class="toggle-btn">View Details &#8595;</button>
+		  <div class="details">
+			<p><strong>Planned Ingredients</strong><br>
+			Flour, butter, eggs, milk, sugar, yeast, salt.
+			</p>
+			<p><strong>What to Expect</strong><br>
+			A richer bun with a softer pull, smoother crumb, and a more premium finish than the core bun range.</p>
+			<a href="https://wa.me/91XXXXXXXXXX?text=Hi%20TRANCH%C3%89%2C%20I%20want%20to%20ask%20about%20the%20brioche%20buns." class="btn" target="_blank" rel="noopener">Ask on WhatsApp</a>
+		  </div>
+        </div>
+      </div>
+
+      <div class="product">
+        <div class="image placeholder premium-placeholder"></div>
+        <div class="text">
+		  <h3>Pretzel Buns</h3>
+		  <p>A planned savory bun with a darker crust finish and a chewier outer character than the softer everyday buns.</p>
+          <ul>
+			<li>More savory than milk or brioche buns</li>
+			<li>Good for sandwiches and burgers with stronger fillings</li>
+			<li>Currently listed ahead of final testing and photography</li>
+          </ul>
+
+		  <button class="toggle-btn">View Details &#8595;</button>
+		  <div class="details">
+			<p><strong>Planned Ingredients</strong><br>
+			Flour blend, yeast, salt, water, pretzel finish.
+			</p>
+			<p><strong>What to Expect</strong><br>
+			A bun with more chew, a darker exterior, and a more savory profile than the core bun lineup.</p>
+			<a href="https://wa.me/91XXXXXXXXXX?text=Hi%20TRANCH%C3%89%2C%20I%20want%20to%20ask%20about%20the%20pretzel%20buns." class="btn" target="_blank" rel="noopener">Ask on WhatsApp</a>
+		  </div>
+        </div>
+      </div>
+
+      <div class="product reverse">
+        <div class="image placeholder premium-placeholder"></div>
+        <div class="text">
+		  <h3>Kaiser Rolls</h3>
+		  <p>A planned classic roll style with a more structured crust and a slightly more defined shape than softer buns.</p>
+          <ul>
+			<li>More classic roll feel than enriched buns</li>
+			<li>Built for sandwiches and table service</li>
+			<li>Currently listed before photography is available</li>
+          </ul>
+
+		  <button class="toggle-btn">View Details &#8595;</button>
+		  <div class="details">
+			<p><strong>Planned Ingredients</strong><br>
+			Flour blend, yeast, salt, water.
+			</p>
+			<p><strong>What to Expect</strong><br>
+			A more classic roll profile with a clearer crust structure and a slightly firmer bite than soft sandwich buns.</p>
+			<a href="https://wa.me/91XXXXXXXXXX?text=Hi%20TRANCH%C3%89%2C%20I%20want%20to%20ask%20about%20the%20kaiser%20rolls." class="btn" target="_blank" rel="noopener">Ask on WhatsApp</a>
+		  </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <section id="breakfast-european">
+    <div class="container">
+		<h2 class="section-divider">
+		  <span>Breakfast &amp; European</span>
+		</h2>
+		<p class="rolls-intro">This section groups the breads and bakes that feel more cafe-like, brunch-friendly, or distinctly European-inspired in style.</p>
+
+		<div class="product-subsection">
+		  <p class="premium-kicker">Bagels</p>
+		  <p class="subsection-copy">Bagels can expand as a small breakfast range with plain, sesame, and later flavored variations.</p>
+		</div>
+
+      <div class="product">
+        <div class="image placeholder"></div>
+        <div class="text">
+		  <h3>Plain Bagel</h3>
+		  <p>A planned everyday bagel with a more structured chew and cleaner breakfast profile than soft rolls.</p>
+          <ul>
+			<li>Breakfast-focused format</li>
+			<li>More chew than buns or rolls</li>
+			<li>Listed before final photography and production notes</li>
+          </ul>
+		  <button class="toggle-btn">View Details &#8595;</button>
+		  <div class="details">
+			<p><strong>Planned Ingredients</strong><br>
+			Flour blend, yeast, salt, water.
+			</p>
+			<p><strong>What to Expect</strong><br>
+			A cleaner breakfast bread with more chew and a denser structure than buns or sandwich rolls.</p>
+			<a href="https://wa.me/91XXXXXXXXXX?text=Hi%20TRANCH%C3%89%2C%20I%20want%20to%20ask%20about%20the%20plain%20bagel." class="btn" target="_blank" rel="noopener">Ask on WhatsApp</a>
+		  </div>
+        </div>
+      </div>
+
+      <div class="product reverse">
+        <div class="image placeholder"></div>
+        <div class="text">
+		  <h3>Sesame Bagel</h3>
+		  <p>A planned variation on the plain bagel with a more savory sesame finish and the same breakfast-friendly chew.</p>
+          <ul>
+			<li>Sesame finish</li>
+			<li>Built as a breakfast variation</li>
+			<li>Photography and final detail pending</li>
+          </ul>
+		  <button class="toggle-btn">View Details &#8595;</button>
+		  <div class="details">
+			<p><strong>Planned Ingredients</strong><br>
+			Flour blend, sesame seeds, yeast, salt, water.
+			</p>
+			<p><strong>What to Expect</strong><br>
+			A bagel with the same structured chew as the plain version, lifted by a sesame crust finish.</p>
+			<a href="https://wa.me/91XXXXXXXXXX?text=Hi%20TRANCH%C3%89%2C%20I%20want%20to%20ask%20about%20the%20sesame%20bagel." class="btn" target="_blank" rel="noopener">Ask on WhatsApp</a>
+		  </div>
+        </div>
+      </div>
+
+		<div class="product-subsection">
+		  <p class="premium-kicker">Focaccia</p>
+		  <p class="subsection-copy">Focaccia gives the range a more cafe-oriented, European-inspired savory bread format with room for multiple toppings.</p>
+		</div>
+
+      <div class="product">
+        <div class="image placeholder"></div>
+        <div class="text">
+		  <h3>Rosemary Sea Salt Focaccia</h3>
+		  <p>A planned focaccia with a more open, oil-kissed crumb and a clean rosemary-salt finish.</p>
+          <ul>
+			<li>Savory cafe-style bread</li>
+			<li>Built for sharing, snacking, or sandwich use</li>
+			<li>Listed ahead of photography</li>
+          </ul>
+		  <button class="toggle-btn">View Details &#8595;</button>
+		  <div class="details">
+			<p><strong>Planned Ingredients</strong><br>
+			Flour blend, olive oil, rosemary, sea salt, yeast, water.
+			</p>
+			<p><strong>What to Expect</strong><br>
+			A softer, more open crumb with savory finish and more olive-oil richness than the loaf range.</p>
+			<a href="https://wa.me/91XXXXXXXXXX?text=Hi%20TRANCH%C3%89%2C%20I%20want%20to%20ask%20about%20the%20rosemary%20sea%20salt%20focaccia." class="btn" target="_blank" rel="noopener">Ask on WhatsApp</a>
+		  </div>
+        </div>
+      </div>
+
+      <div class="product reverse">
+        <div class="image placeholder"></div>
+        <div class="text">
+		  <h3>Olive &amp; Tomato Focaccia</h3>
+		  <p>A more savory planned focaccia variation with a stronger meal-friendly flavor profile.</p>
+          <ul>
+			<li>More savory than the rosemary version</li>
+			<li>Built for snacking and savory meals</li>
+			<li>Photography pending</li>
+          </ul>
+		  <button class="toggle-btn">View Details &#8595;</button>
+		  <div class="details">
+			<p><strong>Planned Ingredients</strong><br>
+			Flour blend, olive oil, olives, tomato, yeast, salt, water.
+			</p>
+			<p><strong>What to Expect</strong><br>
+			A more aromatic focaccia with stronger savory notes and a richer topping profile than the rosemary version.</p>
+			<a href="https://wa.me/91XXXXXXXXXX?text=Hi%20TRANCH%C3%89%2C%20I%20want%20to%20ask%20about%20the%20olive%20and%20tomato%20focaccia." class="btn" target="_blank" rel="noopener">Ask on WhatsApp</a>
+		  </div>
+        </div>
+      </div>
+
+      <div class="product">
+        <div class="image placeholder"></div>
+        <div class="text">
+		  <h3>Garlic Knots</h3>
+		  <p>A planned savory side-bake with more pull-apart character than rolls and a stronger garlic-butter finish.</p>
+          <ul>
+			<li>Shareable savory bake</li>
+			<li>Distinct from the loaf and bun formats</li>
+			<li>Currently listed before final photography</li>
+          </ul>
+		  <button class="toggle-btn">View Details &#8595;</button>
+		  <div class="details">
+			<p><strong>Planned Ingredients</strong><br>
+			Flour blend, garlic, butter or oil finish, yeast, salt, water.
+			</p>
+			<p><strong>What to Expect</strong><br>
+			A savory bake with more pull-apart softness and a stronger garlic-led finish than the main bread range.</p>
+			<a href="https://wa.me/91XXXXXXXXXX?text=Hi%20TRANCH%C3%89%2C%20I%20want%20to%20ask%20about%20the%20garlic%20knots." class="btn" target="_blank" rel="noopener">Ask on WhatsApp</a>
+		  </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <section id="sweet-bakes">
+    <div class="container">
+		<h2 class="section-divider">
+		  <span>Sweet Bakes</span>
+		</h2>
+		<p class="rolls-intro">Sweet products can sit as a lighter extension of the core bread range without taking over the page.</p>
+
+      <div class="product">
+        <div class="image placeholder premium-placeholder"></div>
+        <div class="text">
+		  <h3>Cinnamon Rolls</h3>
+		  <p>A planned sweet bake with more richness and dessert character than the savory bun range.</p>
+          <ul>
+			<li>Breakfast-to-dessert crossover item</li>
+			<li>Softer and richer than the core bread lineup</li>
+			<li>Listed ahead of final photography</li>
+          </ul>
+		  <button class="toggle-btn">View Details &#8595;</button>
+		  <div class="details">
+			<p><strong>Planned Ingredients</strong><br>
+			Flour, butter, sugar, cinnamon, yeast, salt, milk or water depending on the final bake.</p>
+			<p><strong>What to Expect</strong><br>
+			A richer, sweeter bake with softer crumb and a more indulgent finish than the main loaf range.</p>
+			<a href="https://wa.me/91XXXXXXXXXX?text=Hi%20TRANCH%C3%89%2C%20I%20want%20to%20ask%20about%20the%20cinnamon%20rolls." class="btn" target="_blank" rel="noopener">Ask on WhatsApp</a>
+		  </div>
+        </div>
+      </div>
+
+      <div class="product reverse">
+        <div class="image placeholder premium-placeholder"></div>
+        <div class="text">
+		  <h3>Chocolate Rolls</h3>
+		  <p>A planned sweet roll with more dessert weight and richer flavor than the breakfast breads.</p>
+          <ul>
+			<li>Chocolate-led sweet bake</li>
+			<li>Richer than cinnamon rolls</li>
+			<li>Photography and final detail pending</li>
+          </ul>
+		  <button class="toggle-btn">View Details &#8595;</button>
+		  <div class="details">
+			<p><strong>Planned Ingredients</strong><br>
+			Flour, butter, sugar, chocolate filling, yeast, salt, milk or water depending on final style.</p>
+			<p><strong>What to Expect</strong><br>
+			A richer sweet roll built more for indulgence than everyday sandwich use.</p>
+			<a href="https://wa.me/91XXXXXXXXXX?text=Hi%20TRANCH%C3%89%2C%20I%20want%20to%20ask%20about%20the%20chocolate%20rolls." class="btn" target="_blank" rel="noopener">Ask on WhatsApp</a>
+		  </div>
+        </div>
+      </div>
+
+      <div class="product">
+        <div class="image placeholder premium-placeholder"></div>
+        <div class="text">
+		  <h3>Cardamom Buns</h3>
+		  <p>A planned sweet-spiced bun with a more aromatic profile than cinnamon or chocolate-led bakes.</p>
+          <ul>
+			<li>Spice-led sweet bun</li>
+			<li>Aromatic rather than heavily dessert-like</li>
+			<li>Listed before photography is ready</li>
+          </ul>
+		  <button class="toggle-btn">View Details &#8595;</button>
+		  <div class="details">
+			<p><strong>Planned Ingredients</strong><br>
+			Flour, butter, sugar, cardamom, yeast, salt, milk or water depending on final bake.</p>
+			<p><strong>What to Expect</strong><br>
+			A sweet bun with more aromatic spice character and a less heavy finish than chocolate-rich bakes.</p>
+			<a href="https://wa.me/91XXXXXXXXXX?text=Hi%20TRANCH%C3%89%2C%20I%20want%20to%20ask%20about%20the%20cardamom%20buns." class="btn" target="_blank" rel="noopener">Ask on WhatsApp</a>
+		  </div>
+        </div>
+      </div>
+
+      <div class="product reverse">
+        <div class="image placeholder premium-placeholder"></div>
+        <div class="text">
+		  <h3>Brioche Loaf</h3>
+		  <p>A richer planned loaf that extends the sweet range into a sliceable format.</p>
+          <ul>
+			<li>Sliceable sweet loaf</li>
+			<li>More premium than the everyday enriched loaf</li>
+			<li>Currently listed before photography is completed</li>
+          </ul>
+		  <button class="toggle-btn">View Details &#8595;</button>
+		  <div class="details">
+			<p><strong>Planned Ingredients</strong><br>
+			Flour, butter, eggs, sugar, yeast, salt, milk.
+			</p>
+			<p><strong>What to Expect</strong><br>
+			A richer loaf with a smoother crumb and a more premium sweet finish than the savory bread range.</p>
+			<a href="https://wa.me/91XXXXXXXXXX?text=Hi%20TRANCH%C3%89%2C%20I%20want%20to%20ask%20about%20the%20brioche%20loaf." class="btn" target="_blank" rel="noopener">Ask on WhatsApp</a>
 		  </div>
         </div>
       </div>
@@ -567,6 +924,19 @@
 		<a href="https://wa.me/91XXXXXXXXXX?text=Hi%20TRANCH%C3%89%2C%20my%20name%20is%20____.%20My%20contact%20number%20is%20____.%20I%20would%20like%20to%20order%20____%20for%20next-morning%20delivery." class="btn" target="_blank" rel="noopener">Message on WhatsApp</a>
   </section>
 
+	<footer>
+	  <p>TRANCHÉ</p>
+	  <p>Small-batch bread from Gurgaon</p>
+	  <p>Phone: +91-XXXXXXXXXX</p>
+	  <div class="footer-links">
+		<a href="index.html">Home</a>
+		<a href="breads.html">Products</a>
+		<a href="about.html">About</a>
+		<a href="faq.html">FAQ</a>
+	  </div>
+	</footer>
+
+	<script src="scripts/site.js"></script>
 	<script>
 		/* ---------- Expand / Collapse ---------- */
 		document.querySelectorAll('.toggle-btn').forEach(button => {
@@ -637,12 +1007,36 @@
 
 
 		/* ---------- Image Gallery ---------- */
+		function buildResponsiveSrcset(imagePath) {
+		  if (!imagePath || !/\.jpe?g$/i.test(imagePath)) {
+			return '';
+		  }
+
+		  const responsiveBase = imagePath.replace(/\.jpe?g$/i, '');
+		  return [
+			`${responsiveBase}-phone.jpg 560w`,
+			`${responsiveBase}-tablet.jpg 960w`,
+			`${responsiveBase}-desktop.jpg 1400w`
+		  ].join(', ');
+		}
+
+		function applyResponsiveSource(img, imagePath) {
+		  if (!img || !imagePath) return;
+
+		  img.src = imagePath;
+		  img.srcset = buildResponsiveSrcset(imagePath);
+		}
+
+		document.querySelectorAll('.gallery .main-img').forEach(img => {
+		  applyResponsiveSource(img, img.getAttribute('src'));
+		});
+
 		function changeImage(el) {
 		  const gallery = el.closest('.gallery');
 		  const fullImageSrc = el.getAttribute('data-full') || el.src;
 
 		  // change main image
-		  gallery.querySelector('.main-img').src = fullImageSrc;
+		  applyResponsiveSource(gallery.querySelector('.main-img'), fullImageSrc);
 
 		  // update active thumbnail
 		  gallery.querySelectorAll('.thumbs img').forEach(img =>
@@ -742,7 +1136,7 @@
 	}
 
 	if (!window.location.hash) {
-	  setActiveCategory('loaves');
+	  setActiveCategory('bread');
 	}
 
 </script>
