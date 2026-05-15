@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>About - TRANCHÉ</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body id="top" class="about-page">
+  <header>
+    <a class="logo" href="index.html" aria-label="Go to home">
+      <strong>TRANCHÉ</strong>
+      <span>Bakery</span>
+    </a>
+    <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="site-nav" data-menu-toggle>
+      <span class="menu-toggle-bar"></span>
+      <span class="menu-toggle-bar"></span>
+      <span class="menu-toggle-bar"></span>
+      <span class="menu-toggle-label">Menu</span>
+    </button>
+    <nav id="site-nav" class="site-nav" aria-label="Primary">
+      <a href="index.html">Home</a>
+      <a href="breads.html">Products</a>
+      <a href="about.html">About</a>
+      <a href="faq.html">FAQ</a>
+      <a href="https://wa.me/91XXXXXXXXXX?text=Hi%20TRANCH%C3%89%2C%20I%20would%20like%20to%20place%20an%20order." class="nav-order" target="_blank" rel="noopener">Order</a>
+    </nav>
+  </header>
+  <div class="nav-backdrop" data-nav-backdrop hidden></div>
+
+  <section class="page-hero">
+    <div class="container" style="max-width: 860px;">
+      <p class="eyebrow">About TRANCHÉ</p>
+      <h1>The longer explanation belongs here, not in front of every customer on the homepage.</h1>
+      <p>TRANCHÉ is built around small-batch loaves, rolls, and European-inspired breads that feel closer to the kitchen than to factory shelves. The goal is bread with better character, clearer ingredients, and a shorter distance between the bake and the table.</p>
+    </div>
+  </section>
+
+  <section class="page-section">
+    <div class="container page-grid">
+      <div class="page-text">
+        <p class="eyebrow">Our Story</p>
+        <h2>Everyday bread, made with more patience than packaged bread usually gets.</h2>
+        <p>We focus on loaves and rolls that work for real daily eating: toast, sandwiches, breakfast plates, table bread, and a growing set of European-inspired bakes. That means balancing softness, flavor, structure, and freshness rather than chasing shelf life or perfectly uniform industrial results.</p>
+        <p>We keep production small enough that each batch gets real attention. The product images on this site are our actual breads, photographed as baked in the kitchen.</p>
+      </div>
+      <div class="image">
+        <img
+          src="./Images/HomePage/MultiGrainPortrait.jpg"
+          srcset="./Images/HomePage/MultiGrainPortrait-phone.jpg 560w, ./Images/HomePage/MultiGrainPortrait-tablet.jpg 960w, ./Images/HomePage/MultiGrainPortrait-desktop.jpg 1400w"
+          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 56vw, 680px"
+          alt="Freshly baked multigrain loaf"
+          decoding="async"
+        >
+      </div>
+    </div>
+  </section>
+
+  <section class="page-section soft-surface">
+    <div class="container">
+      <div class="section-heading">
+        <p class="eyebrow">How We Bake</p>
+        <h2>Quality here is mostly process discipline, not marketing language.</h2>
+        <p>These are the practical decisions that shape how the bread tastes, feels, and keeps.</p>
+      </div>
+      <div class="guide-grid">
+        <article class="guide-card">
+          <h3>Small batches first</h3>
+          <p>We bake in limited quantities so the bread reaches you fresher and with less holding time than mass-produced loaves.</p>
+        </article>
+        <article class="guide-card">
+          <h3>Slower fermentation</h3>
+          <p>Time is part of the recipe. Longer fermentation helps build flavor, aroma, and a more natural structure before the dough is baked.</p>
+        </article>
+        <article class="guide-card">
+          <h3>Baked closer to order</h3>
+          <p>Orders confirmed by 6pm are generally prepared for next-morning delivery, which keeps the bakery aligned around freshness instead of stockholding.</p>
+        </article>
+        <article class="guide-card">
+          <h3>Photographed as baked</h3>
+          <p>What you see on the site is our own bread from the kitchen, not stock photography and not over-styled food imagery.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="page-section">
+    <div class="container page-grid">
+      <div class="image">
+        <img
+          src="./Images/HomePage/WhatMakesOurBreadDifferent.jpg"
+          srcset="./Images/HomePage/WhatMakesOurBreadDifferent-phone.jpg 560w, ./Images/HomePage/WhatMakesOurBreadDifferent-tablet.jpg 960w, ./Images/HomePage/WhatMakesOurBreadDifferent-desktop.jpg 1400w"
+          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 56vw, 680px"
+          alt="Bread detail image"
+          decoding="async"
+        >
+      </div>
+      <div class="page-text">
+        <p class="eyebrow">Ingredients & Standards</p>
+        <h2>Ingredient choices stay simple, but the reasoning still matters.</h2>
+        <ul class="clean-list note-list">
+          <li>No commercial improvers or enhancers</li>
+          <li>No preservatives or bread softeners</li>
+          <li>Whole wheat and white flour blends chosen for actual eating quality</li>
+          <li>Enrichments like milk, butter, oats, olives, honey, or walnuts only where the bread calls for them</li>
+          <li>Kitchen-made bread that looks and behaves like real bread, not stabilized packaged bread</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="page-section soft-surface">
+    <div class="container">
+      <div class="section-heading">
+        <p class="eyebrow">Bread Guide</p>
+        <h2>The practical questions people ask after the first browse.</h2>
+        <p>These are the details that help customers understand why the bread behaves differently from packaged supermarket loaves.</p>
+      </div>
+      <div class="guide-grid">
+        <article class="guide-card">
+          <h3>Why the pricing is different</h3>
+          <p>Small-batch production, slower fermentation, more hands-on work, and better ingredients cost more than bread built mainly for speed and scale.</p>
+        </article>
+        <article class="guide-card">
+          <h3>What improvers are</h3>
+          <p>Improvers help commercial bakeries speed production and standardize results. We do not use them, so the dough develops more naturally over time.</p>
+        </article>
+        <article class="guide-card">
+          <h3>What a preferment does</h3>
+          <p>Part of the dough is fermented ahead of time, often for 12 to 15 hours, to build better flavor, aroma, and structure before the final mix.</p>
+        </article>
+        <article class="guide-card">
+          <h3>Why bread can feel different</h3>
+          <p>Without improvers and softeners, the crumb is more natural and less engineered. Higher whole wheat loaves will also feel denser by design.</p>
+        </article>
+        <article class="guide-card">
+          <h3>Why bread dries faster</h3>
+          <p>Simple-ingredient bread without softeners and preservatives will dry faster if left exposed to air. Covered room-temperature storage or freezing works best.</p>
+        </article>
+        <article class="guide-card">
+          <h3>Why 100% whole wheat is not the default</h3>
+          <p>Very high whole wheat percentages can become much denser. Our blends are designed to keep a better balance of softness, flavor, and structure.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="cta">
+    <h2>Browse the products when you are ready to choose.</h2>
+    <p>The homepage now gets you there faster. This page keeps the deeper context available without putting it in front of every customer first.</p>
+    <div class="hero-actions">
+      <a href="breads.html" class="btn">Explore Products</a>
+      <a href="faq.html" class="btn btn-secondary">Read The FAQ</a>
+    </div>
+  </section>
+
+  <footer>
+    <p>TRANCHÉ</p>
+    <p>Small-batch bread from Gurgaon</p>
+    <p>Phone: +91-XXXXXXXXXX</p>
+    <div class="footer-links">
+      <a href="index.html">Home</a>
+      <a href="breads.html">Products</a>
+      <a href="about.html">About</a>
+      <a href="faq.html">FAQ</a>
+    </div>
+  </footer>
+
+  <script src="scripts/site.js"></script>
+</body>
+</html>
