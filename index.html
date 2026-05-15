@@ -11,413 +11,267 @@
 </head>
 <body id="top" class="home">
 
-  <!-- Header -->
   <header>
-	<a class="logo" href="#top" aria-label="Go to home">
-	  <strong>TRANCHÉ</strong>
-	  <span>Bakery</span>
-	</a>
-    <nav>	  
-	  <a href="#top">Home</a>
-      <a href="breads.html">Breads</a>
-      <a href="#offers">Offers</a>
-      <a href="#about">About</a>
-      <a href="#contact">Contact</a>
+  <a class="logo" href="index.html" aria-label="Go to home">
+    <strong>TRANCHÉ</strong>
+    <span>Bakery</span>
+  </a>
+    <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="site-nav" data-menu-toggle>
+      <span class="menu-toggle-bar"></span>
+      <span class="menu-toggle-bar"></span>
+      <span class="menu-toggle-bar"></span>
+      <span class="menu-toggle-label">Menu</span>
+    </button>
+    <nav id="site-nav" class="site-nav" aria-label="Primary">
+    <a href="index.html">Home</a>
+      <a href="breads.html">Products</a>
+      <a href="about.html">About</a>
+      <a href="faq.html">FAQ</a>
+      <a href="https://wa.me/91XXXXXXXXXX?text=Hi%20TRANCH%C3%89%2C%20I%20would%20like%20to%20place%20an%20order." class="nav-order" target="_blank" rel="noopener">Order</a>
     </nav>
   </header>
+  <div class="nav-backdrop" data-nav-backdrop hidden></div>
 
-  <!-- Hero -->
-  <section class="hero">
-	<div class="hero-media">
-	  <img src="./Images/HomePage/HeroImage.jpg" alt="Bread" fetchpriority="high" decoding="async">
-	  <div class="info-icon" onclick="toggleTooltip()">&#9432;</div>
-	  <div id="tooltip" class="tooltip">
-	    <strong>Real breads, photographed as they are.</strong><br>
-	    No enhancements or styling -- just honest baking.
-	  </div>
-	</div>
+  <section class="hero home-hero">
+  <div class="hero-media">
+    <img
+      src="./Images/HomePage/HeroImage.jpg"
+      srcset="./Images/HomePage/HeroImage-phone.jpg 640w, ./Images/HomePage/HeroImage-tablet.jpg 1024w, ./Images/HomePage/HeroImage-desktop.jpg 1600w"
+      sizes="100vw"
+      alt="TRANCHÉ bread photographed in natural light"
+      fetchpriority="high"
+      decoding="async"
+    >
+    <button type="button" class="info-icon" onclick="toggleTooltip('hero-tooltip')" aria-label="Image note">&#9432;</button>
+    <div id="hero-tooltip" class="tooltip">
+      <strong>Real breads, photographed as they are.</strong><br>
+      No styling tricks, no stock imagery, no visual enhancements.
+    </div>
+  </div>
     <div class="hero-text">
-      <h1>Slow-fermented bread, baked fresh in small batches</h1>
-      <p>Small-batch loaves and rolls made with simple ingredients, patient fermentation, and no commercial shortcuts.</p>
-      <a href="breads.html" class="btn">Explore Breads</a>
+      <p class="eyebrow">Small-Batch Bakery</p>
+      <h1>Slow-fermented bread with a shorter path from oven to table</h1>
+      <p>Browse the range quickly, order on WhatsApp when you are ready, and read the longer story only if you want the deeper detail.</p>
+      <div class="hero-actions">
+        <a href="breads.html" class="btn">Explore Products</a>
+        <a href="https://wa.me/91XXXXXXXXXX?text=Hi%20TRANCH%C3%89%2C%20I%20would%20like%20to%20place%20an%20order." class="btn btn-secondary" target="_blank" rel="noopener">Order on WhatsApp</a>
+      </div>
     </div>
   </section>
 
-<!--
-<div id="infoModal" class="modal">
-  <div class="modal-content">
-    <span class="close" onclick="closeInfo()">&times;</span>
-    <p class="modal-title">Real breads, photographed as they are.</p>
-    <p>No enhancements or styling -- just honest baking.</p>
-  </div>
-</div>
--->
-	<section id="about">
-	  <div class="container" style="text-align:center; max-width:700px;">
-		<h2>About TRANCHÉ</h2>
-		<p>
-      TRANCHÉ is a small-batch artisan bakery focused on everyday breads that taste fuller, keep their character, and reflect the ingredients they are made from. We prioritise freshness over shelf life, so the bread reaches you closer to how it was meant to be eaten.
-		</p>
-	  </div>
-	</section>
-
-  <section class="philosophy-section">
-    <div class="container philosophy-grid">
-    <div class="philosophy-intro">
-      <p class="eyebrow">Our Philosophy</p>
-      <h2>Freshness, honesty, and bread made with intent</h2>
-      <p>We are building a bakery around quality and trust. That means baking in small batches, keeping storage time low, and making bread that feels closer to the kitchen than to factory shelves.</p>
-    </div>
-    <div class="philosophy-points">
-      <div class="philosophy-card">
-      <h3>Freshness First</h3>
-      <p>Our breads are baked in small batches so they reach customers fresher and with better character than mass-produced loaves.</p>
-      </div>
-      <div class="philosophy-card">
-      <h3>Baked Closer to Order</h3>
-      <p>Selected breads are made closer to delivery time, with minimal storage, so the product you receive feels more alive and less held back.</p>
-      </div>
-      <div class="philosophy-card">
-      <h3>What You See Is What You Eat</h3>
-      <p>We keep ingredients clear, avoid hidden shortcuts, and show the breads as they are so the experience stays honest from website to table.</p>
-      </div>
-    </div>
-    </div>
-  </section>
-
-  <section class="standards-section">
-    <div class="container standards-grid">
-    <div class="standard-card">
-      <h3>Slow Fermentation</h3>
-      <p>Time is part of the recipe. Longer fermentation helps build better flavor, structure, and keeping quality.</p>
-    </div>
-    <div class="standard-card">
-      <h3>Simple Ingredients</h3>
-      <p>We use flour, water, salt, yeast, and selected enrichments where the bread calls for them, not improvers to force softness.</p>
-    </div>
-    <div class="standard-card">
-      <h3>Honest Presentation</h3>
-      <p>The breads on this site are our actual bakes from the kitchen, photographed as they are, without styling tricks.</p>
-    </div>
-    </div>
-  </section>
-
-	<section>
-	  <div class="container flex">
-		
-		<div class="text">
-      <h2>What Sets Our Bread Apart</h2>
-		  <ul class="clean-list">
-      <li>No commercial improvers or enhancers</li>
-			<li>No bleaching agents</li>
-      <li>No bread softeners</li>
-			<li>No preservatives</li>
-			<li>Naturally fermented</li>
-			<li>Simple ingredients</li>
-		  </ul>
-		</div>
-
-		<div class="image">
-      <img src="./Images/HomePage/WhatMakesOurBreadDifferent.jpg" alt="What Makes Our Bread Different" decoding="async">
-		</div>
-
-	  </div>
-	</section>
-
-  <section class="small-batch-section">
-    <div class="container" style="max-width:800px;">
-		<h2>Baked in Small Batches</h2>
-    <p class="section-intro centered">We bake in limited quantities so each batch gets the time and attention it needs. Orders confirmed by 6pm are prepared for next-morning delivery, so a little notice helps us plan the bake properly.</p>
-    <ul class="clean-list centered-list">
-		  <li>Limited daily production</li>
-		  <li>6pm cutoff for next-morning delivery</li>
-		  <li>Baked to order</li>
-		</ul>
-	  </div>
-	</section>
-
-  <!-- Why Section -->
-  <!--  <section id="why" class="why">
+  <section class="home-intro">
     <div class="container">
-      <h2>How We Bake</h2>
-      <p>We bake in small batches, giving each loaf the time it needs to develop naturally. No shortcuts, no additives.</p>
+    <div class="standards-pill-row">
+      <span class="standard-pill">Slow-fermented</span>
+      <span class="standard-pill">No improvers</span>
+      <span class="standard-pill">No preservatives</span>
+      <span class="standard-pill">Small-batch baked</span>
+      <span class="standard-pill">Real ingredients</span>
+      <span class="standard-pill">Photographed as baked</span>
+    </div>
     </div>
   </section>
--->
 
-  <!-- Breads -->
-  <section id="breads">
+  <section class="why-section">
+  <div class="container why-layout">
+    <div class="text">
+    <p class="eyebrow">Why TRANCHÉ</p>
+    <h2>Keep the important standards visible without asking every visitor to read an essay first.</h2>
+    <p>The homepage carries the parts a customer needs to decide quickly. The deeper fermentation, ingredient, and storage detail now lives on the About page where it can be read at the right time.</p>
+    <ul class="clean-list note-list">
+      <li>No commercial improvers or enhancers</li>
+      <li>No preservatives or bread softeners</li>
+      <li>Simple ingredients and slower fermentation</li>
+      <li>Small-batch baking with limited daily production</li>
+      <li>Actual kitchen photography instead of staged food styling</li>
+    </ul>
+    <div class="card-actions">
+      <a href="about.html" class="btn">Learn More About The Bakery</a>
+    </div>
+    </div>
+
+    <div class="image">
+    <img
+      src="./Images/HomePage/WhatMakesOurBreadDifferent.jpg"
+      srcset="./Images/HomePage/WhatMakesOurBreadDifferent-phone.jpg 560w, ./Images/HomePage/WhatMakesOurBreadDifferent-tablet.jpg 960w, ./Images/HomePage/WhatMakesOurBreadDifferent-desktop.jpg 1400w"
+      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 56vw, 680px"
+      alt="Bread detail showing crust and crumb"
+      decoding="async"
+    >
+    </div>
+  </div>
+  </section>
+
+  <section class="home-showcase">
+  <div class="container">
+    <p class="eyebrow">Browse The Range</p>
+    <div class="section-heading">
+    <h2>Start with the breads people usually come for first</h2>
+    <p>A few category cues are enough on the homepage. The full lineup and all the product detail still live on the products page.</p>
+    </div>
+  </div>
+  </section>
+
+  <section class="showcase-slice">
     <div class="container flex">
-      <div class="text">
-        <h2>Milk Bread</h2>
-        <p>Soft and lightly sweet, with a tender crumb that works beautifully for toast, sandwiches, and everyday eating.</p>
-      </div>
       <div class="image">
-    <img src="./Images/HomePage/MilkBreadSlice.jpg" alt="Milk bread slices" decoding="async">
+        <img
+          src="./Images/HomePage/MilkBreadSlice.jpg"
+          srcset="./Images/HomePage/MilkBreadSlice-phone.jpg 560w, ./Images/HomePage/MilkBreadSlice-tablet.jpg 960w, ./Images/HomePage/MilkBreadSlice-desktop.jpg 1400w"
+          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 55vw, 680px"
+          alt="Slices of enriched bread"
+          decoding="async"
+        >
+      </div>
+      <div class="text">
+        <p class="premium-kicker">Everyday Loaves</p>
+        <h2>Soft enough for regular toast, sandwiches, and breakfast tables.</h2>
+        <p>These are the breads people usually start with first: easier daily loaves with a softer crumb and a familiar rhythm for everyday eating.</p>
+        <div class="card-actions">
+          <a href="breads.html#bread" class="btn btn-secondary">See Loaves</a>
+          <a href="https://wa.me/91XXXXXXXXXX?text=Hi%20TRANCH%C3%89%2C%20I%20would%20like%20to%20place%20an%20order." class="btn" target="_blank" rel="noopener">Order</a>
+        </div>
       </div>
     </div>
   </section>
 
-  <section>
+  <section class="showcase-slice">
     <div class="container flex reverse">
-      <div class="text">
-        <h2>Multigrain Bread</h2>
-        <p>A hearty 50:50 whole wheat and white flour loaf with grains and seeds throughout, giving it a nutty finish, balanced softness, and plenty of texture.</p>
-      </div>
       <div class="image">
-    <img src="./Images/HomePage/MultigrainSliceCloseup.jpg" alt="Multigrain bread slice close-up" decoding="async">
+        <img
+          src="./Images/HomePage/WholeWheatPortraitCloseup.jpg"
+          srcset="./Images/HomePage/WholeWheatPortraitCloseup-phone.jpg 560w, ./Images/HomePage/WholeWheatPortraitCloseup-tablet.jpg 960w, ./Images/HomePage/WholeWheatPortraitCloseup-desktop.jpg 1400w"
+          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 55vw, 680px"
+          alt="Close-up of whole wheat bread"
+          decoding="async"
+        >
+      </div>
+      <div class="text">
+        <p class="premium-kicker">Whole Wheat Options</p>
+        <h2>Choose the softer 50% loaf or go denser and more grain-forward with the 80% version.</h2>
+        <p>This gives customers a clearer choice without putting all the technical explanation on the homepage. The full details can stay on the product page and About page.</p>
+        <div class="card-actions">
+          <a href="breads.html#bread" class="btn btn-secondary">Compare Options</a>
+        </div>
       </div>
     </div>
   </section>
 
-	<section class="full-width">
-    <img src="./Images/HomePage/MultiGrainPortrait.jpg" alt="Freshly baked multigrain bread loaf" decoding="async">
-	  <p class="image-note">All images are from our kitchen.</p>
-	</section>
+  <section class="full-width showcase-full-width">
+    <img
+      src="./Images/HomePage/MultiGrainPortrait.jpg"
+      srcset="./Images/HomePage/MultiGrainPortrait-phone.jpg 560w, ./Images/HomePage/MultiGrainPortrait-tablet.jpg 960w, ./Images/HomePage/MultiGrainPortrait-desktop.jpg 1400w"
+      sizes="100vw"
+      alt="Freshly baked multigrain loaf"
+      decoding="async"
+    >
+    <div class="container full-width-copy">
+      <p class="image-note">A full-width image break keeps the homepage from feeling like a stack of cards.</p>
+    </div>
+  </section>
 
-  <section>
+  <section class="showcase-slice">
     <div class="container flex">
-      <div class="text">
-        <h2>Multigrain & Whole Wheat Rolls</h2>
-        <p>Small-batch rolls with a wholesome crumb and balanced texture, made for breakfast plates, sliders, and everyday meals.</p>
-      </div>
       <div class="image">
-    <img src="./Images/HomePage/BreadRolls.jpg" alt="Multigrain and whole wheat bread rolls" decoding="async">
+        <img
+          src="./Images/HomePage/OliveBreadSlices.jpg"
+          srcset="./Images/HomePage/OliveBreadSlices-phone.jpg 560w, ./Images/HomePage/OliveBreadSlices-tablet.jpg 960w, ./Images/HomePage/OliveBreadSlices-desktop.jpg 1400w"
+          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 55vw, 680px"
+          alt="Sliced olive loaf"
+          decoding="async"
+        >
+      </div>
+      <div class="text">
+        <p class="premium-kicker">Signature Loaves</p>
+        <h2>Olive, honey, walnut, and other breads that feel a little more distinctive.</h2>
+        <p>These are the products that help the bakery feel special without needing to showcase every variation on the homepage.</p>
+        <div class="card-actions">
+          <a href="breads.html#bread" class="btn btn-secondary">See Signature Loaves</a>
+        </div>
       </div>
     </div>
   </section>
 
-	<section class="education">
-	  <div class="container" style="max-width:800px;">
-    <h2>Understanding Our Bread</h2>
-    <p class="section-intro centered">A few notes on how we bake and why our breads behave differently from packaged supermarket loaves.</p>
-
-		<div class="edu-item">
-      <h3>Why is your bread priced differently from packaged bread?</h3>
-      <p>Our bread is priced differently from packaged bread because we bake in small batches, ferment the dough more slowly, and avoid commercial improvers and preservatives. That process takes more time, more hands-on work, and better ingredients than bread made mainly for speed and scale.</p>
-		</div>
-
-		<div class="edu-item">
-		  <h3>What are bread improvers?</h3>
-      <p>Bread improvers are additives used in commercial baking to speed up production, strengthen dough, and make results more uniform. We do not use them, so our dough develops more naturally over time.</p>
-		</div>
-
-		<div class="edu-item">
-		  <h3>What is preferment?</h3>
-      <p>Preferment is a technique where part of the dough is fermented in advance. In our process, that stage usually takes 12 to 15 hours, helping develop better flavor, structure, and aroma before the final mix.</p>
-		</div>
-
-		<div class="edu-item">
-      <h3>Why Our Bread Feels Different from Packaged Bread</h3>
-      <p>Without improvers and softeners, our breads have a more natural crumb and structure. Higher whole wheat breads will also feel denser, which is a normal part of baking with the grain rather than against it.</p>
-		</div>
-
-		<div class="edu-item">
-		  <h3>Why does our bread dry faster?</h3>
-      <p>Our breads are made without bread softeners and preservatives, so they can dry faster if left exposed to air or stored in the refrigerator. That is normal for bread made with simple ingredients. For the best results, keep the loaf covered at room temperature for short-term use or freeze extra slices.</p>
-		</div>
-
-	  </div>
-	</section>
-
-<section id="faq" class="faq">
-  <div class="container" style="max-width:800px;">
-    <h2>Frequently Asked Questions</h2>
-
-    <div class="faq-item">
-      <details>
-        <summary>How do I place an order?</summary>
-        <p>You can place your order via WhatsApp. Send your name, contact details, and order, and we'll confirm availability and schedule your bake.</p>
-      </details>
+  <section class="showcase-slice">
+    <div class="container flex reverse">
+      <div class="image">
+        <img
+          src="./Images/HomePage/BreadRolls.jpg"
+          srcset="./Images/HomePage/BreadRolls-phone.jpg 560w, ./Images/HomePage/BreadRolls-tablet.jpg 960w, ./Images/HomePage/BreadRolls-desktop.jpg 1400w"
+          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 55vw, 680px"
+          alt="Whole wheat and multigrain rolls"
+          decoding="async"
+        >
+      </div>
+      <div class="text">
+        <p class="premium-kicker">Rolls & Buns</p>
+        <h2>Breakfast-friendly rolls and softer buns for tables that need more than one kind of bread.</h2>
+        <p>Whole wheat, multigrain, and enriched options can all sit here without turning the homepage into a full product catalog.</p>
+        <div class="card-actions">
+          <a href="breads.html#buns-rolls" class="btn btn-secondary">See Rolls</a>
+        </div>
+      </div>
     </div>
+  </section>
 
-    <div class="faq-item">
-      <details>
-        <summary>When will my order be ready?</summary>
-        <p>Orders confirmed by 6pm are usually baked for next-morning delivery. Because we bake in small batches, later requests may need to move to the following day depending on capacity.</p>
-      </details>
+  <section class="process-band soft-surface">
+  <div class="container">
+    <p class="eyebrow">From The Kitchen</p>
+    <div class="section-heading">
+    <h2>Keep process and ingredient education lighter here, then let About carry the deeper explanation.</h2>
+    <p>This is the light educational layer on the homepage. As more dough, shaping, and equipment images are ready, this section can become more process-led.</p>
     </div>
+    <div class="process-grid compact-process-grid">
+      <article class="process-card">
+      <img
+        src="./Images/HomePage/WholeWheatPortraitCloseup.jpg"
+        srcset="./Images/HomePage/WholeWheatPortraitCloseup-phone.jpg 560w, ./Images/HomePage/WholeWheatPortraitCloseup-tablet.jpg 960w, ./Images/HomePage/WholeWheatPortraitCloseup-desktop.jpg 1400w"
+        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 40vw, 420px"
+        alt="Whole wheat bread crumb close-up"
+        decoding="async"
+      >
+      <div class="process-copy">
+        <h3>Whole wheat texture should still look real</h3>
+        <p>Denser, grain-forward breads are part of the range, not something that needs a long defense at the top of the homepage.</p>
+      </div>
+      </article>
 
-    <div class="faq-item">
-      <details>
-        <summary>Do you bake every day?</summary>
-        <p>We bake in limited batches based on orders. This helps us maintain quality and freshness rather than producing large quantities in advance.</p>
-      </details>
-    </div>
-
-    <div class="faq-item">
-      <details>
-        <summary>Do you keep bread ready in stock?</summary>
-        <p>Usually no. Most breads are baked against orders or limited planned batches, so availability can vary. Messaging ahead is the best way to reserve what you want.</p>
-      </details>
-    </div>
-
-    <div class="faq-item">
-      <details>
-        <summary>What is the shelf life of your bread?</summary>
-        <p>Our breads are best enjoyed the same day for the best crust and crumb. Because they are made without preservatives, improvers, or bread softeners, how long they keep depends on the weather and how they are stored. As a general guide, bread kept outside may last around 2 days in summer and around 3 days in winter, but this is not an exact rule and should not be taken as a guarantee. If you want to keep bread longer, freezing is the safer option.</p>
-      </details>
-    </div>
-
-    <div class="faq-item">
-      <details>
-        <summary>Are your breads free from gluten, dairy, or nuts?</summary>
-        <p>No. All our breads contain gluten, and some varieties also include dairy or nuts. Everything is prepared in the same kitchen, so traces of these ingredients may be present.</p>
-      </details>
-    </div>
-
-    <div class="faq-item">
-      <details>
-        <summary>Will the texture of the bread always be the same?</summary>
-        <p>Not always. Because our breads are made in small batches and handled by hand, there can be natural variations from one batch to another in texture, overall shape, and even crust colour. This is a normal part of real bread made without stabilizers, improvers, or industrial controls, so one batch should not be compared too literally with another.</p>
-      </details>
-    </div>
-
-    <div class="faq-item">
-      <details>
-        <summary>How should I store the bread?</summary>
-        <p>Our breads are best enjoyed the same day if you want to experience the crust at its best and the crumb at its softest. If you want to keep them for later, store them in a bread box or a covered container in a cool place. In summer, avoid leaving bread out for long periods because of the heat; refrigeration may be necessary, but it can make the bread firmer because we do not use bread softeners. For longer storage, freezing is the better option. As a general guide, bread kept outside may last around 2 days in summer and around 3 days in winter, but this can vary depending on weather, handling, and storage conditions, so it should not be taken as an exact rule.</p>
-      </details>
-    </div>
-
-    <div class="faq-item">
-      <details>
-        <summary>Do you deliver the loaves sliced?</summary>
-        <p>We deliver our breads whole by default so they retain their taste, texture, and aroma better. If you prefer sliced bread, we can do that on request.</p>
-      </details>
-    </div>
-
-    <div class="faq-item">
-      <details>
-        <summary>Do you use preservatives or additives?</summary>
-        <p>No. Our breads are made without preservatives, improvers, or commercial enhancers.</p>
-      </details>
-    </div>
-
-    <div class="faq-item">
-      <details>
-        <summary>Are the images on your website real?</summary>
-        <p>Yes. All images on this site are of bread we bake in our kitchen. We do not use stock or AI-generated visuals.</p>
-      </details>
-    </div>
-
-    <div class="faq-item">
-      <details>
-        <summary>Can I request custom variations?</summary>
-        <p>Selected breads can be adjusted based on preference, such as changing the proportion of whole wheat. Availability depends on the dough and the batch, so it is best to check with us on WhatsApp before placing your order.</p>
-      </details>
-    </div>
-
-    <div class="faq-item">
-      <details>
-        <summary>Do you offer 100% whole wheat bread?</summary>
-        <p>100% whole wheat bread tends to be denser and less soft. We create our own flour blends to achieve a better balance of texture, flavor, and structure while still keeping a high proportion of whole wheat. If you're looking for a higher whole wheat percentage, feel free to check with us on WhatsApp.</p>
-      </details>
-    </div>
-
-  </div>
-</section>
-
-  <section id="offers" class="offer-strip">
-  <div class="container offer-grid">
-    <div class="offer-card">
-    <p class="eyebrow">Introductory Offer</p>
-    <h3>30% off your first two purchases</h3>
-    <p>We are offering 30% off on the first two purchases, capped at Rs. 500 per purchase, to make trying the breads easier in the early phase.</p>
-    </div>
-    <div class="offer-card">
-    <p class="eyebrow">Delivery Offer</p>
-    <h3>Free delivery above Rs. 500</h3>
-    <p>A simple launch incentive to reduce hesitation, encourage trial, and make repeat ordering easier as the bakery grows.</p>
+      <article class="process-card">
+      <img
+        src="./Images/HomePage/OliveBreadSlices.jpg"
+        srcset="./Images/HomePage/OliveBreadSlices-phone.jpg 560w, ./Images/HomePage/OliveBreadSlices-tablet.jpg 960w, ./Images/HomePage/OliveBreadSlices-desktop.jpg 1400w"
+        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 40vw, 420px"
+        alt="Sliced olive bread"
+        decoding="async"
+      >
+      <div class="process-copy">
+        <h3>Education still exists, just in the right place</h3>
+        <p>Ingredient philosophy, fermentation, shelf life, and bread behavior now move into About and FAQ instead of interrupting browsing here.</p>
+      </div>
+      </article>
     </div>
   </div>
   </section>
 
-  <!-- CTA -->
   <section class="cta">
     <h2>Order for the next bake</h2>
-    <p>Message your name, contact details, and order on WhatsApp before 6pm for next-morning delivery, and we will promptly get back to you.</p>
+    <p>Message your name, contact details, and order on WhatsApp before 6pm for next-morning delivery. We will confirm availability and the next bake slot from there.</p>
     <a href="https://wa.me/91XXXXXXXXXX?text=Hi%20TRANCH%C3%89%2C%20my%20name%20is%20____.%20My%20contact%20number%20is%20____.%20I%20would%20like%20to%20order%20____%20for%20next-morning%20delivery." class="btn" target="_blank" rel="noopener">Message on WhatsApp</a>
   </section>
 
-  <!-- Footer -->
-  <footer id="contact">
-	<p>TRANCHÉ</p>
-	<p>Gurgaon</p>
+  <footer>
+  <p>TRANCHÉ</p>
+  <p>Small-batch bread from Gurgaon</p>
     <p>Phone: +91-XXXXXXXXXX</p>
-    <p>Instagram: @yourbakery</p>
+    <div class="footer-links">
+      <a href="index.html">Home</a>
+      <a href="breads.html">Products</a>
+      <a href="about.html">About</a>
+      <a href="faq.html">FAQ</a>
+    </div>
   </footer>
 
-<script>
-function toggleTooltip() {
-  const tooltip = document.getElementById("tooltip");
-  tooltip.classList.toggle("show");
-}
-
-function alignHashTarget() {
-  if (!window.location.hash) return;
-
-  const target = document.querySelector(window.location.hash);
-  if (!target) return;
-
-  const stickyElements = Array.from(document.querySelectorAll("header, .category-nav"));
-  const stickyOffset = stickyElements.reduce((total, element) => {
-    if (!element) return total;
-    const style = window.getComputedStyle(element);
-    if (style.position !== "sticky" && style.position !== "fixed") return total;
-    return total + element.offsetHeight;
-  }, 0);
-
-  const extraOffset = window.innerWidth <= 768 ? 10 : 16;
-  const top = target.getBoundingClientRect().top + window.pageYOffset - stickyOffset - extraOffset;
-
-  window.scrollTo({
-    top,
-    behavior: "auto"
-  });
-}
-
-function stabilizeHashTarget() {
-  if (!window.location.hash) return;
-
-  let framesRemaining = 24;
-
-  function step() {
-    alignHashTarget();
-    framesRemaining -= 1;
-
-    if (framesRemaining > 0) {
-      window.requestAnimationFrame(step);
-    }
-  }
-
-  window.requestAnimationFrame(step);
-  [150, 350, 700].forEach(delay => window.setTimeout(alignHashTarget, delay));
-}
-
-// Optional: close when clicking outside
-document.addEventListener("click", function(e) {
-  const tooltip = document.getElementById("tooltip");
-  const icon = document.querySelector(".info-icon");
-
-  if (!icon.contains(e.target) && !tooltip.contains(e.target)) {
-    tooltip.classList.remove("show");
-  }
-});
-
-if ("scrollRestoration" in history) {
-  history.scrollRestoration = "manual";
-}
-
-window.addEventListener("DOMContentLoaded", stabilizeHashTarget);
-window.addEventListener("load", stabilizeHashTarget);
-window.addEventListener("pageshow", stabilizeHashTarget);
-window.addEventListener("hashchange", stabilizeHashTarget);
-
-if (document.fonts && document.fonts.ready) {
-  document.fonts.ready.then(stabilizeHashTarget);
-}
-</script>
+  <script src="scripts/site.js"></script>
 </body>
 </html>
 
