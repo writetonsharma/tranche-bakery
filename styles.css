@@ -175,6 +175,12 @@ header {
 
 .nav-backdrop {
   display: none;
+  pointer-events: none;
+}
+
+.nav-backdrop[hidden] {
+  display: none !important;
+  pointer-events: none;
 }
 
 
@@ -986,6 +992,14 @@ footer p {
     inset: 0;
     z-index: 900;
     background: rgba(43, 43, 43, 0.28);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+  }
+
+  body.nav-open .nav-backdrop {
+    opacity: 1;
+    pointer-events: auto;
   }
 
   .btn {
