@@ -256,7 +256,6 @@ header {
   text-decoration: none;
   font-size: 14px;
   letter-spacing: 0.5px;
-  transition: all 0.2s ease;
   border-radius: 999px;
     font-weight: 500;
   transition:
@@ -274,7 +273,7 @@ header {
 .btn.btn-secondary {
   background: transparent;
   color: var(--primary);
-  border: 1px solid rgba(90, 62, 43, 0.18);
+  border: 1px solid rgba(90, 62, 43, 0.14);
 	border-radius: 999px;
   padding: 0.9rem 1.5rem;
 }
@@ -1019,7 +1018,7 @@ footer p {
     display: block;
     width: 100%;
     text-align: center;
-    padding: 14px 18px;
+    padding: 12px 18px;
   }
 
   .cta {
