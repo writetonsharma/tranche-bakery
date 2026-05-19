@@ -246,16 +246,25 @@ header {
 ======================================== */
 
 .btn {
-  display: inline-block;
+  display: inline-flex;
+    align-items: center;
+  justify-content: center;
+  padding: 0.9rem 1.5rem;
   margin-top: 20px;
-  padding: 12px 26px;
   background: linear-gradient(180deg, var(--olive) 0%, var(--olive-deep) 100%);
   color: white;
   text-decoration: none;
-  border-radius: 2px;
   font-size: 14px;
   letter-spacing: 0.5px;
   transition: all 0.2s ease;
+  border-radius: 999px;
+    font-weight: 500;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.2s ease;
+  
 }
 
 .btn:hover {
@@ -266,6 +275,8 @@ header {
   background: transparent;
   color: var(--primary);
   border: 1px solid rgba(90, 62, 43, 0.18);
+	border-radius: 999px;
+  padding: 0.9rem 1.5rem;
 }
 
 .btn.btn-secondary:hover {
@@ -984,6 +995,8 @@ footer p {
   .nav-order {
     width: 100%;
     margin-top: 8px;
+	border-radius: 999px;
+	padding: 0.9rem 1.5rem;
   }
 
   .nav-backdrop {
@@ -1665,3 +1678,8 @@ footer p {
   }
 }
 
+.btn:hover,
+.btn-secondary:hover,
+.nav-order:hover {
+  transform: translateY(-1px);
+}
