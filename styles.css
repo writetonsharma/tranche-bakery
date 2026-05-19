@@ -263,6 +263,7 @@ header {
     color 0.2s ease,
     border-color 0.2s ease,
     transform 0.2s ease;
+	box-sizing: border-box;
   
 }
 
@@ -1572,6 +1573,29 @@ footer p {
   .category-nav .container::-webkit-scrollbar {
     display: none;
   }
+  
+    .btn,
+  .btn-secondary,
+  .nav-order {
+    width: 100%;
+    max-width: 100%;
+	box-sizing: border-box;
+  }
+  
+.hero-actions,
+.card-actions {
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.hero-actions .btn,
+.card-actions .btn,
+.hero-actions .btn-secondary,
+.card-actions .btn-secondary {
+  width: 100%;
+  max-width: 100%;
+}
+  
 }
 
 #rolls .rolls-intro {
