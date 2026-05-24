@@ -806,6 +806,13 @@ header {
   padding: 110px 20px;
 }
 
+.cta .hero-actions {
+  justify-content: center;
+  align-items: center;
+}
+.cta .hero-actions .btn {
+  min-width: 190px;
+}
 
 /* ========================================
    OFFERS
@@ -1705,4 +1712,8 @@ footer p {
 .btn-secondary:hover,
 .nav-order:hover {
   transform: translateY(-1px);
+}
+
+.future-section {
+  display: none;
 }
