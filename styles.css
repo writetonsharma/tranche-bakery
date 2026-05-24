@@ -1577,28 +1577,30 @@ footer p {
     display: none;
   }
   
-    .btn,
-  .btn-secondary,
-  .nav-order {
-    width: 100%;
-    max-width: 100%;
-	box-sizing: border-box;
-  }
+	.hero-actions .btn,
+	.card-actions .btn,
+	.nav-order {
+	  width: 100%;
+	  box-sizing: border-box;
+	}
   
-.hero-actions,
-.card-actions {
-  flex-direction: column;
-  align-items: stretch;
-}
+	.hero-actions,
+	.card-actions {
+	  flex-direction: column;
+	  align-items: stretch;
+	}
 
-.hero-actions .btn,
-.card-actions .btn,
-.hero-actions .btn-secondary,
-.card-actions .btn-secondary {
-  width: 100%;
-  max-width: 100%;
-}
-  
+	.hero-actions .btn,
+	.card-actions .btn,
+	.hero-actions .btn-secondary,
+	.card-actions .btn-secondary {
+	  width: 100%;
+	  max-width: 100%;
+	}
+	.cta .hero-actions {
+	align-items: stretch;
+	}
+
 }
 
 #rolls .rolls-intro {
