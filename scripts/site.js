@@ -78,11 +78,10 @@
     });
   });
 
-  // WhatsApp button click tracking
-  function handleWaClick(event) {
+  // WhatsApp button click tracking — uses event delegation so it works
+  // even after the breads.html inline script moves buttons in the DOM.
+  function trackWaClick(el) {
     if (typeof window.plausible !== 'function') return;
-
-    var el = event.currentTarget;
 
     if (el.classList.contains('nav-order')) {
       window.plausible('Nav Order Click');
@@ -102,7 +101,8 @@
     window.plausible('Order Click', { props: { product: product } });
   }
 
-  document.querySelectorAll('.nav-order, .btn[href*="wa.me"]').forEach(function (el) {
-    el.addEventListener('click', handleWaClick);
+  document.addEventListener('click', function (event) {
+    var el = event.target.closest('.nav-order, .btn[href*="wa.me"]');
+    if (el) trackWaClick(el);
   });
 })();
