@@ -810,6 +810,15 @@ header {
   justify-content: center;
 }
 
+.cta .btn.btn-secondary {
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.36);
+}
+
+.cta .btn.btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
 /* ========================================
    OFFERS
 ======================================== */
@@ -1598,7 +1607,14 @@ footer p {
 	  max-width: 100%;
 	}
 	.cta .hero-actions {
-	align-items: stretch;
+	  align-items: center;
+	}
+
+	.cta .hero-actions .btn,
+	.cta .hero-actions .btn-secondary {
+	  display: inline-flex;
+	  width: min(100%, 220px);
+	  max-width: 100%;
 	}
 
 }
