@@ -1,0 +1,16 @@
+package com.tranche.bakery.conversation;
+
+public enum ConversationState {
+    IDLE,
+    MAIN_MENU,
+    ORDER_SELECT_CATEGORY,
+    ORDER_SELECT_ITEM,
+    ORDER_SELECT_QUANTITY,
+    ORDER_SELECT_FULFILLMENT,
+    ORDER_SUMMARY,
+    ORDER_CONFIRM,
+    PAYMENT_PENDING,
+    PAYMENT_SCREENSHOT_RECEIVED,
+    FEEDBACK_AWAITING_TEXT,
+    COMPLETED
+}
