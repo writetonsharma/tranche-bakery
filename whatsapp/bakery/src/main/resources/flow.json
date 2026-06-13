@@ -82,7 +82,7 @@
     "ORDER_SELECT_QUANTITY": {
       "entryMessage": {
         "type": "buttons",
-        "body": "How many would you like?",
+        "body": "How many would you like? Tap a button or type *4* or *5* for larger quantities:",
         "buttons": [
           { "id": "1", "title": "1" },
           { "id": "2", "title": "2" },
