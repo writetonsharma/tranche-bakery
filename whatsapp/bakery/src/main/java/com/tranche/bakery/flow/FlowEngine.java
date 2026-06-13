@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.tranche.bakery.conversation.ConversationRepository;
 import com.tranche.bakery.conversation.WhatsappConversation;
 import com.tranche.bakery.customer.Customer;
+import com.tranche.bakery.order.OrderService;
 import com.tranche.bakery.whatsapp.WhatsAppClient;
 import com.tranche.bakery.whatsapp.WhatsAppMessage;
 import lombok.RequiredArgsConstructor;
@@ -14,16 +15,20 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class FlowEngine {
 
+    private static final Set<String> SUPPORTED_TYPES = Set.of("text", "interactive", "image", "location");
+
     private final FlowLoader flowLoader;
     private final DataSourceResolver dataSourceResolver;
     private final ConversationRepository conversationRepository;
     private final WhatsAppClient whatsAppClient;
+    private final OrderService orderService;
     private final List<FlowAction> actions;
 
     @Transactional
@@ -32,12 +37,20 @@ public class FlowEngine {
 
         String phone = customer.getPhone();
 
-        // Global "hi" handler — resets from any state
+        if (!SUPPORTED_TYPES.contains(messageType)) {
+            log.debug("Unsupported message type={} from {}", messageType, phone);
+            whatsAppClient.sendText(phone,
+                    "I can only understand text messages and button selections.\nSend *hi* to start or continue your order.");
+            return;
+        }
+
+        // Global "hi" — cancel draft, reset conversation
         if ("hi".equalsIgnoreCase(input.trim())) {
-            conversation.setState("MAIN_MENU");
+            orderService.cancelDraftIfExists(customer);
             conversation.setContext(new HashMap<>());
-            conversationRepository.save(conversation);
-            sendEntryMessage(phone, flowLoader.getState("MAIN_MENU"), null);
+            // First-time customers must select their delivery area before anything else
+            String nextState = (customer.getDeliveryArea() == null) ? "AREA_SELECT" : "MAIN_MENU";
+            enterState(customer, conversation, nextState, input, messageType, rawMessage);
             return;
         }
 
@@ -46,17 +59,24 @@ public class FlowEngine {
 
         if (stateConfig == null) {
             log.warn("Unknown state '{}' for customer {}, resetting", currentStateName, phone);
-            resetToMainMenu(customer, conversation);
+            enterState(customer, conversation, "MAIN_MENU", input, messageType, rawMessage);
             return;
         }
 
         TransitionConfig transition = findTransition(stateConfig, input, messageType);
 
         if (transition == null) {
-            // No matching transition — resend current state entry message
-            if (stateConfig.getEntryMessage() != null) {
-                sendEntryMessage(phone, stateConfig, conversation.getContext());
+            if (stateConfig.getDefaultResponse() != null) {
+                whatsAppClient.sendText(phone, stateConfig.getDefaultResponse());
             }
+            resendCurrentState(phone, customer, stateConfig, conversation);
+            return;
+        }
+
+        // Error transition — send message and stay in current state
+        if (transition.getErrorMessage() != null) {
+            whatsAppClient.sendText(phone, transition.getErrorMessage());
+            resendCurrentState(phone, customer, stateConfig, conversation);
             return;
         }
 
@@ -68,38 +88,60 @@ public class FlowEngine {
             conversation.setContext(ctx);
         }
 
-        // Execute transition action
+        ActionContext actionCtx = buildActionContext(customer, conversation, input, messageType, rawMessage);
+
+        String nextStateName = transition.getNextState();
+
+        // Execute transition action; allow it to override the destination state
         if (transition.getAction() != null) {
-            executeAction(transition.getAction(), buildActionContext(customer, conversation, input, messageType, rawMessage));
+            executeAction(transition.getAction(), actionCtx);
+            if (actionCtx.getRedirectState() != null) {
+                nextStateName = actionCtx.getRedirectState();
+            }
         }
 
-        // Transition to next state
-        String nextStateName = transition.getNextState();
-        conversation.setState(nextStateName);
+        enterState(customer, conversation, nextStateName, input, messageType, rawMessage);
+    }
+
+    /**
+     * Transitions conversation to the given state, runs its entry action (with redirect support),
+     * sends its entry message, and follows any auto-transition.
+     */
+    private void enterState(Customer customer, WhatsappConversation conversation,
+                            String stateName, String input, String messageType, JsonNode rawMessage) {
+        conversation.setState(stateName);
         conversationRepository.save(conversation);
 
-        StateConfig nextState = flowLoader.getState(nextStateName);
-        if (nextState == null) return;
+        StateConfig state = flowLoader.getState(stateName);
+        if (state == null) return;
 
-        // Execute entry action of next state
-        if (nextState.getEntryAction() != null) {
-            executeAction(nextState.getEntryAction(), buildActionContext(customer, conversation, input, messageType, rawMessage));
-        }
+        String phone = customer.getPhone();
+        ActionContext ctx = buildActionContext(customer, conversation, input, messageType, rawMessage);
 
-        // Send entry message of next state
-        if (nextState.getEntryMessage() != null) {
-            sendEntryMessage(phone, nextState, conversation.getContext());
-        }
-
-        // Handle auto-transition
-        if (nextState.getAutoTransition() != null) {
-            String autoStateName = nextState.getAutoTransition();
-            conversation.setState(autoStateName);
-            conversationRepository.save(conversation);
-            StateConfig autoState = flowLoader.getState(autoStateName);
-            if (autoState != null && autoState.getEntryMessage() != null) {
-                sendEntryMessage(phone, autoState, conversation.getContext());
+        if (state.getEntryAction() != null) {
+            executeAction(state.getEntryAction(), ctx);
+            if (ctx.getRedirectState() != null) {
+                enterState(customer, conversation, ctx.getRedirectState(), input, messageType, rawMessage);
+                return;
             }
+        }
+
+        if (state.getEntryMessage() != null) {
+            sendEntryMessage(phone, state, conversation.getContext());
+        }
+
+        if (state.getAutoTransition() != null) {
+            enterState(customer, conversation, state.getAutoTransition(), input, messageType, rawMessage);
+        }
+    }
+
+    private void resendCurrentState(String phone, Customer customer,
+                                    StateConfig stateConfig, WhatsappConversation conversation) {
+        if (stateConfig.getEntryAction() != null) {
+            executeAction(stateConfig.getEntryAction(),
+                    buildActionContext(customer, conversation, "", "", null));
+        } else if (stateConfig.getEntryMessage() != null) {
+            sendEntryMessage(phone, stateConfig, conversation.getContext());
         }
     }
 
@@ -115,6 +157,11 @@ public class FlowEngine {
                 List<WhatsAppMessage.Section> sections = msg.getDataSource() != null
                         ? dataSourceResolver.resolve(msg.getDataSource(), context)
                         : List.of();
+                if (sections.isEmpty() || sections.stream().allMatch(s -> s.getRows().isEmpty())) {
+                    whatsAppClient.sendText(phone,
+                            "Sorry, nothing is available right now. Send *hi* to start over.");
+                    return;
+                }
                 whatsAppClient.sendList(phone, msg.getBody(), msg.getButtonLabel(), sections);
             }
         }
@@ -124,14 +171,11 @@ public class FlowEngine {
         if (state.getTransitions() == null) return null;
 
         for (TransitionConfig t : state.getTransitions()) {
-            // Match by message type (e.g. image)
             if (t.getMatchType() != null) {
                 if (t.getMatchType().equalsIgnoreCase(messageType)) return t;
                 continue;
             }
-            // Wildcard
             if ("*".equals(t.getMatch())) return t;
-            // Exact match
             String candidate = t.isIgnoreCase() ? input.trim().toLowerCase() : input.trim();
             String pattern   = t.isIgnoreCase() ? t.getMatch().toLowerCase() : t.getMatch();
             if (candidate.equals(pattern)) return t;
@@ -157,12 +201,5 @@ public class FlowEngine {
                 .messageType(messageType)
                 .rawMessage(rawMessage)
                 .build();
-    }
-
-    private void resetToMainMenu(Customer customer, WhatsappConversation conversation) {
-        conversation.setState("MAIN_MENU");
-        conversation.setContext(new HashMap<>());
-        conversationRepository.save(conversation);
-        sendEntryMessage(customer.getPhone(), flowLoader.getState("MAIN_MENU"), null);
     }
 }

@@ -5,6 +5,7 @@ import com.tranche.bakery.conversation.WhatsappConversation;
 import com.tranche.bakery.customer.Customer;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.Setter;
 
 import java.util.Map;
 
@@ -16,6 +17,10 @@ public class ActionContext {
     private final String input;
     private final String messageType;
     private final JsonNode rawMessage;
+
+    /** Set by an action to override the next state the engine transitions to. */
+    @Setter
+    private String redirectState;
 
     public Map<String, Object> context() {
         return conversation.getContext();

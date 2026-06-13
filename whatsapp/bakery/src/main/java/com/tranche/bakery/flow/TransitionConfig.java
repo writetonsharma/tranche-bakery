@@ -10,4 +10,5 @@ public class TransitionConfig {
     private String nextState;
     private String saveContext;  // key to save input into conversation context
     private String action;       // named action to execute on this transition
+    private String errorMessage; // if set: send this message, resend entry, no state change
 }

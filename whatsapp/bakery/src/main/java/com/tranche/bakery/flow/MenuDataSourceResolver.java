@@ -1,5 +1,6 @@
 package com.tranche.bakery.flow;
 
+import com.tranche.bakery.delivery.DeliveryAreaLoader;
 import com.tranche.bakery.menu.MenuCategory;
 import com.tranche.bakery.menu.MenuCategoryRepository;
 import com.tranche.bakery.menu.MenuItem;
@@ -17,12 +18,14 @@ public class MenuDataSourceResolver implements DataSourceResolver {
 
     private final MenuCategoryRepository categoryRepository;
     private final MenuItemRepository itemRepository;
+    private final DeliveryAreaLoader deliveryAreaLoader;
 
     @Override
     public List<WhatsAppMessage.Section> resolve(String dataSource, Map<String, Object> context) {
         return switch (dataSource) {
             case "MENU_CATEGORIES" -> resolveCategories();
-            case "MENU_ITEMS" -> resolveItems(context);
+            case "MENU_ITEMS"      -> resolveItems(context);
+            case "DELIVERY_AREAS"  -> resolveDeliveryAreas();
             default -> throw new IllegalArgumentException("Unknown dataSource: " + dataSource);
         };
     }
@@ -53,5 +56,12 @@ public class MenuDataSourceResolver implements DataSourceResolver {
                         String.format("₹%.0f", i.getPrice())))
                 .toList();
         return List.of(new WhatsAppMessage.Section(category.getName(), rows));
+    }
+
+    private List<WhatsAppMessage.Section> resolveDeliveryAreas() {
+        List<WhatsAppMessage.Row> rows = deliveryAreaLoader.getAreas().stream()
+                .map(a -> new WhatsAppMessage.Row(a.id(), a.name()))
+                .toList();
+        return List.of(new WhatsAppMessage.Section("Delivery Areas", rows));
     }
 }
