@@ -21,8 +21,7 @@ public class WhatsappConversation {
     private Customer customer;
 
     @Column(nullable = false, length = 50)
-    @Enumerated(EnumType.STRING)
-    private ConversationState state = ConversationState.IDLE;
+    private String state = "IDLE";
 
     @Type(JsonBinaryType.class)
     @Column(columnDefinition = "jsonb")

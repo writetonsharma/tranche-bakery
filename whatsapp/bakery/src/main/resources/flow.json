@@ -1,0 +1,146 @@
+{
+  "initialState": "IDLE",
+  "states": {
+
+    "IDLE": {
+      "transitions": [
+        { "match": "hi", "ignoreCase": true, "nextState": "MAIN_MENU" }
+      ]
+    },
+
+    "MAIN_MENU": {
+      "entryMessage": {
+        "type": "buttons",
+        "body": "Welcome to Tranché Bakery! 🥖\nWhat would you like to do?\n\n_Send *hi* anytime to start over._",
+        "buttons": [
+          { "id": "order",    "title": "Order" },
+          { "id": "feedback", "title": "Feedback" },
+          { "id": "hours",    "title": "Hours & Info" }
+        ]
+      },
+      "transitions": [
+        { "match": "order",    "nextState": "ORDER_SELECT_CATEGORY" },
+        { "match": "feedback", "nextState": "FEEDBACK_AWAITING_TEXT" },
+        { "match": "hours",    "nextState": "HOURS_INFO" },
+        { "match": "location", "nextState": "LOCATION_INFO" },
+        { "match": "*",        "nextState": "MAIN_MENU" }
+      ]
+    },
+
+    "HOURS_INFO": {
+      "entryMessage": {
+        "type": "text",
+        "body": "🕐 *Bake Days:* Tuesday to Sunday\n🕖 *Order Cutoff:* 6 PM\n\nOrders placed after 6 PM will be prepared for the next available bake day."
+      },
+      "autoTransition": "MAIN_MENU"
+    },
+
+    "LOCATION_INFO": {
+      "entryMessage": {
+        "type": "text",
+        "body": "📍 *Tranché Bakery*\nGurgaon\n\nWe do home delivery and pickup. Delivery details will be confirmed with your order."
+      },
+      "autoTransition": "MAIN_MENU"
+    },
+
+    "ORDER_SELECT_CATEGORY": {
+      "entryMessage": {
+        "type": "list",
+        "body": "What are you in the mood for? Pick a category:",
+        "buttonLabel": "View Categories",
+        "dataSource": "MENU_CATEGORIES"
+      },
+      "transitions": [
+        { "match": "*", "nextState": "ORDER_SELECT_ITEM", "saveContext": "categoryId" }
+      ]
+    },
+
+    "ORDER_SELECT_ITEM": {
+      "entryMessage": {
+        "type": "list",
+        "body": "Choose your item:",
+        "buttonLabel": "View Items",
+        "dataSource": "MENU_ITEMS"
+      },
+      "transitions": [
+        { "match": "*", "nextState": "ORDER_SELECT_QUANTITY", "saveContext": "itemId" }
+      ]
+    },
+
+    "ORDER_SELECT_QUANTITY": {
+      "entryMessage": {
+        "type": "buttons",
+        "body": "How many would you like?",
+        "buttons": [
+          { "id": "1", "title": "1" },
+          { "id": "2", "title": "2" },
+          { "id": "3", "title": "3" }
+        ]
+      },
+      "transitions": [
+        { "match": "*", "nextState": "ORDER_ADD_MORE", "saveContext": "quantity", "action": "ADD_ITEM_TO_ORDER" }
+      ]
+    },
+
+    "ORDER_ADD_MORE": {
+      "entryMessage": {
+        "type": "buttons",
+        "body": "Item added! Would you like to add another item or review your order?",
+        "buttons": [
+          { "id": "add_item",   "title": "Add Another" },
+          { "id": "view_order", "title": "View Order" }
+        ]
+      },
+      "transitions": [
+        { "match": "add_item",   "nextState": "ORDER_SELECT_CATEGORY" },
+        { "match": "view_order", "nextState": "ORDER_CONFIRM" },
+        { "match": "*",          "nextState": "ORDER_ADD_MORE" }
+      ]
+    },
+
+    "ORDER_CONFIRM": {
+      "entryAction": "SHOW_ORDER_SUMMARY",
+      "transitions": [
+        { "match": "confirm", "nextState": "PAYMENT_PENDING", "action": "CONFIRM_ORDER" },
+        { "match": "cancel",  "nextState": "MAIN_MENU",       "action": "CANCEL_ORDER"  }
+      ]
+    },
+
+    "PAYMENT_PENDING": {
+      "entryMessage": {
+        "type": "text",
+        "body": "💳 *Payment Instructions*\n\nPlease complete your UPI payment and send a screenshot here.\n\n*UPI ID:* bakery@upi\n\nOnce we receive your screenshot, we will confirm your order shortly."
+      },
+      "transitions": [
+        { "matchType": "image", "nextState": "PAYMENT_RECEIVED", "action": "SAVE_PAYMENT_SCREENSHOT" }
+      ]
+    },
+
+    "PAYMENT_RECEIVED": {
+      "entryMessage": {
+        "type": "text",
+        "body": "✅ Thank you! We've received your payment screenshot and will verify it shortly.\n\nYou will get a confirmation once your order is confirmed. We appreciate your patience!"
+      },
+      "autoTransition": "IDLE"
+    },
+
+    "FEEDBACK_AWAITING_TEXT": {
+      "entryMessage": {
+        "type": "text",
+        "body": "We'd love to hear from you! Please type your feedback:"
+      },
+      "transitions": [
+        { "match": "*", "nextState": "FEEDBACK_DONE", "action": "SAVE_FEEDBACK" }
+      ]
+    },
+
+    "FEEDBACK_DONE": {
+      "entryMessage": {
+        "type": "text",
+        "body": "Thank you for your feedback! We will get back to you if needed. 😊"
+      },
+      "autoTransition": "IDLE"
+    }
+
+  }
+}
