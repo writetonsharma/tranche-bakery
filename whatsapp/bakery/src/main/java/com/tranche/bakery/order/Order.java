@@ -30,7 +30,7 @@ public class Order {
 
     @Column(nullable = false, length = 20)
     @Enumerated(EnumType.STRING)
-    private FulfillmentType fulfillmentType = FulfillmentType.PICKUP;
+    private FulfillmentType fulfillmentType = FulfillmentType.DELIVERY;
 
     @Column(precision = 10, scale = 2)
     private BigDecimal totalAmount;

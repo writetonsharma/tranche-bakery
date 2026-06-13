@@ -2,6 +2,7 @@ package com.tranche.bakery.customer;
 
 import jakarta.persistence.*;
 import lombok.*;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
@@ -17,6 +18,18 @@ public class Customer {
 
     @Column(length = 100)
     private String name;
+
+    @Column(length = 100)
+    private String deliveryArea;
+
+    @Column(columnDefinition = "TEXT")
+    private String deliveryAddress;
+
+    @Column(precision = 9, scale = 6)
+    private BigDecimal locationLat;
+
+    @Column(precision = 9, scale = 6)
+    private BigDecimal locationLng;
 
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt = LocalDateTime.now();

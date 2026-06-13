@@ -40,6 +40,17 @@ public class ShowOrderSummaryAction implements FlowAction {
         }
 
         String summary = orderService.formatSummary(order);
+        if ("Your order is empty.".equals(summary)) {
+            whatsAppClient.sendButtons(
+                    ctx.getCustomer().getPhone(),
+                    "Your order is empty. Would you like to add items?",
+                    List.of(
+                            new WhatsAppMessage.Button("order", "Add Items"),
+                            new WhatsAppMessage.Button("cancel", "Cancel")
+                    )
+            );
+            return;
+        }
         whatsAppClient.sendButtons(
                 ctx.getCustomer().getPhone(),
                 summary + "\n\nReady to confirm?",

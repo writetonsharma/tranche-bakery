@@ -20,6 +20,15 @@ public class OrderService {
     private final MenuItemRepository menuItemRepository;
 
     @Transactional
+    public void cancelDraftIfExists(Customer customer) {
+        orderRepository.findTopByCustomerIdAndStatusOrderByCreatedAtDesc(customer.getId(), OrderStatus.DRAFT)
+                .ifPresent(order -> {
+                    order.setStatus(OrderStatus.CANCELLED);
+                    orderRepository.save(order);
+                });
+    }
+
+    @Transactional
     public Order getOrCreateDraft(Customer customer, WhatsappConversation conversation) {
         return orderRepository
                 .findTopByCustomerIdAndStatusOrderByCreatedAtDesc(customer.getId(), OrderStatus.DRAFT)
