@@ -21,8 +21,8 @@ public class CutoffJob {
     private final WhatsAppClient whatsAppClient;
 
     private static final String CUTOFF_MESSAGE =
-            "⏰ It's 6 PM! Your unfinished order has been cancelled.\n\n" +
-            "Send *hi* anytime to start a new order. We're open until 6 PM the following day!";
+            "⏰ A gentle note — it's 6 PM and your order is still incomplete, so it has been set aside for today.\n\n" +
+            "Whenever you're ready, simply send *hi* to start fresh. We'd love to bake for you! 🥖";
 
     @Scheduled(cron = "0 0 18 * * *")
     @Transactional
