@@ -72,7 +72,7 @@ public class WhatsAppMessage {
 
     @Data @AllArgsConstructor
     public static class InteractiveBody {
-        private String body;
+        private String text;
     }
 
     @Data @AllArgsConstructor

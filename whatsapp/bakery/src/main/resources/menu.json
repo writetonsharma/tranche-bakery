@@ -36,7 +36,7 @@
       "items": [
         { "name": "Plain Bagel",                    "price": 260.00, "displayOrder": 1 },
         { "name": "Caramelized Onion Bagel",        "price": 280.00, "displayOrder": 2 },
-        { "name": "Rosemary Sea Salt Focaccia",     "price": 360.00, "displayOrder": 3 },
+        { "name": "Rosemary Focaccia",           "price": 360.00, "displayOrder": 3 },
         { "name": "Olive & Tomato Focaccia",        "price": 380.00, "displayOrder": 4 },
         { "name": "Garlic Knots",                   "price": 220.00, "displayOrder": 5 }
       ]
