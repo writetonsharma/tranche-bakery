@@ -819,6 +819,13 @@ header {
   background: rgba(255, 255, 255, 0.12);
 }
 
+.cta-delivery-note {
+  font-size: 0.9em;
+  opacity: 0.85;
+  margin-top: -0.5em;
+  margin-bottom: 1.5em;
+}
+
 /* ========================================
    OFFERS
 ======================================== */
