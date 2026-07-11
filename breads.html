@@ -46,7 +46,12 @@
 		<a href="#buns-rolls">Buns & Rolls</a>
 		<a href="#breakfast-european">Breakfast</a>
 		<a href="#sweet-bakes">Sweet Bakes</a>
+		<a href="#offers">Offers</a>
   </div>
+</div>
+
+<div class="promo-banner">
+  <strong>Launch offer &mdash; 20% off every priced product.</strong> See all <a href="#offers">current offers</a>.
 </div>
 
   <!-- Intro -->
@@ -1106,6 +1111,35 @@
     </div>
   </section>
 
+  <section id="offers">
+    <div class="container">
+      <h2 class="section-divider">
+        <span>Current Offers</span>
+      </h2>
+      <p class="rolls-intro">A few launch offers while we settle into small-batch baking. Offers apply to priced products and are confirmed on WhatsApp at the time of order.</p>
+
+      <div class="offer-grid">
+        <div class="offer-card">
+          <p class="offer-kicker">Launch offer</p>
+          <h3>20% off everything</h3>
+          <p>Every priced product on this page is 20% off during our launch. The discounted price is shown alongside each item.</p>
+        </div>
+        <div class="offer-card">
+          <p class="offer-kicker">Delivery</p>
+          <h3>Free delivery over &#8377;550</h3>
+          <p>Orders above &#8377;550 (after discount) are delivered free within our local area. Smaller orders carry a small delivery charge.</p>
+        </div>
+        <div class="offer-card">
+          <p class="offer-kicker">Little extra</p>
+          <h3>A sweet roll on us</h3>
+          <p>Spend &#8377;450 or more and we&rsquo;ll add one complimentary sweet roll to your bake, baker&rsquo;s choice on the day.</p>
+        </div>
+      </div>
+
+      <p class="offers-fineprint">Offers are introductory and may change as we grow. One offer type per order unless stated. Delivery area and cut-off times are shared when you message us to order.</p>
+    </div>
+  </section>
+
   <!-- CTA -->
   <section class="cta">
     <h2>Order for the next bake</h2>
@@ -1130,6 +1164,110 @@
 
 	<script src="scripts/site.js"></script>
 	<script>
+		/* ---------- Pricing, dough type & launch offers ----------
+		   Edit these two blocks to change prices or toggle offers. */
+		const OFFERS = {
+		  intro: { active: true, percent: 20 },      // launch discount on every priced item
+		  freeDeliveryAbove: 550,                     // shown in the Offers section
+		  complimentarySweetRollAbove: 450            // shown in the Offers section
+		};
+
+		const RUPEE = "\u20B9";
+
+		// Keyed by the product name exactly as shown in the <h3>.
+		// price = base rupees, unit = shown after the price, dough = lean | enriched | high
+		const PRODUCTS = {
+		  "Classic Table White":          { price: 260, unit: "per loaf",  dough: "lean" },
+		  "Whole Wheat Loaf":             { price: 260, unit: "per loaf",  dough: "lean" },
+		  "Multi-Seed Loaf":              { price: 320, unit: "per loaf",  dough: "lean" },
+		  "Country Loaf":                 { price: 260, unit: "per loaf",  dough: "lean" },
+		  "Milk & Butter Loaf":           { price: 340, unit: "per loaf",  dough: "high" },
+		  "Honey & Walnut Loaf":          { price: 380, unit: "per loaf",  dough: "enriched" },
+		  "Olive Grove Loaf":             { price: 400, unit: "per loaf",  dough: "enriched" },
+		  "Caramelized Onion Loaf":       { price: 300, unit: "per loaf",  dough: "lean" },
+		  "Honey & Toasted Oat Loaf":     { price: 360, unit: "per loaf",  dough: "high" },
+		  "Whole Wheat Rolls":            { price: 260, unit: "pack of 6", dough: "lean" },
+		  "Multi-Seed Rolls":             { price: 280, unit: "pack of 6", dough: "lean" },
+		  "Milk Buns":                    { price: 320, unit: "pack of 6", dough: "high" },
+		  "Sesame Burger Buns":           { price: 300, unit: "pack of 6", dough: "enriched" },
+		  "Potato Buns":                  { price: 300, unit: "pack of 6", dough: "enriched" },
+		  "Eggless Brioche Buns":         { price: 340, unit: "pack of 6", dough: "high" },
+		  "Bavarian Pretzel Buns":        { price: 280, unit: "pack of 6", dough: "enriched" },
+		  "Kaiser Rolls":                 { price: 290, unit: "pack of 6", dough: "enriched" },
+		  "Classic New York-Style Bagel": { soon: true, unit: "pack of 6", dough: "lean" },
+		  "Caramelized onion Bagel":      { soon: true, unit: "pack of 6", dough: "lean" },
+		  "Rosemary & Sea Salt Focaccia": { soon: true, unit: "per tray",  dough: "enriched" },
+		  "Olive & Tomato Focaccia":      { soon: true, unit: "per tray",  dough: "enriched" },
+		  "Garlic & Herb Knots":          { price: 260, unit: "pack of 8", dough: "enriched" },
+		  "Cinnamon Rolls":               { price: 420, unit: "pack of 6", dough: "high" },
+		  "Chocolate Babka Buns":         { price: 720, unit: "pack of 6", dough: "high" },
+		  "Nordic Cardamom Knots":        { price: 480, unit: "pack of 6", dough: "high" }
+		};
+
+		const DOUGH_LABEL = { lean: "Lean dough", enriched: "Enriched dough", high: "High-enriched dough" };
+
+		function firstTextOf(el) {
+		  for (const node of el.childNodes) {
+			if (node.nodeType === Node.TEXT_NODE && node.textContent.trim()) {
+			  return node.textContent.trim();
+			}
+		  }
+		  return el.textContent.trim();
+		}
+
+		document.querySelectorAll('.product .text > h3').forEach(h3 => {
+		  const name = firstTextOf(h3);
+		  const info = PRODUCTS[name];
+		  if (!info) return;
+
+		  const meta = document.createElement('div');
+		  meta.className = 'product-meta';
+
+		  const pill = document.createElement('span');
+		  pill.className = 'dough-pill dough-' + info.dough;
+		  pill.textContent = DOUGH_LABEL[info.dough];
+		  meta.appendChild(pill);
+
+		  if (info.soon) {
+			const soon = document.createElement('span');
+			soon.className = 'price-soon';
+			soon.textContent = 'Pricing soon';
+			meta.appendChild(soon);
+		  } else {
+			const price = document.createElement('div');
+			price.className = 'product-price';
+			const intro = OFFERS.intro.active;
+			const now = intro ? Math.round(info.price * (1 - OFFERS.intro.percent / 100)) : info.price;
+
+			if (intro) {
+			  const was = document.createElement('span');
+			  was.className = 'price-was';
+			  was.textContent = RUPEE + info.price;
+			  price.appendChild(was);
+			}
+
+			const nowEl = document.createElement('span');
+			nowEl.className = 'price-now';
+			nowEl.textContent = RUPEE + now;
+			price.appendChild(nowEl);
+
+			const unit = document.createElement('span');
+			unit.className = 'price-unit';
+			unit.textContent = info.unit;
+			price.appendChild(unit);
+
+			if (intro) {
+			  const tag = document.createElement('span');
+			  tag.className = 'price-offer-tag';
+			  tag.textContent = OFFERS.intro.percent + '% off';
+			  price.appendChild(tag);
+			}
+			meta.appendChild(price);
+		  }
+
+		  h3.insertAdjacentElement('afterend', meta);
+		});
+
 		document.querySelectorAll('.product').forEach(product => {
 		  const textBlock = product.querySelector('.text');
 		  const toggleButton = product.querySelector('.toggle-btn');

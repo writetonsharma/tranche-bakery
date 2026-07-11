@@ -112,13 +112,17 @@ function Optimize-Jpeg {
 function New-ResponsiveVariants {
     param(
         [System.IO.FileInfo]$File,
-        [object[]]$Profiles
+        [object[]]$Profiles,
+        [switch]$Force
     )
 
     $generatedCount = 0
 
     foreach ($profile in $Profiles) {
         $derivativePath = Get-DerivativePath -FilePath $File.FullName -Suffix $profile.Suffix
+        if (-not $Force -and (Test-Path -LiteralPath $derivativePath)) {
+            continue
+        }
         Invoke-MagickTransform -SourcePath $File.FullName -DestinationPath $derivativePath -Resize $profile.Resize -Quality $profile.Quality
         $generatedCount += 1
     }
@@ -128,11 +132,60 @@ function New-ResponsiveVariants {
 
 function Create-Thumb {
     param(
-        [System.IO.FileInfo]$File
+        [System.IO.FileInfo]$File,
+        [switch]$Force
     )
 
     $thumbPath = Get-DerivativePath -FilePath $File.FullName -Suffix 'thumb'
+    if (-not $Force -and (Test-Path -LiteralPath $thumbPath)) {
+        return 0
+    }
     Invoke-MagickTransform -SourcePath $File.FullName -DestinationPath $thumbPath -Quality 58 -SquareThumb
+    return 1
+}
+
+function Invoke-OriginalProcessing {
+    param(
+        [System.IO.FileInfo]$File,
+        [string]$OptimizeResize,
+        [int]$OptimizeQuality,
+        [object[]]$Profiles,
+        [switch]$WithThumb,
+        [switch]$Force
+    )
+
+    $expectedPaths = @()
+    foreach ($profile in $Profiles) {
+        $expectedPaths += Get-DerivativePath -FilePath $File.FullName -Suffix $profile.Suffix
+    }
+    if ($WithThumb) {
+        $expectedPaths += Get-DerivativePath -FilePath $File.FullName -Suffix 'thumb'
+    }
+
+    $anyMissing = $false
+    foreach ($path in $expectedPaths) {
+        if (-not (Test-Path -LiteralPath $path)) {
+            $anyMissing = $true
+            break
+        }
+    }
+
+    $responsiveGenerated = 0
+    $thumbGenerated = 0
+
+    # Without -Force (incremental mode), leave the original and all its existing
+    # derivatives untouched when nothing is missing, so git sees no churn.
+    if (-not ($Force -or $anyMissing)) {
+        return [PSCustomObject]@{ Responsive = 0; Thumb = 0 }
+    }
+
+    Optimize-Jpeg -FilePath $File.FullName -Resize $OptimizeResize -Quality $OptimizeQuality
+    $responsiveGenerated = New-ResponsiveVariants -File $File -Profiles $Profiles -Force:$Force
+    if ($WithThumb) {
+        $thumbGenerated = Create-Thumb -File $File -Force:$Force
+    }
+
+    return [PSCustomObject]@{ Responsive = $responsiveGenerated; Thumb = $thumbGenerated }
 }
 
 function Remove-DerivedFiles {
@@ -177,23 +230,21 @@ $homeFiles = Get-JpegFiles -Path $homePath -ExcludeDerived
 $homeResponsiveCount = 0
 foreach ($file in $homeFiles) {
     if ($file.Name -eq 'HeroImage.jpg') {
-        Optimize-Jpeg -FilePath $file.FullName -Resize '1600x1600>' -Quality 82
-        $homeResponsiveCount += New-ResponsiveVariants -File $file -Profiles $script:HomeHeroProfiles
+        $result = Invoke-OriginalProcessing -File $file -OptimizeResize '1600x1600>' -OptimizeQuality 82 -Profiles $script:HomeHeroProfiles -Force:$CleanDerived
     }
     else {
-        Optimize-Jpeg -FilePath $file.FullName -Resize '1400x1400>' -Quality 78
-        $homeResponsiveCount += New-ResponsiveVariants -File $file -Profiles $script:HomeProfiles
+        $result = Invoke-OriginalProcessing -File $file -OptimizeResize '1400x1400>' -OptimizeQuality 78 -Profiles $script:HomeProfiles -Force:$CleanDerived
     }
+    $homeResponsiveCount += $result.Responsive
 }
 
 $productFiles = Get-JpegFiles -Path $productsPath -ExcludeDerived
 $productResponsiveCount = 0
 $thumbCount = 0
 foreach ($file in $productFiles) {
-    Optimize-Jpeg -FilePath $file.FullName -Resize '1400x1400>' -Quality 76
-    $productResponsiveCount += New-ResponsiveVariants -File $file -Profiles $script:ProductProfiles
-    Create-Thumb -File $file
-    $thumbCount += 1
+    $result = Invoke-OriginalProcessing -File $file -OptimizeResize '1400x1400>' -OptimizeQuality 76 -Profiles $script:ProductProfiles -WithThumb -Force:$CleanDerived
+    $productResponsiveCount += $result.Responsive
+    $thumbCount += $result.Thumb
 }
 
 $originalFilesAfter = Get-JpegFiles -Path $imagesRoot -ExcludeDerived
