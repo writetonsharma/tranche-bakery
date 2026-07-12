@@ -1291,12 +1291,20 @@
 			const product = button.closest('.product');
 
 			// Remember where the tapped button sits on screen so we can keep it
-			// pinned while another product collapses above it.
+			// pinned if another (open) product above it collapses.
 			const anchorTop = button.getBoundingClientRect().top;
 
-			// close others (optional but premium feel)
-			document.querySelectorAll('.product').forEach(p => {
+			// Close any other open product INSTANTLY (transition disabled) so the
+			// layout shift above the tapped product happens in a single frame
+			// instead of animating over ~0.4s. Animating it would make the page
+			// appear to scroll/jitter while we compensate.
+			document.querySelectorAll('.product.open').forEach(p => {
 			  if (p !== product) {
+				const otherDetails = p.querySelector('.details');
+				if (otherDetails) {
+				  otherDetails.style.transition = 'none';
+				  requestAnimationFrame(() => { otherDetails.style.transition = ''; });
+				}
 				p.classList.remove('open');
 				const btn = p.querySelector('.toggle-btn');
 				if (btn) btn.innerHTML = "View Details &#8595;";
@@ -1311,21 +1319,14 @@
 			  ? "Hide Details &#8593;"
 			  : "View Details &#8595;";
 
-			// Keep the tapped button visually fixed while the collapse of any
-			// product above it animates (max-height transition ~0.4s), so the
-			// view doesn't jump and the user stays where they were.
-			const pinStart = performance.now();
-			const pinDuration = 500;
-			function keepAnchored() {
-			  const delta = button.getBoundingClientRect().top - anchorTop;
-			  if (Math.abs(delta) > 0.5) {
-				window.scrollBy(0, delta);
-			  }
-			  if (performance.now() - pinStart < pinDuration) {
-				window.requestAnimationFrame(keepAnchored);
-			  }
+			// Single, instant scroll correction: because the collapse above was
+			// instant, the tapped button has shifted by a fixed amount. Reading
+			// its position forces layout, so one adjustment keeps it in place
+			// with no visible scrolling motion.
+			const delta = button.getBoundingClientRect().top - anchorTop;
+			if (Math.abs(delta) > 0.5) {
+			  window.scrollBy(0, delta);
 			}
-			window.requestAnimationFrame(keepAnchored);
 		  });
 		});
 
