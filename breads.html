@@ -91,7 +91,7 @@
 		  <p class="subsection-copy">The everyday range focuses on softer, more versatile loaves designed for regular slicing, toast, sandwiches, and breakfast tables.</p>
 		</div>
 
-	<div class="product reverse" data-detail-mode="modal">
+	<div class="product reverse">
 		<div class="image gallery">
 		  <img class="main-img" src="Images/Products/Sandwich/Slices1.jpg" alt="Classic Table White" decoding="async" sizes="(max-width: 768px) 100vw, (max-width: 1200px) 58vw, 840px">
 		  <div class="thumbs">
@@ -1162,7 +1162,7 @@
 	  </div>
 	</footer>
 
-	<!-- Product detail modal (prototype on Classic Table White) -->
+	<!-- Product detail modal (shared by all products) -->
 	<div class="detail-modal" id="detail-modal" role="dialog" aria-modal="true" aria-labelledby="detail-modal-title" hidden>
 	  <div class="detail-modal-backdrop" data-modal-close></div>
 	  <div class="detail-modal-sheet" role="document">
@@ -1295,54 +1295,7 @@
 		  textBlock.insertBefore(quickAction, toggleButton);
 		});
 
-		/* ---------- Expand / Collapse ---------- */
-		document.querySelectorAll('.toggle-btn').forEach(button => {
-		  if (button.closest('[data-detail-mode="modal"]')) return;
-		  button.addEventListener('click', () => {
-
-			const product = button.closest('.product');
-
-			// Remember where the tapped button sits on screen so we can keep it
-			// pinned if another (open) product above it collapses.
-			const anchorTop = button.getBoundingClientRect().top;
-
-			// Close any other open product INSTANTLY (transition disabled) so the
-			// layout shift above the tapped product happens in a single frame
-			// instead of animating over ~0.4s. Animating it would make the page
-			// appear to scroll/jitter while we compensate.
-			document.querySelectorAll('.product.open').forEach(p => {
-			  if (p !== product) {
-				const otherDetails = p.querySelector('.details');
-				if (otherDetails) {
-				  otherDetails.style.transition = 'none';
-				  requestAnimationFrame(() => { otherDetails.style.transition = ''; });
-				}
-				p.classList.remove('open');
-				const btn = p.querySelector('.toggle-btn');
-				if (btn) btn.innerHTML = "View Details &#8595;";
-			  }
-			});
-
-			// toggle current
-			product.classList.toggle('open');
-
-			button.innerHTML =
-			  product.classList.contains('open')
-			  ? "Hide Details &#8593;"
-			  : "View Details &#8595;";
-
-			// Single, instant scroll correction: because the collapse above was
-			// instant, the tapped button has shifted by a fixed amount. Reading
-			// its position forces layout, so one adjustment keeps it in place
-			// with no visible scrolling motion.
-			const delta = button.getBoundingClientRect().top - anchorTop;
-			if (Math.abs(delta) > 0.5) {
-			  window.scrollBy(0, delta);
-			}
-		  });
-		});
-
-		/* ---------- Detail Modal (prototype: one product) ---------- */
+		/* ---------- Detail Modal (all products) ---------- */
 		(function () {
 		  const modal = document.getElementById('detail-modal');
 		  if (!modal) return;
@@ -1371,7 +1324,7 @@
 
 			const orderLink = product.querySelector('.product-quick-action a.btn')
 			  || (details && details.querySelector('a.btn'));
-			if (orderLink) {
+			if (orderLink && !bodyEl.querySelector('a.btn')) {
 			  const clone = orderLink.cloneNode(true);
 			  clone.classList.add('detail-modal-order');
 			  bodyEl.appendChild(clone);
@@ -1419,9 +1372,10 @@
 			}
 		  }
 
-		  document.querySelectorAll('[data-detail-mode="modal"]').forEach(product => {
+		  document.querySelectorAll('.product').forEach(product => {
 			const btn = product.querySelector('.toggle-btn');
-			if (!btn) return;
+			const details = product.querySelector('.details');
+			if (!btn || !details) return;
 			btn.innerHTML = "View Details &#8594;";
 			btn.addEventListener('click', () => openModal(product));
 		  });
