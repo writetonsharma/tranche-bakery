@@ -91,7 +91,7 @@
 		  <p class="subsection-copy">The everyday range focuses on softer, more versatile loaves designed for regular slicing, toast, sandwiches, and breakfast tables.</p>
 		</div>
 
-	<div class="product reverse">
+	<div class="product reverse" data-detail-mode="modal">
 		<div class="image gallery">
 		  <img class="main-img" src="Images/Products/Sandwich/Slices1.jpg" alt="Classic Table White" decoding="async" sizes="(max-width: 768px) 100vw, (max-width: 1200px) 58vw, 840px">
 		  <div class="thumbs">
@@ -1162,6 +1162,17 @@
 	  </div>
 	</footer>
 
+	<!-- Product detail modal (prototype on Classic Table White) -->
+	<div class="detail-modal" id="detail-modal" role="dialog" aria-modal="true" aria-labelledby="detail-modal-title" hidden>
+	  <div class="detail-modal-backdrop" data-modal-close></div>
+	  <div class="detail-modal-sheet" role="document">
+		<span class="detail-modal-grip" aria-hidden="true"></span>
+		<button class="detail-modal-close" type="button" aria-label="Close details" data-modal-close>&times;</button>
+		<h3 class="detail-modal-title" id="detail-modal-title"></h3>
+		<div class="detail-modal-body"></div>
+	  </div>
+	</div>
+
 	<script src="scripts/site.js"></script>
 	<script>
 		/* ---------- Pricing, dough type & launch offers ----------
@@ -1286,6 +1297,7 @@
 
 		/* ---------- Expand / Collapse ---------- */
 		document.querySelectorAll('.toggle-btn').forEach(button => {
+		  if (button.closest('[data-detail-mode="modal"]')) return;
 		  button.addEventListener('click', () => {
 
 			const product = button.closest('.product');
@@ -1329,6 +1341,101 @@
 			}
 		  });
 		});
+
+		/* ---------- Detail Modal (prototype: one product) ---------- */
+		(function () {
+		  const modal = document.getElementById('detail-modal');
+		  if (!modal) return;
+
+		  const titleEl = modal.querySelector('.detail-modal-title');
+		  const bodyEl = modal.querySelector('.detail-modal-body');
+		  let isOpen = false;
+		  let lastFocus = null;
+		  let historyPushed = false;
+
+		  function firstText(el) {
+			for (const node of el.childNodes) {
+			  if (node.nodeType === Node.TEXT_NODE && node.textContent.trim()) {
+				return node.textContent.trim();
+			  }
+			}
+			return el.textContent.trim();
+		  }
+
+		  function openModal(product) {
+			const h3 = product.querySelector('.text > h3');
+			const details = product.querySelector('.details');
+
+			titleEl.textContent = h3 ? firstText(h3) : 'Details';
+			bodyEl.innerHTML = details ? details.innerHTML : '';
+
+			const orderLink = product.querySelector('.product-quick-action a.btn')
+			  || (details && details.querySelector('a.btn'));
+			if (orderLink) {
+			  const clone = orderLink.cloneNode(true);
+			  clone.classList.add('detail-modal-order');
+			  bodyEl.appendChild(clone);
+			}
+
+			lastFocus = document.activeElement;
+			modal.hidden = false;
+			document.body.classList.add('modal-open');
+			requestAnimationFrame(() => modal.classList.add('open'));
+
+			const closeBtn = modal.querySelector('.detail-modal-close');
+			if (closeBtn) closeBtn.focus();
+
+			isOpen = true;
+			if (!historyPushed) {
+			  history.pushState({ modal: true }, '');
+			  historyPushed = true;
+			}
+		  }
+
+		  function closeModal(fromPop) {
+			if (!isOpen) return;
+			isOpen = false;
+
+			modal.classList.remove('open');
+			document.body.classList.remove('modal-open');
+
+			let done = false;
+			const finish = () => {
+			  if (done) return;
+			  done = true;
+			  modal.hidden = true;
+			  bodyEl.innerHTML = '';
+			  modal.removeEventListener('transitionend', onEnd);
+			};
+			const onEnd = (e) => { if (e.target === modal.querySelector('.detail-modal-sheet')) finish(); };
+			modal.addEventListener('transitionend', onEnd);
+			setTimeout(finish, 420);
+
+			if (lastFocus && lastFocus.focus) lastFocus.focus();
+
+			if (historyPushed) {
+			  historyPushed = false;
+			  if (!fromPop) history.back();
+			}
+		  }
+
+		  document.querySelectorAll('[data-detail-mode="modal"]').forEach(product => {
+			const btn = product.querySelector('.toggle-btn');
+			if (!btn) return;
+			btn.innerHTML = "View Details &#8594;";
+			btn.addEventListener('click', () => openModal(product));
+		  });
+
+		  modal.querySelectorAll('[data-modal-close]').forEach(el =>
+			el.addEventListener('click', () => closeModal())
+		  );
+		  document.addEventListener('keydown', e => {
+			if (e.key === 'Escape') closeModal();
+		  });
+		  window.addEventListener('popstate', () => {
+			if (isOpen) closeModal(true);
+		  });
+		})();
 
 		/* ---------- Whole Wheat Variant Switch ---------- */
 		document.querySelectorAll('.wholewheat-image').forEach(block => {
