@@ -55,6 +55,25 @@
     }
   }
 
+  function revealHashTarget() {
+    if (!window.location.hash) return;
+
+    const target = document.getElementById(decodeURIComponent(window.location.hash.slice(1)));
+    if (!target) return;
+
+    const details = target.matches('details') ? target : target.closest('details');
+    if (details) {
+      details.open = true;
+    }
+
+    window.requestAnimationFrame(function () {
+      target.scrollIntoView({ block: 'start' });
+    });
+  }
+
+  revealHashTarget();
+  window.addEventListener('hashchange', revealHashTarget);
+
   window.toggleTooltip = function (tooltipId) {
     const tooltip = document.getElementById(tooltipId);
     if (!tooltip) return;

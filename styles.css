@@ -139,6 +139,11 @@ header {
   color: var(--primary);
 }
 
+.site-nav a[aria-current="page"] {
+  color: var(--primary);
+  font-weight: 500;
+}
+
 .nav-order {
   display: inline-flex;
   align-items: center;
@@ -225,6 +230,21 @@ header {
   width: 100%;
   height: auto;
   display: block;
+}
+
+.home-hero {
+  padding: 0;
+}
+
+.home-hero .hero-media {
+  height: clamp(560px, calc(100svh - 160px), 720px);
+}
+
+.home-hero .hero-media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
 }
 
 .hero-text {
@@ -338,6 +358,73 @@ header {
 
 .home-intro {
   padding: 28px 0 10px;
+}
+
+.home-philosophy {
+  padding: 68px 0;
+  background: rgba(237, 241, 229, 0.55);
+  border-top: 1px solid rgba(110, 119, 80, 0.1);
+  border-bottom: 1px solid rgba(110, 119, 80, 0.1);
+}
+
+.philosophy-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+  gap: 72px;
+  align-items: start;
+}
+
+.philosophy-heading h2 {
+  max-width: 430px;
+  margin: 0;
+  font-size: 38px;
+  line-height: 1.12;
+}
+
+.philosophy-principles {
+  display: grid;
+}
+
+.philosophy-principle {
+  display: grid;
+  grid-template-columns: 38px minmax(0, 1fr);
+  gap: 18px;
+  padding: 0 0 28px;
+  border-bottom: 1px solid rgba(90, 62, 43, 0.12);
+}
+
+.philosophy-principle + .philosophy-principle {
+  padding-top: 28px;
+}
+
+.philosophy-principle:last-child {
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+
+.principle-number {
+  margin: 3px 0 0;
+  color: var(--olive-deep);
+  font-size: 12px;
+  letter-spacing: 1px;
+  opacity: 0.7;
+}
+
+.philosophy-principle h3 {
+  margin: 0 0 7px;
+  font-size: 23px;
+  line-height: 1.2;
+}
+
+.philosophy-principle p:last-child {
+  max-width: 560px;
+  margin: 0;
+  font-size: 15px;
+  opacity: 0.86;
+}
+
+.home .why-section {
+  padding: 72px 0;
 }
 
 .home-showcase {
@@ -836,6 +923,32 @@ header {
   margin-bottom: 1.5em;
 }
 
+.order-facts {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px 22px;
+  max-width: 780px;
+  margin: 24px auto 4px;
+  color: rgba(255, 255, 255, 0.88);
+  font-size: 14px;
+}
+
+.order-facts span {
+  position: relative;
+}
+
+.order-facts span + span::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: -13px;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.5);
+}
+
 /* ========================================
    OFFERS
 ======================================== */
@@ -1096,9 +1209,24 @@ footer p {
   .hero-text {
     position: static;
     transform: none;
-    padding: 24px 20px;
+    order: -1;
+    padding: 32px 20px 28px;
     max-width: 100%;
     text-align: left;
+  }
+
+  .home-hero {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .home-hero .hero-media {
+    height: auto;
+    aspect-ratio: 4 / 3;
+  }
+
+  .home-hero .hero-media img {
+    object-position: center;
   }
 
   .hero {
@@ -1142,7 +1270,57 @@ footer p {
   }
 
   .home-intro {
-    padding-top: 20px;
+    padding: 22px 0 4px;
+  }
+
+  .home-philosophy {
+    padding: 52px 0;
+  }
+
+  .philosophy-layout {
+    grid-template-columns: 1fr;
+    gap: 36px;
+  }
+
+  .philosophy-heading h2 {
+    font-size: 32px;
+  }
+
+  .philosophy-principle {
+    grid-template-columns: 30px minmax(0, 1fr);
+    gap: 12px;
+  }
+
+  .home .why-section {
+    padding: 52px 0;
+  }
+
+  .home-showcase {
+    padding-top: 52px;
+  }
+
+  .showcase-slice {
+    padding: 28px 0;
+  }
+
+  .showcase-full-width {
+    padding: 32px 0;
+  }
+
+  .order-facts {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    margin-top: 22px;
+  }
+
+  .order-facts span {
+    padding: 10px 8px;
+    border: 1px solid rgba(255, 255, 255, 0.16);
+  }
+
+  .order-facts span + span::before {
+    display: none;
   }
 
   header {
@@ -1646,8 +1824,30 @@ footer p {
   margin-top: 56px !important;
 }
 
+.products-intro {
+  padding: 76px 0 40px;
+  text-align: center;
+}
+
+.products-intro-copy {
+  max-width: 760px;
+}
+
+.products-intro h1 {
+  margin: 0;
+  font-size: 50px;
+  line-height: 1.08;
+}
+
+.products-intro-copy > p:last-child {
+  max-width: 650px;
+  margin: 16px auto 0;
+  font-size: 17px;
+  opacity: 0.84;
+}
+
 .product-standards {
-  padding: 0 0 26px;
+  padding: 0 0 36px;
 }
 
 .standards-pill-row {
@@ -1674,6 +1874,65 @@ footer p {
   text-align: center;
   font-size: 14px;
   opacity: 0.76;
+}
+
+.product-guide {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0;
+  max-width: 860px;
+  margin: 24px auto 0;
+  border-top: 1px solid rgba(90, 62, 43, 0.1);
+  border-bottom: 1px solid rgba(90, 62, 43, 0.1);
+}
+
+.product-guide p {
+  margin: 0;
+  padding: 20px 28px;
+  font-size: 14px;
+  line-height: 1.6;
+  opacity: 0.82;
+}
+
+.product-guide p + p {
+  border-left: 1px solid rgba(90, 62, 43, 0.1);
+}
+
+.product-guide strong {
+  color: var(--primary);
+  font-weight: 500;
+}
+
+.product-guide a {
+  color: var(--primary);
+  text-underline-offset: 3px;
+}
+
+@media(max-width: 768px) {
+  .products-intro {
+    padding: 52px 0 30px;
+  }
+
+  .products-intro h1 {
+    font-size: 36px;
+  }
+
+  .products-intro-copy > p:last-child {
+    font-size: 15px;
+  }
+
+  .product-guide {
+    grid-template-columns: 1fr;
+  }
+
+  .product-guide p {
+    padding: 18px 4px;
+  }
+
+  .product-guide p + p {
+    border-top: 1px solid rgba(90, 62, 43, 0.1);
+    border-left: 0;
+  }
 }
 
 .product-subsection {
@@ -1745,6 +2004,30 @@ footer p {
   transform: translateY(-1px);
 }
 
+a:focus-visible,
+button:focus-visible,
+summary:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 3px;
+}
+
+@media (hover: none) {
+  .image > img:hover {
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
+
 .future-section {
   display: none;
 }
@@ -1766,6 +2049,23 @@ footer p {
   color: #fff;
   text-decoration: underline;
   text-underline-offset: 3px;
+}
+
+.home .promo-banner {
+  background: linear-gradient(180deg, var(--olive) 0%, var(--olive-deep) 100%);
+  color: #fff;
+  padding: 9px 16px;
+  border-bottom: 1px solid rgba(43, 43, 43, 0.12);
+  font-size: 13px;
+  letter-spacing: 0.2px;
+}
+.home .promo-banner strong {
+  color: #fff;
+  font-weight: 500;
+}
+.home .promo-banner a {
+  color: #fff;
+  font-weight: 500;
 }
 
 /* Product meta row: dough pill + price, sits under the h3 */
