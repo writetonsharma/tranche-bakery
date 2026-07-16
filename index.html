@@ -7,7 +7,7 @@
 
   <!-- Google Font -->
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
-	<link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="styles.css?v=20260716-1">
   <!-- Privacy-friendly analytics by Plausible -->
   <script async src="https://plausible.io/js/pa-fys9THAX2fschY-tRLCmk.js"></script>
   <script>
@@ -29,7 +29,7 @@
       <span class="menu-toggle-label">Menu</span>
     </button>
     <nav id="site-nav" class="site-nav" aria-label="Primary">
-    <a href="index.html">Home</a>
+    <a href="index.html" aria-current="page">Home</a>
       <a href="breads.html">Products</a>
       <a href="breads.html#offers">Offers</a>
       <a href="about.html">About</a>
@@ -41,7 +41,7 @@
   <div class="nav-backdrop" data-nav-backdrop hidden></div>
 
   <div class="promo-banner">
-    <strong>Launch offer &mdash; 20% off + free delivery over &#8377;550.</strong> See all <a href="breads.html#offers">current offers</a>.
+    <strong>Welcome to our new bakery.</strong> We&rsquo;re running a few introductory offers to make trying our breads a little easier as TRANCH&Eacute; grows. <a href="breads.html#offers">See all current offers</a>.
   </div>
 
   <section class="hero home-hero">
@@ -78,9 +78,33 @@
       <span class="standard-pill">No improvers</span>
       <span class="standard-pill">No preservatives</span>
       <span class="standard-pill">Small-batch baked</span>
-      <span class="standard-pill">Real ingredients</span>
       <span class="standard-pill">Photographed as baked</span>
     </div>
+    </div>
+  </section>
+
+  <section class="home-philosophy">
+    <div class="container philosophy-layout">
+      <div class="philosophy-heading">
+        <p class="eyebrow">Our Philosophy</p>
+        <h2>Bread should be fresh. Ingredients should be clear.</h2>
+      </div>
+      <div class="philosophy-principles">
+        <article class="philosophy-principle">
+          <p class="principle-number" aria-hidden="true">01</p>
+          <div>
+            <h3>From the oven to your table</h3>
+            <p>We bake bread to be eaten fresh, not to spend days waiting on a shelf. Small batches and baking close to delivery help it reach your table sooner.</p>
+          </div>
+        </article>
+        <article class="philosophy-principle">
+          <p class="principle-number" aria-hidden="true">02</p>
+          <div>
+            <h3>Nothing vague behind the label</h3>
+            <p>We use real, familiar ingredients and name them plainly. Our lists stay clear and complete, so you know exactly what you are eating.</p>
+          </div>
+        </article>
+      </div>
     </div>
   </section>
 
@@ -88,15 +112,14 @@
   <div class="container why-layout">
     <div class="text">
     <p class="eyebrow">Why TRANCHÉ</p>
-    <h2>Bread built around slower fermentation and transparent ingredients.</h2>
-    <p>The range is built without preservatives or commercial improvers, using slower fermentation, smaller production batches, and real kitchen baking instead of factory-style processing.</p>
-	<p>Ingredient lists, flour balances and enrichments disclosed across the range rather than hidden behind vague labels or generic descriptions.</p>
+    <h2>Better bread begins with time, attention, and ingredients you can recognize.</h2>
+    <p>We bake without preservatives or commercial improvers, using slower fermentation and small production batches instead of factory-style processing.</p>
+  <p>Every product page shares its ingredients, flour balance, and enrichments, so you can choose bread with a clear idea of what is in it.</p>
 	<ul class="clean-list note-list">
-	  <li>Slow-fermented baking</li>
+    <li>Slow-fermented in small batches</li>
 	  <li>No improvers or preservatives</li>
-	  <li>Transparent ingredient lists</li>
-	  <li>Bread composition openly shared</li>
-	  <li>Photographed as baked</li>
+    <li>Ingredients and bread composition openly shared</li>
+    <li>Rooted in European baking traditions</li>
 	</ul>
     <div class="card-actions">
       <a href="about.html" class="btn">Learn More About The Bakery</a>
@@ -119,8 +142,8 @@
   <div class="container">
     <p class="eyebrow">Browse The Range</p>
     <div class="section-heading">
-    <h2>Softer everyday loaves baked for toast, sandwiches, slower breakfasts, and regular table bread.</h2>
-    <p>From softer everyday loaves to richer café-style bakes, the range moves across rustic breads, whole wheat loaves, buns, focaccia, bagels, and sweet breakfast bakes.</p>
+    <h2>A focused range for toast, sandwiches, breakfast, and the table.</h2>
+    <p>Start with a softer everyday loaf, choose a more grain-forward bread, or explore the richer flavors in our signature range.</p>
     </div>
   </div>
   </section>
@@ -138,8 +161,8 @@
       </div>
       <div class="text">
         <p class="premium-kicker">Everyday Loaves</p>
-        <h2>Softer everyday breads built for regular eating.</h2>
-        <p>These are the breads people usually start with first: easier daily loaves with a softer crumb and a familiar rhythm for everyday eating.</p>
+        <h2>Softer loaves made for everyday use.</h2>
+        <p>Versatile breads with a softer crumb for toast, sandwiches, breakfast plates, and the bread basket.</p>
         <div class="card-actions">
           <a href="breads.html#bread" class="btn btn-secondary">See Loaves</a>
           <a href="https://wa.me/918800206057?text=hi" class="btn" target="_blank" rel="noopener">Order</a>
@@ -162,11 +185,9 @@
       <div class="text">
         <p class="premium-kicker">Whole Wheat & Seeded Loaves</p>
         <h2>Grain-forward breads with more texture and depth.</h2>
-        <p>
-		From softer 50% whole wheat loaves to denser 80% breads and multigrain seeded loaves, this part of the range leans more rustic, hearty, and grain-led while still staying balanced for regular eating.
-		</p>
+        <p>Choose a softer 50% whole wheat loaf, a heartier 80% bread, or a seeded loaf with deeper toasted flavor.</p>
         <div class="card-actions">
-          <a href="breads.html#everyday-loaves" class="btn btn-secondary">See Grain-Forward Loaves</a>
+          <a href="breads.html#grain-forward-loaves" class="btn btn-secondary">See Grain-Forward Loaves</a>
         </div>
       </div>
     </div>
@@ -198,10 +219,10 @@
       </div>
       <div class="text">
         <p class="premium-kicker">Signature Loaves</p>
-        <h2>More expressive loaves with deeper savory flavor.</h2>
-        <p>Olive, walnut, honey, and other loaves built with deeper savory flavor, richer textures, and a more distinctive bakery character.</p>
+        <h2>Distinctive flavors for a more generous table.</h2>
+        <p>Olive, walnut, honey, and other loaves bring deeper flavor, richer textures, and a more expressive bakery character.</p>
         <div class="card-actions">
-          <a href="breads.html#signature-loaves" class="btn btn-secondary">See Signature Loaves</a>
+          <a href="breads.html#signature-loaves" class="btn btn-secondary">Explore Signature Breads</a>
         </div>
       </div>
     </div>
@@ -221,9 +242,9 @@
       <div class="text">
         <p class="premium-kicker">Rolls & Buns</p>
         <h2>Softer buns and rolls for breakfast and café-style meals.</h2>
-        <p>Whole wheat rolls, softer milk buns, burger buns, and richer specialty breads baked for breakfast tables, sandwiches, and café-style meals.</p>
+        <p>Whole wheat rolls, softer milk buns, burger buns, and specialty rolls baked for breakfast tables, sandwiches, and café-style meals.</p>
         <div class="card-actions">
-          <a href="breads.html#buns-rolls" class="btn btn-secondary">See Rolls</a>
+          <a href="breads.html#buns-rolls" class="btn btn-secondary">See Rolls & Buns</a>
         </div>
       </div>
     </div>
@@ -270,14 +291,19 @@
 
   <section class="cta">
     <h2>Order for the next bake</h2>
-    <p>Tap below to start your order on WhatsApp before 5 PM for next-morning delivery. We'll guide you through your breads, delivery day, and payment.</p>
-    <p class="cta-delivery-note">We currently deliver to <strong>DLF Phase 5, Gurugram</strong>. Delivery between <strong>6–8 AM</strong>.</p>
+    <p>Message us on WhatsApp and we&rsquo;ll guide you through the available breads, delivery day, and payment.</p>
+    <div class="order-facts" aria-label="Ordering details">
+      <span>Order by 5 PM</span>
+      <span>Next-morning delivery</span>
+      <span>DLF Phase 5, Gurugram</span>
+      <span>Delivery 6&ndash;8 AM</span>
+    </div>
     <a href="https://wa.me/918800206057?text=hi" class="btn" target="_blank" rel="noopener">Order on WhatsApp</a>
   </section>
 
   <footer id="contact">
   <p>TRANCHÉ</p>
-  <p>Small-batch bread from Gurgaon · DLF Phase 5</p>
+  <p>Small-batch bread from DLF Phase 5, Gurugram</p>
     <div class="footer-contact">
       <!-- Number 2 (questions & help, NOT orders) -->
       <a href="tel:+918796770308">Talk to us</a>
