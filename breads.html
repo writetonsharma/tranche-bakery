@@ -7,7 +7,7 @@
 
   <!-- Reuse same fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
-	<link rel="stylesheet" href="styles.css?v=20260715-4">
+	<link rel="stylesheet" href="styles.css">
   <!-- Privacy-friendly analytics by Plausible -->
   <script async src="https://plausible.io/js/pa-fys9THAX2fschY-tRLCmk.js"></script>
   <script>
@@ -31,7 +31,7 @@
 	</button>
 	<nav id="site-nav" class="site-nav" aria-label="Primary">
 		<a href="index.html">Home</a>
-		<a href="breads.html" aria-current="page">Products</a>
+		<a href="breads.html">Products</a>
 		<a href="breads.html#offers">Offers</a>
 		<a href="about.html">About</a>
 		<a href="faq.html">FAQ</a>
@@ -41,16 +41,27 @@
 </header>
 <div class="nav-backdrop" data-nav-backdrop hidden></div>
 
-<div class="promo-banner">
-  A few introductory offers make it easier to try our breads as our new bakery grows. <a href="#offers">See all current offers</a>.
+<div class="category-nav">
+  <div class="container">
+		<a href="#bread">Loaves</a>
+		<a href="#buns-rolls">Buns & Rolls</a>
+		<a href="#breakfast-european">Breakfast</a>
+		<a href="#sweet-bakes">Sweet Bakes</a>
+  </div>
 </div>
 
-  <section class="products-intro">
-	<div class="container products-intro-copy">
-		<p class="eyebrow">The Bakery Menu</p>
-		<h1>Breads and bakes for the everyday table.</h1>
-      <p>Browse softer sandwich loaves, grain-forward breads, signature loaves, buns, rolls, and a growing selection of breakfast and sweet bakes.</p>
-	</div>
+<div class="promo-banner">
+  <strong>Launch offer &mdash; 20% off every priced product.</strong> See all <a href="#offers">current offers</a>.
+</div>
+
+  <!-- Intro -->
+  <section>
+    <div class="container" style="text-align:center; max-width:700px;">
+		<h1>Products</h1>
+      <p>
+			European-style breads, buns, and sweet bakes made in small batches with slower fermentation and simple ingredients and small-batch baking.
+      </p>
+    </div>
   </section>
 
 	<section class="product-standards">
@@ -61,20 +72,12 @@
 	  <span class="standard-pill">No preservatives</span>
 	  <span class="standard-pill">Photographed as baked</span>
 	</div>
-	<div class="product-guide">
-	  <p><strong>Real bread, shown as baked.</strong> Every product photograph is of bread made in our kitchen, without stock or AI-generated imagery.</p>
-	  <p>Each listing shares its ingredients, flour balance, texture, and size. For keeping bread at its best, see our <a href="faq.html#storage-guide">storage guide</a>.</p>
-	</div>
+	<p class="photo-note">All product images on this page are of our own breads, photographed as baked in our kitchen.</p>
+	<p class="photo-note">
+	Our breads, buns, and rolls are built around small-batch European-inspired baking traditions, balancing rustic structure, softer everyday breads, and richer café-style products without commercial improvers or preservatives.
+	</p>
+	<p class="photo-note">From softer white loaves to more grain-forward whole wheat breads, the range is built across different flour balances and textures. For storage guidance, read our <a href="faq.html#storage-guide">bread storage notes</a>.</p>
 	</section>
-
-<div class="category-nav">
-  <div class="container">
-		<a href="#bread">Loaves</a>
-		<a href="#buns-rolls">Buns & Rolls</a>
-		<a href="#breakfast-european">Breakfast</a>
-		<a href="#sweet-bakes">Sweet Bakes</a>
-  </div>
-</div>
 
   <section id="bread">
 	<div class="container">
@@ -117,7 +120,7 @@
 		  Lean dough<br>
 		  Softer crumb structure<br>
 		  Dough weight: ~800g<br>
-		  Approximate baked weight: ~720g
+		  Final baked weight: ~720g
 		  </p>
 		  <p>See our <a href="faq.html#storage-guide">storage guidance</a> for the best way to store bread across different weather conditions.</p>
 		  <a href="https://wa.me/918800206057?text=hi" class="btn" target="_blank" rel="noopener">Order on WhatsApp</a>
@@ -125,7 +128,7 @@
 	  </div>
 	</div>
 
-	<div class="product" id="grain-forward-loaves">
+	<div class="product">
 		<div class="image wholewheat-image">
 		  <div class="variant-switch" aria-label="Whole wheat variant">
 			<button class="variant-btn active" type="button" data-variant="50">50% Whole Wheat</button>
@@ -173,7 +176,7 @@
 		Lean dough<br>
 		Rustic whole wheat loaf<br>
 		Dough weight: <span data-dough-weight>~800g</span><br>
-		Approximate baked weight: <span data-final-weight>~720g</span>
+		Final baked weight: <span data-final-weight>~720g</span>
 		</p>
 		<p>See our <a href="faq.html#storage-guide">storage guidance</a> for the best way to store bread across different weather conditions.</p>
 		<a href="https://wa.me/918800206057?text=hi" class="btn" target="_blank" rel="noopener">Order on WhatsApp</a>
@@ -190,9 +193,9 @@
 		</div>
 	  <div class="text">
 		<h3>Multi-Seed Loaf</h3>
-		<p>A seeded loaf built on a whole wheat and white flour blend, folded with an overnight-soaked seed mix for a tender bite, added texture, and a more rustic grain-forward character.</p>
+		<p>A seeded loaf built on a whole wheat and white flour blend, folded with lightly toasted seeds for deeper flavor, added texture, and a more rustic grain-forward character.</p>
 		<ul>
-		  <li>Deep, nutty seed flavor</li>
+		  <li>Nutty toasted flavor</li>
 		  <li>Generous seeded texture</li>
 		  <li>Rustic seeded loaf</li>
 		</ul>
@@ -200,20 +203,20 @@
 		<button class="toggle-btn">View Details &#8595;</button>
 		<div class="details">
 		<p><strong>Ingredients</strong><br>
-		Whole wheat flour, white wheat flour, filtered water, multi-seed mix, salt, instant yeast, vital wheat gluten.
+		Whole wheat flour, white wheat flour, filtered water, high quality seeds mix with around 38% natural oils, salt, instant yeast, vital wheat gluten.
 		</p>
 		<p><strong>What to Expect</strong><br>
-		A hearty seeded loaf with a softer bite than heavier whole wheat breads, deep nutty seed flavor, and a more textured everyday crumb.</p>
+		A hearty seeded loaf with a softer bite than heavier whole wheat breads, deeper toasted-seed flavor, and a more textured everyday crumb.</p>
 		<p><strong>Bread Profile</strong><br>
 		Whole wheat flour: 50%<br>
-		Overnight-soaked seed mix: ~17%<br>
+		Toasted seed mix: 15%<br>
 		Lean dough<br>
 		Rustic European-style loaf<br>
 		Dough weight: ~920g<br>
-		Final baked weight: ~860g
+		Final baked weight: ~830g
 		</p>
 		<p><strong>Seed Mix</strong><br>
-		Chia, flax, sunflower, sesame, and pumpkin seeds, carefully selected and soaked overnight before mixing for a tender texture and even hydration throughout the loaf.</p>
+		Chia, flax, sunflower, sesame, and pumpkin seeds, lightly toasted before mixing into the dough for deeper aroma and flavor.</p>
 		  <p>See our <a href="faq.html#storage-guide">storage guidance</a> for the best way to store bread across different weather conditions.</p>
 		  <a href="https://wa.me/918800206057?text=hi" class="btn" target="_blank" rel="noopener">Order on WhatsApp</a>
 		</div>
@@ -240,7 +243,7 @@
 		A lean everyday loaf with a more open crumb, deeper crust color, and a firmer bite than the softer sandwich loaf. Well suited for toast, butter, soups, eggs, and savory meals.</p>
 		<p><strong>Bread Profile</strong><br>
 		Whole wheat flour: 20%<br>
-		<a href="faq.html#non-diastatic-malt">Non-diastatic barley malt</a><br>
+		Non-diastatic barley malt<br>
 		Lean dough<br>
 		Rustic everyday loaf<br>
 		Dough weight: ~850g<br>
@@ -278,19 +281,19 @@
 		<button class="toggle-btn">View Details &#8595;</button>
 		<div class="details">
 		<p><strong>Ingredients</strong><br>
-		White wheat flour, whole wheat flour, filtered water, full-cream milk, milk powder, fresh cream, fresh white butter, sugar, salt, instant yeast, vital wheat gluten.
+		White wheat flour, whole wheat flour, filtered water, full-cream milk, milk powder, fresh milk cream, fresh white butter, sugar, salt, instant yeast, vital wheat gluten.
 		</p>
 		<p><strong>What to Expect</strong><br>
-		Softer and richer than the classic table white, with a finer crumb, a gently baked crust, and a smooth dairy-led finish.</p>
+		Softer and richer than the classic table white, with a finer crumb, lighter crust, and a smoother dairy-led finish.</p>
 		<p><strong>Bread Profile</strong><br>
 		Whole wheat flour: 20%<br>
-		Full-cream milk: 40% of the milk-and-water blend<br>
+		Full-cream milk: 40%<br>
 		Fresh cream: 7%<br>
 		Fresh white butter: 7%<br>
 		Sugar: 5%<br>
 		Fine-milled white wheat flour<br>
-		Dough weight: ~880g<br>
-		Final baked weight: ~830g
+		Dough weight: ~850g<br>
+		Final baked weight: ~775g
 		</p>
 		  <p>See our <a href="faq.html#storage-guide">storage guidance</a> for the best way to store bread across different weather conditions.</p>
 		  <a href="https://wa.me/918800206057?text=hi" class="btn" target="_blank" rel="noopener">Order on WhatsApp</a>
@@ -300,7 +303,7 @@
 
 	<div class="product reverse">
 		<div class="image gallery">
-		  <img class="main-img" src="Images/Products/WalnutSlices1.jpg" alt="Honey & Walnut Loaf" decoding="async" sizes="(max-width: 768px) 100vw, (max-width: 1200px) 58vw, 840px">
+		  <img class="main-img" src="Images/Products/WalnutSlices1.jpg" alt="Walnut Honey Bread" decoding="async" sizes="(max-width: 768px) 100vw, (max-width: 1200px) 58vw, 840px">
 		  <div class="thumbs">
 			<img src="Images/Products/WalnutSlices1-thumb.jpg" data-full="Images/Products/WalnutSlices1.jpg" onclick="changeImage(this)" class="active" decoding="async">
 			<img src="Images/Products/WalnutCloseSlices3-thumb.jpg" data-full="Images/Products/WalnutCloseSlices3.jpg" onclick="changeImage(this)" decoding="async">
@@ -311,7 +314,7 @@
 		<h3>Honey & Walnut Loaf</h3>
 		<p>A rustic whole wheat loaf made with toasted walnuts and honey for deeper grain flavor, gentle sweetness, and a more expressive rustic loaf character.</p>
 		<ul>
-		  <li>~15% toasted walnuts</li>
+		  <li>15% toasted walnuts</li>
 		  <li>Gentle honey sweetness</li>
 		  <li>Rustic nutty crumb</li>
 		</ul>
@@ -319,17 +322,18 @@
 		<button class="toggle-btn">View Details &#8595;</button>
 		<div class="details">
 		<p><strong>Ingredients</strong><br>
-		Whole wheat flour, white wheat flour, filtered water, toasted walnuts, honey, salt, instant yeast, vital wheat gluten.
+		Whole wheat flour, white wheat flour, semolina, filtered water, toasted walnuts, honey, salt, instant yeast, vital wheat gluten.
 		</p>
 		<p><strong>What to Expect</strong><br>
 		A rustic loaf with deeper grain flavor, gentle sweetness from honey, and toasted walnut texture throughout the crumb.</p>
 		<p><strong>Bread Profile</strong><br>
 		Whole wheat forward in-house blend<br>
-		Walnuts: ~15%<br>
-		Honey: 8%<br>
+		Semolina blend<br>
+		Walnuts: 15%<br>
+		Honey: 7%<br>
 		Rustic walnut loaf<br>
 		Dough weight: ~920g<br>
-		Final baked weight: ~860g
+		Final baked weight: ~835g
 		</p>
 		  <p>See our <a href="faq.html#storage-guide">storage guidance</a> for the best way to store bread across different weather conditions.</p>
 		  <a href="https://wa.me/918800206057?text=hi" class="btn" target="_blank" rel="noopener">Order on WhatsApp</a>
@@ -348,7 +352,7 @@
 		</div>
 	  <div class="text">
 		<h3>Olive Grove Loaf</h3>
-		<p>A savory olive loaf folded with Kalamata olives for a softer crumb, lighter chew, and a clean Mediterranean-style finish.</p>
+		<p>A savory olive loaf folded with green and black olives for a softer crumb, lighter chew, and a clean Mediterranean-style finish.</p>
 		<ul>
 		  <li>Olive-forward savory flavor</li>
 		  <li>Soft crumb with light chew</li>
@@ -364,11 +368,11 @@
 		Savory olive notes throughout the loaf, balanced by a soft even crumb, lighter crust, and a clean briny finish.</p>
 		<p><strong>Bread Profile</strong><br>
 		White wheat forward in-house blend<br>
-		Kalamata olives: 20%<br>
+		Green and black olives: 20%<br>
 		Olive oil: 4%<br>
 		Mediterranean-style savory loaf<br>
 		Dough weight: ~885g<br>
-		Final baked weight: ~835g
+		Final baked weight: ~795g
 		</p>
 		  <p>See our <a href="faq.html#storage-guide">storage guidance</a> for the best way to store bread across different weather conditions.</p>
 		  <a href="https://wa.me/918800206057?text=hi" class="btn" target="_blank" rel="noopener">Order on WhatsApp</a>
@@ -404,10 +408,10 @@
 		Savory onion flavor throughout the loaf with a softer crumb, lighter crust, and gentle sweetness from the caramelized onions.</p>
 		<p><strong>Bread Profile</strong><br>
 		White wheat forward in-house blend<br>
-		Caramelized onions: 11%<br>
+		Caramelized onions: 15%<br>
 		Warm savory loaf<br>
 		Dough weight: ~825g<br>
-		Final baked weight: ~750g
+		Final baked weight: ~745g
 		</p>
 		  <p>See our <a href="faq.html#storage-guide">storage guidance</a> for the best way to store bread across different weather conditions.</p>
 		  <a href="https://wa.me/918800206057?text=hi" class="btn" target="_blank" rel="noopener">Order on WhatsApp</a>
@@ -417,7 +421,7 @@
 
 	<div class="product">
 		<div class="image gallery">
-			<img class="main-img" src="Images/Products/HoneyOat/HoneyOatFull.jpg" alt="Honey & Oat Loaf" decoding="async" sizes="(max-width: 768px) 100vw, (max-width: 1200px) 58vw, 840px">
+			<img class="main-img" src="Images/Products/HoneyOat/HoneyOatFull.jpg" alt="Honey & Toasted Oat Loaf" decoding="async" sizes="(max-width: 768px) 100vw, (max-width: 1200px) 58vw, 840px">
 			<div class="thumbs">
 			<img src="Images/Products/HoneyOat/HoneyOatFull-thumb.jpg" data-full="Images/Products/HoneyOat/HoneyOatFull.jpg" onclick="changeImage(this)" class="active" decoding="async">
 			<img src="Images/Products/HoneyOat/HoneyOatSlices1-thumb.jpg" data-full="Images/Products/HoneyOat/HoneyOatSlices1.jpg" onclick="changeImage(this)" decoding="async">
@@ -426,8 +430,8 @@
 		  </div>
 		</div>
 	  <div class="text">
-		<h3>Honey & Oat Loaf</h3>
-		<p>A soft oat-led loaf with gentle honey sweetness, a dairy-enriched crumb, and enough whole wheat in the blend to keep a wholesome grain character without feeling heavy.</p>
+		<h3>Honey & Toasted Oat Loaf</h3>
+		<p>A soft oat-led loaf with gentle honey sweetness, a lightly enriched crumb, and enough whole wheat in the blend to keep a wholesome grain character without feeling heavy.</p>
 		<ul>
 		  <li>Soft oat-rich crumb</li>
 		  <li>Gentle honey sweetness</li>
@@ -437,20 +441,20 @@
 		<button class="toggle-btn">View Details &#8595;</button>
 		<div class="details">
 		<p><strong>Ingredients</strong><br>
-		White wheat flour, whole wheat flour, filtered water, rolled oats, milk powder, honey, fresh white butter, fresh cream, salt, instant yeast, vital wheat gluten.
+		White wheat flour, whole wheat flour, oatmeal flour, filtered water, rolled oats, milk powder, honey, fresh white butter, fresh milk cream, salt, instant yeast, vital wheat gluten.
 		</p>
 		<p><strong>What to Expect</strong><br>
 		A soft comforting loaf with gentle oat texture, mild chew, and a lightly honeyed finish balanced by a richer, more rounded crumb from the dairy enrichments.</p>
 		<p><strong>Bread Profile</strong><br>
-		White wheat forward in-house blend<br>
+		White wheat forward in-house blend with oatmeal flour<br>
 		Rolled oats: 20%<br>
-		Honey: 9%<br>
+		Honey: 8%<br>
 		Fresh butter: 5%<br>
 		Fresh cream: 5%<br>
-		Dairy-enriched dough<br>
+		Lightly enriched dough<br>
 		Soft wholesome loaf<br>
 		Dough weight: ~970g<br>
-		Final baked weight: ~900g
+		Final baked weight: ~875g
 		</p>
 		  <p>See our <a href="faq.html#storage-guide">storage guidance</a> for the best way to store bread across different weather conditions.</p>
 		  <a href="https://wa.me/918800206057?text=hi" class="btn" target="_blank" rel="noopener">Order on WhatsApp</a>
@@ -524,9 +528,9 @@
 		</div>
         <div class="text">
 		  <h3>Multi-Seed Rolls</h3>
-				<p>A seeded whole wheat roll with deep nutty flavor, fuller grain character, and a more textured rustic finish.</p>
+			<p>A seeded whole wheat roll with toasted seed depth, fuller grain character, and a more textured rustic seeded finish.</p>
 			<ul>
-				  <li>Generous multiseed texture</li>
+			  <li>Toasted multiseed texture</li>
 			  <li>Balanced grain-forward crumb</li>
 			  <li>Baked for breakfast and sandwiches</li>
 			</ul>
@@ -534,13 +538,13 @@
 		  <button class="toggle-btn">View Details &#8595;</button>
 		  <div class="details">
 			<p><strong>Ingredients</strong><br>
-			Whole wheat flour, white wheat flour, filtered water, multi-seed mix, salt, instant yeast, vital wheat gluten.
+			Whole wheat flour, white wheat flour, filtered water, lightly toasted high quality seeds mix with around 38% natural oils, salt, instant yeast, vital wheat gluten.
 			</p>
 			<p><strong>What to Expect</strong><br>
-			A textured seeded roll with deep nutty flavor, balanced whole wheat character, and a steadier bite than softer enriched buns.</p>
+			A textured seeded roll with toasted-seed aroma, balanced whole wheat flavor, and a steadier bite than softer enriched buns.</p>
 			<p><strong>Bread Profile</strong><br>
 			Whole wheat flour: 50%<br>
-			Overnight-soaked multi-seed mix: 15%<br>
+			Toasted multiseed mix: 15%<br>
 			Lean dough<br>
 			Rustic seeded roll<br>
 			Set of 6 rolls<br>
@@ -574,17 +578,16 @@
 		  <button class="toggle-btn">View Details &#8595;</button>
 		  <div class="details">
 			<p><strong>Ingredients</strong><br>
-			Whole wheat flour, white wheat flour, filtered water, full-cream milk, fresh cream, fresh white butter, sugar, salt, instant yeast, vital wheat gluten.
+			Whole wheat flour, white wheat flour, filtered water, full-cream milk, fresh milk cream, fresh white butter, sugar, salt, instant yeast, vital wheat gluten.
 			</p>
 			<p><strong>What to Expect</strong><br>
 			A soft enriched bun with a tender bite, light sweetness, and smoother dairy-led finish suited for breakfast sandwiches, sliders, and everyday eating.</p>
 			<p><strong>Bread Profile</strong><br>
 			Whole wheat flour: 20%<br>
-			Full-cream milk: 38%<br>
-			Fresh cream: 7%<br>
+			Full-cream milk: 42%<br>
 			Fresh white butter: 7%<br>
-			Sugar: 7%<br>
-			Dairy-enriched dough<br>
+			Sugar: 5%<br>
+			Lightly enriched dough<br>
 			Set of 6 buns<br>
 			Approx 130g dough weight per piece<br>
 			Approx 110g baked weight per piece
@@ -626,7 +629,6 @@
 			Fresh white butter: 5%<br>
 			Sugar: 5%<br>
 			Toasted white sesame seeds: 5%<br>
-			Sesame topping: ~2%<br>
 			Lightly enriched dough<br>
 			Set of 6 buns<br>
 			Approx 130g dough weight per piece<br>
@@ -654,7 +656,7 @@
 		</div>
         <div class="text">
 		  <h3>Potato Buns</h3>
-		  <p>A plush potato bun made with mashed potato, milk, and butter for a softer crumb and richer bite than classic burger buns.</p>
+		  <p>A plush potato bun made with mashed potato, milk, and butter for a softer crumb, richer bite, and better keeping quality than classic burger buns.</p>
 		<ul>
 		  <li>Plush potato-rich crumb</li>
 		  <li>Soft premium burger bun</li>
@@ -673,7 +675,7 @@
 		Full-cream milk: 20%<br>
 		Mashed potato: 20%<br>
 		Fresh white butter: 7%<br>
-		Dairy-enriched dough<br>
+		Lightly enriched dough<br>
 		Set of 6 buns<br>
 		Approx 130g dough weight per piece<br>
 		Approx 110g baked weight per piece
@@ -730,11 +732,11 @@
 		
         <div class="text">
 		  <h3>Bavarian Pretzel Buns</h3>
-		  <p>A bold pretzel-style bun with a deep mahogany crust, chewy crumb, and warm malt character, finished with hand-scored golden seams.</p>
+		  <p>A savory pretzel-style bun with a darker crust, light chew, and deeper malt character than the softer everyday bun range.</p>
 		<ul>
-		  <li>Deep mahogany pretzel crust</li>
-		  <li>Chewy crumb with warm malt depth</li>
-		  <li>Hand-scored golden finish</li>
+		  <li>Darker pretzel-style crust</li>
+		  <li>Light chew with malt depth</li>
+		  <li>Savory European-style bun</li>
 		</ul>
 
 		  <button class="toggle-btn">View Details &#8595;</button>
@@ -743,15 +745,14 @@
 		White wheat flour, whole wheat flour, filtered water, fresh white butter, sugar, barley syrup (non-diastatic), salt, instant yeast, baking soda bath, vital wheat gluten.
 		</p>
 		<p><strong>What to Expect</strong><br>
-		A deeply colored pretzel bun with a chewy interior, savory malt-forward flavor, and the distinctive glossy crust created by a baking soda bath.</p>
+		A savory bun with a darker crust, gentle chew, and cleaner malt-forward finish shaped by the traditional alkaline-style pretzel bath.</p>
 		<p><strong>Bread Profile</strong><br>
 		Whole wheat flour: 20%<br>
 		Fresh white butter: 5%<br>
 		Sugar: 3%<br>
-		<a href="faq.html#non-diastatic-malt">Non-diastatic barley malt</a>: 2%<br>
-		Baking soda bath<br>
-		Hand-scored before baking<br>
-		Lightly enriched dough<br>
+		Non-diastatic barley malt: 2%<br>
+		Pretzel-style alkaline bath<br>
+		Savory lean dough<br>
 		Set of 6 buns<br>
 		Approx 130g dough weight per piece<br>
 		Approx 110g baked weight per piece
@@ -790,9 +791,9 @@
 			<p><strong>Bread Profile</strong><br>
 			Whole wheat flour: 10%<br>
 			Fresh white butter: 2%<br>
-			<a href="faq.html#non-diastatic-malt">Non-diastatic barley malt</a>: 1%<br>
+			Non-diastatic barley malt: 1%<br>
 			Classic European-style roll<br>
-			Lightly enriched dough<br>
+			Light savory dough<br>
 			Set of 6 rolls<br>
 			Approx 130g dough weight per piece<br>
 			Approx 110g baked weight per piece
@@ -815,18 +816,18 @@
 
 		<div class="product-subsection">
 		  <p class="premium-kicker">Bagels</p>
-			<p class="subsection-copy">A denser, chewier breakfast range built for butter, cream cheese, sandwiches, and both savory and sweeter café-style combinations.</p>
+			<p class="subsection-copy">A denser, chewier breakfast range made for butter, cream cheese, and satisfying breakfast sandwiches, from classic to savory onion.</p>
 		</div>
 
       <div class="product">
         <div class="image placeholder"></div>
         <div class="text">
 		  <h3>Classic New York-Style Bagel</h3>
-		  <p><p>An authentic water bagel with a denser chew and tighter crumb baked for breakfast spreads, sandwiches, and casual bakery eating.</p></p>
+		  <p>An authentic water bagel cold-fermented for 18 hours, then baked on traditional burlap boards for a closer New York-style crust, chew, and flavor. Please order 48 hours in advance.</p>
 			<ul>
 			  <li>Classic chewy bagel</li>
-			  <li>Shiny malt-finished crust</li>
-			  <li>Baked for breakfast spreads</li>
+			  <li>18-hour cold fermentation</li>
+			  <li>48 hours' advance notice</li>
 			</ul>
 		  <button class="toggle-btn">View Details &#8595;</button>
 		  <div class="details">
@@ -836,8 +837,8 @@
 			<p><strong>What to Expect</strong><br>
 			A tighter, chewier breakfast bread with a cleaner bite and more structure than softer buns or everyday rolls.</p>
 			<p><strong>Bread Profile</strong><br>
-			Whole wheat flour: 5%<br>
-			<a href="faq.html#non-diastatic-malt">Non-diastatic barley malt</a>: 2%<br>
+			Whole wheat flour: 10%<br>
+			Non-diastatic barley malt: 2%<br>
 			Authentic water bagel<br>
 			Malt bath before baking<br>
 			Set of 6 bagels<br>
@@ -853,12 +854,12 @@
       <div class="product reverse">
         <div class="image placeholder"></div>
         <div class="text">
-		  <h3>Caramelized onion Bagel</h3>
-		  <p>An authentic water bagel folded with caramelized onions for a deeper savory aroma, tighter crumb, and classic chewy bagel bite.</p>
+		  <h3>Caramelized Onion Bagel</h3>
+		  <p>An authentic water bagel with caramelized onions, cold-fermented for 18 hours and baked on traditional burlap boards for a closer New York-style crust, chew, and savory flavor. Please order 48 hours in advance.</p>
 			<ul>
-			  <li>Authentic chewy bagel</li>
+			  <li>18-hour cold fermentation</li>
 			  <li>Sweet-savory onion depth</li>
-			  <li>More rustic grain character</li>
+			  <li>48 hours' advance notice</li>
 			</ul>
 		  <button class="toggle-btn">View Details &#8595;</button>
 		  <div class="details">
@@ -868,9 +869,9 @@
 			<p><strong>What to Expect</strong><br>
 			A chewy savory bagel with deeper onion aroma, tighter crumb, and a more rounded breakfast flavor than the Classic New York-Style Bagel.</p>
 			<p><strong>Bread Profile</strong><br>
-			Whole wheat flour: 20%<br>
+			Whole wheat flour: 10%<br>
 			Caramelized onions: 15%<br>
-			<a href="faq.html#non-diastatic-malt">Non-diastatic barley malt</a>: 2%<br>
+			Non-diastatic barley malt: 2%<br>
 			Authentic water bagel<br>
 			Traditional malt bath<br>
 			Set of 6 bagels<br>
@@ -885,7 +886,7 @@
 
 		<div class="product-subsection">
 		  <p class="premium-kicker">Focaccia</p>
-		  <p class="subsection-copy">Olive-oil-rich focaccia with a softer airy crumb, baked for sharing boards, sandwiches, grazing tables, and warm savory café-style eating.</p>
+		  <p class="subsection-copy">Olive-oil-rich focaccia with a softer airy crumb, baked for sharing boards, sandwiches, grazing tables, and warm savory café-style eating. Available for Friday-Sunday delivery only.</p>
 		</div>
 
       <div class="product">
@@ -896,7 +897,7 @@
 			<ul>
 			  <li>Generous olive oil richness</li>
 			  <li>Soft airy crumb with crisp edges</li>
-			  <li>Made for sharing and sandwiches</li>
+			  <li>Friday-Sunday delivery only</li>
 			</ul>
 		  <button class="toggle-btn">View Details &#8595;</button>
 		  <div class="details">
@@ -927,7 +928,7 @@
 			<ul>
 			  <li>Olive and tomato savory depth</li>
 			  <li>Soft airy crumb with crisp edges</li>
-			  <li>Baked for sharing and grazing boards</li>
+			  <li>Friday-Sunday delivery only</li>
 			</ul>
 		  <button class="toggle-btn">View Details &#8595;</button>
 		  <div class="details">
@@ -951,17 +952,10 @@
       </div>
 
       <div class="product">
-		<div class="image gallery">
-		  <img class="main-img" src="Images/Products/Breakfast/GarlicKnots/GarlicKnot2.jpg" alt="Garlic & Herb Knots" decoding="async" sizes="(max-width: 768px) 100vw, (max-width: 1200px) 58vw, 840px">
-		  <div class="thumbs">
-			<img src="Images/Products/Breakfast/GarlicKnots/GarlicKnot2-thumb.jpg" data-full="Images/Products/Breakfast/GarlicKnots/GarlicKnot2.jpg" onclick="changeImage(this)" class="active" decoding="async">
-			<img src="Images/Products/Breakfast/GarlicKnots/GarlicKnot1.jpg" data-full="Images/Products/Breakfast/GarlicKnots/GarlicKnot1.jpg" onclick="changeImage(this)" decoding="async">
-			<img src="Images/Products/Breakfast/GarlicKnots/GarlicKnot3.jpg" data-full="Images/Products/Breakfast/GarlicKnots/GarlicKnot3.jpg" onclick="changeImage(this)" decoding="async">
-		</div>
-		</div>
+        <div class="image placeholder"></div>
         <div class="text">
 		  <h3>Garlic & Herb Knots</h3>
-		  <p>A warm savory bake with soft pull-apart texture, olive-oil-enriched dough, and a garlic-butter finish baked for sharing, soups, and café-style sides.</p>
+		  <p>A warm savory bake with soft pull-apart texture, olive-oil-rich dough, and a garlic-butter finish baked for sharing, soups, and café-style sides.</p>
 			<ul>
 			  <li>Soft pull-apart texture</li>
 			  <li>Garlic-butter finish</li>
@@ -997,16 +991,10 @@
 		<h2 class="section-divider">
 		  <span>Sweet Bakes</span>
 		</h2>
-		<p class="rolls-intro">A smaller selection of richer breakfast and dessert-style bakes centered around butter, chocolate, cinnamon, cardamom, and softer bakery-style textures.</p>
+		<p class="rolls-intro">A smaller selection of richer breakfast and dessert-style bakes centered around butter, chocolate, cinnamon, fruit, and softer bakery-style textures.</p>
 
       <div class="product">
-		<div class="image gallery">
-		  <img class="main-img" src="Images/Products/SweetRolls/Cinnamon/Cinnamon2.jpg" alt="Cinnamon Rolls" decoding="async" sizes="(max-width: 768px) 100vw, (max-width: 1200px) 58vw, 840px">
-		  <div class="thumbs">
-			<img src="Images/Products/SweetRolls/Cinnamon/Cinnamon2-thumb.jpg" data-full="Images/Products/SweetRolls/Cinnamon/Cinnamon2.jpg" onclick="changeImage(this)" class="active" decoding="async">
-			<img src="Images/Products/SweetRolls/Cinnamon/Cinnamon3.jpg" data-full="Images/Products/SweetRolls/Cinnamon/Cinnamon3.jpg" onclick="changeImage(this)" decoding="async">
-		</div>
-		</div>
+        <div class="image placeholder premium-placeholder"></div>
         <div class="text">
 		  <h3>Cinnamon Rolls</h3>
 		  <p>A soft enriched roll layered with cinnamon-sugar filling and buttery warmth, baked to sit comfortably between breakfast and dessert.</p>
@@ -1024,9 +1012,7 @@
 			A soft pull-apart roll with buttery layers, warm cinnamon aroma, and a richer café-style finish than the savory bakery range.</p>
 			<p><strong>Bread Profile</strong><br>
 			Whole wheat flour: 10%<br>
-			Full-cream milk: 20%<br>
-			Fresh white butter: 10% in the dough plus 14% in the filling<br>
-			Sugar: 8% in the dough plus 25% in the filling<br>
+			Fresh white butter: 10% plus cinnamon filling butter<br>
 			Cinnamon-sugar filling swirl<br>
 			Soft pull-apart crumb<br>
 			Set of 6 rolls<br>
@@ -1043,7 +1029,7 @@
         <div class="image placeholder premium-placeholder"></div>
         <div class="text">
 		  <h3>Chocolate Babka Buns</h3>
-		  <p>A rich babka-style bun layered with dark chocolate filling, soft buttery folds, and a fuller dessert-style finish than the breakfast bake range.</p>
+		  <p>A rich sweet roll layered with chocolate filling, soft buttery folds, and a fuller dessert-style finish than the breakfast bake range.</p>
 			<ul>
 			  <li>Chocolate-filled sweet roll</li>
 			  <li>Soft buttery layers</li>
@@ -1057,10 +1043,8 @@
 			<p><strong>What to Expect</strong><br>
 			A soft layered bake with chocolate-rich filling, buttery crumb, and a warmer dessert-style finish than the lighter breakfast bakes.</p>
 			<p><strong>Bread Profile</strong><br>
-			Whole wheat flour: 10%<br>
-			Full-cream milk: 20%<br>
-			Fresh white butter: 10% in the dough plus 10% in the filling<br>
-			Sugar: 8% in the dough plus 6% brown sugar in the filling<br>
+			Whole wheat flour: 5%<br>
+			Fresh white butter: 12% plus filling butter<br>
 			46.5% dark couverture chocolate filling: 35%<br>
 			Dark cocoa powder: 2%<br>
 			Soft layered sweet crumb<br>
@@ -1080,7 +1064,7 @@
 		  <h3>Nordic Cardamom Buns
 		  <small>Kardemummabullar</small>
 		  </h3>
-			<p>A soft sweet bun scented with green cardamom and layered with butter and brown sugar for a warmer Scandinavian-style café profile than richer chocolate or dessert-led bakes.</p>
+			<p>A soft sweet bun layered with butter, sugar, and fragrant green cardamom for a warmer Scandinavian-style café profile than richer chocolate or dessert-led bakes.</p>
 			<ul>
 			  <li>Fragrant green cardamom aroma</li>
 			  <li>Warmer and more fragrance-led than overtly rich</li>
@@ -1095,10 +1079,8 @@
 			A soft layered bun with warm cardamom fragrance, buttery crumb, and a lighter café-style sweetness than richer chocolate or cinnamon bakes.</p>
 			<p><strong>Bread Profile</strong><br>
 			Whole wheat flour: 10%<br>
-			Full-cream milk: 20%<br>
-			Fresh white butter: 10% in the dough plus 14% in the filling<br>
-			Sugar: 8% in the dough plus 18% brown sugar in the filling<br>
-			Freshly ground green cardamom in the dough: 1.5%<br>
+			Fresh white butter: 10% plus filling butter<br>
+			Freshly grounded Green cardamom filling<br>
 			Soft layered sweet crumb<br>
 			Set of 6 buns<br>
 			Approx 150g dough weight per piece<br>
@@ -1153,8 +1135,8 @@
 	  <p>TRANCHÉ</p>
 	  <p>Small-batch bread from Gurgaon</p>
 	  <div class="footer-contact">
-		<!-- Number 2 (questions & help, NOT orders): replace 910000000000 with the real number in both links below --><a href="tel:+910000000000">Talk to us</a>
-      <a href="https://wa.me/910000000000?text=Hi%2C%20I%20have%20a%20question." target="_blank" rel="noopener">Message us</a>
+		<!-- Number 2 (questions & help, NOT orders) --><a href="tel:+918796770308">Talk to us</a>
+      <a href="https://wa.me/918796770308?text=Hi%2C%20I%20have%20a%20question." target="_blank" rel="noopener">Message us</a>
 		<a href="https://instagram.com/tranchebakery" target="_blank" rel="noopener">@tranchebakery</a>
 	  </div>
 	  <div class="footer-links">
@@ -1199,17 +1181,17 @@
 		  "Honey & Walnut Loaf":          { price: 380, unit: "per loaf",  dough: "enriched" },
 		  "Olive Grove Loaf":             { price: 400, unit: "per loaf",  dough: "enriched" },
 		  "Caramelized Onion Loaf":       { price: 300, unit: "per loaf",  dough: "lean" },
-		  "Honey & Oat Loaf":             { price: 360, unit: "per loaf",  dough: "high" },
+		  "Honey & Toasted Oat Loaf":     { price: 360, unit: "per loaf",  dough: "high" },
 		  "Whole Wheat Rolls":            { price: 260, unit: "pack of 6", dough: "lean" },
 		  "Multi-Seed Rolls":             { price: 280, unit: "pack of 6", dough: "lean" },
-		  "Milk Buns":                    { price: 340, unit: "pack of 6", dough: "high" },
+		  "Milk Buns":                    { price: 320, unit: "pack of 6", dough: "high" },
 		  "Sesame Burger Buns":           { price: 300, unit: "pack of 6", dough: "enriched" },
 		  "Potato Buns":                  { price: 300, unit: "pack of 6", dough: "enriched" },
-		  "Eggless Brioche Buns":         { price: 320, unit: "pack of 6", dough: "high" },
+		  "Eggless Brioche Buns":         { price: 340, unit: "pack of 6", dough: "high" },
 		  "Bavarian Pretzel Buns":        { price: 280, unit: "pack of 6", dough: "enriched" },
 		  "Kaiser Rolls":                 { price: 290, unit: "pack of 6", dough: "enriched" },
-		  "Classic New York-Style Bagel": { soon: true, unit: "pack of 6", dough: "lean" },
-		  "Caramelized onion Bagel":      { soon: true, unit: "pack of 6", dough: "lean" },
+		  "Classic New York-Style Bagel": { price: 330, unit: "pack of 6", dough: "lean" },
+		  "Caramelized Onion Bagel":      { price: 340, unit: "pack of 6", dough: "lean" },
 		  "Rosemary & Sea Salt Focaccia": { soon: true, unit: "per tray",  dough: "enriched" },
 		  "Olive & Tomato Focaccia":      { soon: true, unit: "per tray",  dough: "enriched" },
 		  "Garlic & Herb Knots":          { price: 260, unit: "pack of 8", dough: "enriched" },
@@ -1418,8 +1400,8 @@
 			  if (wholeWheatPctEl && doughWeightEl && finalWeightEl) {
 				if (selected === '80') {
 				  wholeWheatPctEl.textContent = '80%';
-				  doughWeightEl.textContent = '~800g';
-				  finalWeightEl.textContent = '~720g';
+				  doughWeightEl.textContent = '~820g';
+				  finalWeightEl.textContent = '~740g';
 				} else {
 				  wholeWheatPctEl.textContent = '50%';
 				  doughWeightEl.textContent = '~800g';
@@ -1568,4 +1550,6 @@
 
 </body>
 </html>
+
+
 

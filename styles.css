@@ -578,6 +578,43 @@ header {
   padding: 32px 0 90px;
 }
 
+.story-section {
+  padding-top: 20px;
+}
+
+.story-layout {
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  align-items: start;
+}
+
+.story-photos {
+  display: grid;
+  grid-template-columns: minmax(0, 1.45fr) minmax(150px, 0.75fr);
+  gap: 14px;
+  align-items: end;
+}
+
+.story-placeholder {
+  height: auto;
+  overflow: hidden;
+}
+
+.story-placeholder-primary {
+  aspect-ratio: 4 / 5;
+}
+
+.story-placeholder-secondary {
+  aspect-ratio: 4 / 3;
+}
+
+.placeholder.story-placeholder::after {
+  content: attr(data-label);
+  left: 18px;
+  bottom: 18px;
+  max-width: calc(100% - 36px);
+  font-size: 20px;
+}
+
 .page-text h2 {
   margin-top: 0;
   font-size: 34px;
@@ -1255,6 +1292,10 @@ footer p {
   .why-layout,
   .page-grid {
     grid-template-columns: 1fr;
+  }
+
+  .story-photos {
+    grid-template-columns: minmax(0, 1.2fr) minmax(120px, 0.8fr);
   }
 
   .hero-actions,
