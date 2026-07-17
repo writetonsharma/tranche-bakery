@@ -2182,6 +2182,19 @@ summary:focus-visible {
   color: rgba(43, 43, 43, 0.6);
 }
 
+.product-price-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.price-size {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--primary);
+  min-width: 96px;
+}
+
 /* Offers section */
 #offers {
   background: var(--surface);
