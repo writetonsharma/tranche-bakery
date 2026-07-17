@@ -86,7 +86,7 @@ function Invoke-MagickTransform {
         [switch]$SquareThumb
     )
 
-    $arguments = @($SourcePath)
+    $arguments = @($SourcePath, '-auto-orient')
 
     if ($SquareThumb) {
         $arguments += @('-thumbnail', '240x240^', '-gravity', 'center', '-extent', '240x240')
@@ -212,6 +212,7 @@ Assert-ImageMagick
 
 $imagesRoot = Join-Path $RepoRoot 'Images'
 $homePath = Join-Path $imagesRoot 'HomePage'
+$aboutPath = Join-Path $imagesRoot 'About'
 $productsPath = Join-Path $imagesRoot 'Products'
 
 if (-not (Test-Path $imagesRoot)) {
@@ -238,6 +239,13 @@ foreach ($file in $homeFiles) {
     $homeResponsiveCount += $result.Responsive
 }
 
+$aboutFiles = Get-JpegFiles -Path $aboutPath -ExcludeDerived
+$aboutResponsiveCount = 0
+foreach ($file in $aboutFiles) {
+    $result = Invoke-OriginalProcessing -File $file -OptimizeResize '1400x1400>' -OptimizeQuality 78 -Profiles $script:HomeProfiles -Force:$CleanDerived
+    $aboutResponsiveCount += $result.Responsive
+}
+
 $productFiles = Get-JpegFiles -Path $productsPath -ExcludeDerived
 $productResponsiveCount = 0
 $thumbCount = 0
@@ -260,8 +268,9 @@ $derivedBytesAfter = Get-BytesTotal -Files $derivedFilesAfter
     CleanDerived = [bool]$CleanDerived
     RemovedDerivedFiles = $removedDerivedFiles
     HomeOriginals = $homeFiles.Count
+    AboutOriginals = $aboutFiles.Count
     ProductOriginals = $productFiles.Count
-    ResponsiveVariantsGenerated = $homeResponsiveCount + $productResponsiveCount
+    ResponsiveVariantsGenerated = $homeResponsiveCount + $aboutResponsiveCount + $productResponsiveCount
     ThumbsGenerated = $thumbCount
     OriginalsBeforeMB = [math]::Round($originalBytesBefore / 1MB, 2)
     OriginalsAfterMB = [math]::Round($originalBytesAfter / 1MB, 2)
