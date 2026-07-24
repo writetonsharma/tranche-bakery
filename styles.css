@@ -386,9 +386,6 @@ header {
 }
 
 .philosophy-principle {
-  display: grid;
-  grid-template-columns: 38px minmax(0, 1fr);
-  gap: 18px;
   padding: 0 0 28px;
   border-bottom: 1px solid rgba(90, 62, 43, 0.12);
 }
@@ -400,14 +397,6 @@ header {
 .philosophy-principle:last-child {
   padding-bottom: 0;
   border-bottom: 0;
-}
-
-.principle-number {
-  margin: 3px 0 0;
-  color: var(--olive-deep);
-  font-size: 12px;
-  letter-spacing: 1px;
-  opacity: 0.7;
 }
 
 .philosophy-principle h3 {
@@ -622,6 +611,10 @@ header {
 
 .guide-card {
   padding: 22px;
+}
+
+.guide-card-wide {
+  grid-column: 1 / -1;
 }
 
 
@@ -1325,11 +1318,6 @@ footer p {
 
   .philosophy-heading h2 {
     font-size: 32px;
-  }
-
-  .philosophy-principle {
-    grid-template-columns: 30px minmax(0, 1fr);
-    gap: 12px;
   }
 
   .home .why-section {
@@ -2047,7 +2035,8 @@ footer p {
 
 a:focus-visible,
 button:focus-visible,
-summary:focus-visible {
+summary:focus-visible,
+.thumbs img[role="button"]:focus-visible {
   outline: 3px solid var(--accent);
   outline-offset: 3px;
 }
