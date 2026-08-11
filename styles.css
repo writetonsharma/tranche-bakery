@@ -1053,6 +1053,21 @@ footer p {
   margin-top: 14px;
 }
 
+.footer-legal {
+  margin-top: 16px;
+  font-size: 0.8rem;
+  color: rgba(90, 62, 43, 0.65);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.footer-legal img {
+  height: 34px;
+  width: auto;
+}
+
 
 /* ========================================
    PRODUCTS (BREADS PAGE)
