@@ -1611,25 +1611,33 @@ footer p {
   position: absolute;
   bottom: 12px;
   right: 12px;
-  width: 22px;
-  height: 22px;
 
-  background: rgba(0, 0, 0, 0.45); /* dark glass effect */
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 11px;
+
+  background: rgba(20, 18, 14, 0.66); /* dark glass — holds contrast on any photo */
   color: #fff;
 
-  font-size: 13px;
-  text-align: center;
-  border-radius: 50%;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  line-height: 1;
+
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  border-radius: 999px;
   cursor: pointer;
-  line-height: 22px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.35);
 
   backdrop-filter: blur(4px);
   transition: all 0.2s ease;
 }
 
 .info-icon:hover {
-  background: rgba(0, 0, 0, 0.65);
-  transform: scale(1.05);
+  background: rgba(20, 18, 14, 0.82);
+  transform: translateY(-1px);
 }
 
 /* Modal */
@@ -1669,7 +1677,7 @@ footer p {
 /* Tooltip box */
 .tooltip {
   position: absolute;
-  bottom: 42px; /* sits above icon */
+  bottom: 48px; /* sits above the chip */
   right: 0;
 
   background: rgba(0, 0, 0, 0.85);
