@@ -1702,8 +1702,17 @@ footer p {
   right: 12px;
 }
 
+/* On product galleries the chip sits top-right over the main image so it never
+   overlaps the thumbnail row (which can wrap to 2 rows on phones); tooltip opens downward. */
+.gallery .info-icon {
+  top: 12px;
+  bottom: auto;
+}
+
 .gallery .tooltip {
   right: 12px;
+  top: 52px;
+  bottom: auto;
 }
 
 /* Visible state */
