@@ -653,6 +653,14 @@ header {
   opacity: 0.9;
 }
 
+.text p.diet-note {
+  margin: -2px 0 10px;
+  font-size: 13px;
+  font-style: italic;
+  color: var(--olive);
+  opacity: 1;
+}
+
 
 .image > img {
   width: 100%;
