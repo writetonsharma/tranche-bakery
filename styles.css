@@ -2173,6 +2173,11 @@ summary:focus-visible,
   border-color: rgba(90, 62, 43, 0.20);
   color: var(--primary);
 }
+.dough-pill.dough-cake {
+  background: rgba(198, 156, 109, 0.16);
+  border-color: rgba(198, 156, 109, 0.30);
+  color: #8a5a2b;
+}
 
 .product-price {
   display: inline-flex;
