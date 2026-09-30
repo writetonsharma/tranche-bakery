@@ -154,6 +154,52 @@ header {
   color: #fff !important;
 }
 
+/* WhatsApp "chat or call" contact affordance — animated icon in the nav beside Order */
+.nav-contact {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 999px;
+  color: #128C7E !important;
+  background: rgba(37, 211, 102, 0.12);
+  animation: wa-nudge 2.4s ease-in-out infinite;
+}
+
+.nav-contact:hover {
+  color: #0f6f64 !important;
+  background: rgba(37, 211, 102, 0.22);
+}
+
+.nav-contact .wa-icon {
+  width: 24px;
+  height: 24px;
+}
+
+.nav-contact-label {
+  display: none;
+}
+
+@keyframes wa-nudge {
+  0%, 100% { transform: scale(1);    box-shadow: 0 0 0 0 rgba(37, 211, 102, 0.45); }
+  50%      { transform: scale(1.08); box-shadow: 0 0 0 9px rgba(37, 211, 102, 0); }
+}
+
+/* Footer contact link: green WhatsApp glyph + text */
+.wa-contact {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.wa-contact .wa-icon {
+  width: 24px;
+  height: 24px;
+  color: #25D366;
+  flex: none;
+}
+
 .menu-toggle {
   display: none;
   align-items: center;
@@ -1191,6 +1237,23 @@ footer p {
     margin-top: 8px;
 	border-radius: 999px;
 	padding: 0.9rem 1.5rem;
+  }
+
+  /* In the mobile dropdown the contact icon becomes a full-width labelled row */
+  .nav-contact {
+    width: 100%;
+    height: auto;
+    justify-content: flex-start;
+    gap: 10px;
+    border-radius: 12px;
+    padding: 10px 12px;
+    margin-top: 8px;
+    animation: none;
+  }
+
+  .nav-contact-label {
+    display: inline;
+    font-weight: 500;
   }
 
   .nav-backdrop {
