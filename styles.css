@@ -1066,7 +1066,6 @@ header {
 .offer-card p:last-child {
   margin: 0;
   font-size: 14px;
-  opacity: 0.88;
 }
 
 
@@ -2317,7 +2316,6 @@ summary:focus-visible,
   letter-spacing: 1.8px;
   text-transform: uppercase;
   color: var(--olive-deep);
-  opacity: 0.85;
 }
 .offer-card h3 {
   margin: 0 0 8px;
@@ -2327,12 +2325,12 @@ summary:focus-visible,
 .offer-card p {
   margin: 0;
   font-size: 14px;
-  color: rgba(43, 43, 43, 0.78);
+  color: rgba(43, 43, 43, 0.92);
 }
 .offers-fineprint {
   margin-top: 22px;
   font-size: 12.5px;
-  color: rgba(43, 43, 43, 0.6);
+  color: rgba(43, 43, 43, 0.78);
 }
 /* ============================================================
    Detail modal / bottom-sheet  (prototype on one product)
