@@ -1,4 +1,29 @@
-# Storefront deployment gates — checkout remains OFF
+# Storefront deployment gates — approved checkout activation
+
+## Current activation decision (2026-10-26)
+
+User explicitly approved enabling the public frontend after reporting deployment.
+Live www checks: session/catalogue 200, 21 catalogue items, account basket 401 with
+INVALID_SESSION, and private/no-store API responses. Backend checkout is reachable
+and requires sign-in; authenticated cart/prepare, actual payment/webhook settlement,
+admin destination/receipt and WhatsApp regression are still pending acceptance.
+No OTP, order or payment was initiated during those checks.
+
+This website-only update enables checkout on exact HTTPS www/apex production
+origins, not on local/preview hosts. It exposes checkout to all logged-in visitors,
+as approved, not a tester allowlist. Keep existing backend auth/payment settings
+unchanged. Transfer only the newly generated website bundle; no backend update is
+needed for this activation. After push/deploy, hard-refresh and verify account
+basket Save on one device then Load on another before a consented real checkout.
+Save replaces the account basket; Load replaces displayed edits. Login alone does
+neither, and later local changes do not automatically sync.
+
+For checkout-only UI rollback set checkoutEnabled to false, deploy and reload;
+keep verified settlement/webhooks operating for existing attempts. Do not create
+replacement orders after an uncertain result: use same-attempt recovery/support.
+
+The default-OFF instructions below record the initial rollout, now superseded by
+this explicit activation approval. Remaining payment/support cautions still apply.
 
 ## T006 independent checkout gate (2026-10-26)
 

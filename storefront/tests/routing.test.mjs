@@ -79,12 +79,14 @@ test('API proxy caching is disabled at browser, CDN and Vercel rewrite layers', 
   assert.ok(assets.headers.some(header => header.key === 'Cache-Control' && header.value === 'no-store'));
 });
 
-test('checkout defaults false on every origin, independent of production preview', async () => {
+test('approved checkout enables only on exact HTTPS production origins', async () => {
   const code = await configCode();
   for (const origin of [...origins, ...otherOrigins]) {
     const context = { window: { location: { origin } } }; vm.runInNewContext(code, context);
-    assert.equal(context.window.TRANCHE_STOREFRONT.checkoutEnabled, false);
+    assert.equal(context.window.TRANCHE_STOREFRONT.checkoutEnabled, origins.includes(origin));
   }
+  const context = { window: {} }; vm.runInNewContext(code, context);
+  assert.equal(context.window.TRANCHE_STOREFRONT.checkoutEnabled, false);
 });
 
 test('status rewrite rejects arbitrary IDs, extra paths, encodings and query injection', async () => {

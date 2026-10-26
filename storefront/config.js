@@ -3,5 +3,5 @@
 // Emergency UI rollback: replace the enabled expression below with false.
 window.TRANCHE_STOREFRONT ??= Object.freeze({
 	enabled: ['https://www.tranchebakery.in', 'https://tranchebakery.in'].includes(window.location?.origin),
-	checkoutEnabled: false // Independent rollout: durable cart + real order/payment, not preview.
+	checkoutEnabled: ['https://www.tranchebakery.in', 'https://tranchebakery.in'].includes(window.location?.origin) // User-approved real checkout; set false for checkout-only rollback.
 });

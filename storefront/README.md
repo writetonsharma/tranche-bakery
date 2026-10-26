@@ -1,4 +1,19 @@
-# Storefront — basket preview and default-off T006 checkout
+# Storefront — basket preview and T006 checkout
+
+## Approved production activation (2026-10-26)
+
+The user explicitly approved public frontend checkout after backend deployment.
+Both UI flags now enable only on the exact HTTPS www/apex production origins;
+local/preview origins remain off. Backend checkout was reachable live and required
+sign-in. Real hosted cart/prepare/payment/webhook acceptance remains pending;
+this activation is not evidence of a successful payment. WhatsApp ordering stays on.
+
+Phone and desktop baskets can differ even after login: login never automatically
+loads, merges or saves them. Explicitly Save this basket to account on one device,
+then Load account basket on the other (discarding that device's displayed edits).
+Later edits require another Save; this is not live cross-device synchronization.
+Concurrent version conflicts require an explicit reload/review, never overwrite.
+The initial default-off rollout notes below are historical where superseded here.
 
 ## T006 execution reference (2026-10-26, recorded before source edits)
 
@@ -25,7 +40,8 @@ end documents the added independently gated feature and supersedes checkout clai
 
 ## T006 current behavior and rollout
 
-- Independent `checkoutEnabled: false` is checked in. Preview `enabled` still uses
+- Independent `checkoutEnabled` now uses the approved exact-production-origin gate.
+	Preview `enabled` still uses
 	only the two exact HTTPS production origins. Both must be strictly true to add
 	checkout controls or permit durable-cart/checkout requests. No URL/storage switch.
 - Optional login and anonymous preview remain available unchanged when checkout
