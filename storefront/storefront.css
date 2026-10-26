@@ -35,5 +35,13 @@ body.nav-open .sf-launcher, body.modal-open .sf-launcher { visibility: hidden; }
 .sf-auth [hidden] { display: none; }
 .sf-fallback { display: block; padding: 18px 0 max(18px, env(safe-area-inset-bottom)); margin-top: 18px; color: #434c2b; font-size: 14px; text-decoration: underline; text-underline-offset: 4px; }
 .sf-start-error { color: #434c2b; font-size: 14px; }
+.sf-checkout { border-top: 1px solid #cbd2ba; margin-top: 26px; padding-top: 26px; overflow-wrap: anywhere; }
+.sf-checkout h3 { font-family: 'Playfair Display', serif; color: var(--sf-olive); font-size: 24px; }
+.sf-checkout [hidden] { display: none !important; }
+.sf-checkout-actions { display: grid; gap: 12px; margin: 16px 0; }
+.sf-checkout-actions button, .sf-checkout form button { width: 100%; white-space: normal; }
+.sf-checkout-review { padding: 0 8px; border-left: 2px solid #748351; }
+.sf-checkout #sf-confirm-pay { width: 100%; margin: 18px 0; background: #434c2b; color: #fffdf5; font-weight: 700; }
+.sf-payment-link { display: block; text-align: center; background: #434c2b; color: #fffdf5; padding: 16px; border-radius: 12px; line-height: 1.5; text-underline-offset: 4px; }
 @media (max-width: 480px) { .sf-launcher { bottom: max(16px, env(safe-area-inset-bottom)); right: 16px; } .sf-line { flex-wrap: wrap; } }
 @media (prefers-reduced-motion: reduce) { .sf-panel, .sf-dialog button, .sf-quantity button { transition: none; } .sf-dialog::backdrop { animation: none; } }

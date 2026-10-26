@@ -72,3 +72,92 @@
   Hosted Set-Cookie, Origin/CSRF, CDN behaviour, proxy-IP attribution and real Meta
   delivery remain pending the user's deployment and manual test. No source push,
   production API call, message, payment or deployment performed here.
+
+## T006 frontend — independent default-off durable checkout (2026-10-26)
+
+- Website-only implementation; read authoritative replacement backend contract.
+  Recorded verified scope in README before source edits (no task.md, assessment or
+  scenario skill root was supplied; none invented). Execution extensions: none.
+  Decomposition assessed: specific frontend feature, implemented as pure contract,
+  coordinator, isolated UI and integration/routing boundaries with tests first.
+  Runtime Modernizer harness unavailable; explicit requested Node/mock checks used.
+- Added checkout-model, checkout-flow, checkout-view and checkout test module;
+  updated API/config/controller/view/CSS/routing tests/Vercel and docs. Backend,
+  root bundles, parked work, original photos, public content and galleries untouched.
+- Default false independently gates new DOM and endpoint access. Existing exact
+  production preview-origin behavior preserved. Account load/save are explicit;
+  versions, exact quantities/dates and stale-cart conflicts fail closed with consent.
+- Prepared server quote and fulfillment are reviewed before explicit Confirm & Pay.
+  UUID/payload immutable in memory; no unsafe automatic retry. Uncertain POST keeps
+  the same key even when recovery bootstrap fails. Owned-ID-only bounded visible
+  polling, safe provider URL parsing and server-only PAID. Credits/zero/unknown/
+  review/unavailable states honestly route to support; no credit consumption or QR.
+- Reviewer findings fixed with regressions: recovery bootstrap losing original key;
+  identity mismatch not clearing outer personalised totals; rejected quote fallback
+  showing stale totals. Unknown/review states preserved beyond expiry. Cart edit,
+  close/offline/hidden/cross-tab abort late work and hide private displays immediately.
+- Mock DOM evidence exercises selectors sf-cart-load → sf-prepare → sf-delivery
+  submit → sf-confirm-pay → sf-payment-link / sf-checkout-refresh, proving fixed
+  reviewed details despite hidden input mutation, owned GET and link/quote/details
+  removal on pause/logout. Fake fetches prove exact methods/CSRF, 409 no blind retry,
+  same-key lost-response recovery, off-flag zero durable calls and bounded polling.
+- Validation checkpoint: 57/57 Node tests passed, 0 failures/skips/cancellations;
+  all 11 JS/MJS syntax checks and git diff --check passed. Editor diagnostics 0/0.
+  No real browser engine installed in repository; mock DOM is not layout/native
+  dialog/accessibility proof. No hosted Vercel routing, cookie integration, backend
+  finalization, real OTP or provider/webhook validation claimed. No push/deploy.
+- Final review correction: retain the immutable accepted quote inside the attempt,
+  not only its token. Explicit same-attempt recovery after basket edits displays
+  the original order lines/date/total and delivery snapshot, distinctly labelled
+  from later edits, before exposing its payment link. Mock DOM asserts both the
+  immediate hiding on edit and correct original-quote redisplay on owned recovery.
+- Terminal isolation caveat: the shared active shell initially surfaced an existing
+  backend batch's “Terminate batch job” prompt during a requested frontend command;
+  it was answered Y before the backend ownership collision was recognized. No
+  backend source was edited or backend command intentionally issued. Subsequent
+  frontend validation was delegated with explicit no-backend-interruption guards.
+  Separately running backend validation may need its owner's restart; this report
+  makes no claim about that run.
+
+## P2 retired account lines — research / execution reference (2026-10-26)
+
+- Scope verified before source edits: checkout-model currently applies current
+  catalogue membership to server GET lines, blocking both Load and first Save.
+  Backend WebCartService.get deliberately retains persisted IDs/version and returns
+  quote:null with problems when current catalogue validation fails. PUT validates
+  the replacement lines, not membership of the previous persisted lines.
+- Plan: factor exact bounded line structure from catalogue membership; accept only
+  structurally valid server lines, keep strict membership for outgoing/local lines.
+  An explicit Load containing unavailable IDs retains the entire local basket and
+  account version, explains that nothing was loaded/removed/merged, marks local edits
+  unsaved, and permits explicit Save to replace using that version. No partial load,
+  silent filtering or clearing. Conflicts still block Save until explicit Load.
+- Atomic verdict: one frontend contract/recovery correction plus focused Node
+  regressions. No scenario root, Execution/hint files, assessment or task.md was
+  supplied; none invented. Execution extensions returned none. Discovered runtime
+  validation guidance read; runtime execution is expressly forbidden by the parent.
+- Only website files will change; no commands, builds or tests will be executed.
+  Existing feature flags, API/CSRF/routes, attempt recovery and preview stay intact.
+
+### P2 implementation / handoff
+
+- Added validateLineStructure and kept validateLines as strict current-catalogue
+  validation for local persistence, edits and outgoing cartInput. validateCart now
+  validates persisted lines structurally, plus exact version/date/quote contracts.
+- Load retains all local lines/date when any persisted ID cannot be represented,
+  records the server version, reports the unavailable basket explicitly and blocks
+  Prepare via unsaved state. Explicit Save replaces, never merges. First Save can
+  fetch a retired basket's version and replace it with its original local snapshot.
+- Added regressions for retired/mixed lines, malformed schema/versions/quotes,
+  outgoing ID rejection, first-Save version/snapshot, Load preserving empty and
+  different baskets, conflict → explicit Load → explicit Save, and mock DOM status,
+  Save availability / Prepare blocking / no payment link. Existing flag/API tests
+  remain in place. No other concrete mismatch required changes in this narrow review.
+- Editor diagnostics: no errors reported in the four changed source/test modules.
+  No terminal commands, builds or tests executed, as required; no passing runtime
+  claim. Parent should run `node --test storefront/tests/*.test.mjs` from the website
+  repository (or just the checkout test module first).
+- Files changed: model.mjs, checkout-model.mjs, checkout-flow.mjs,
+  tests/checkout.test.mjs and this append-only progress record, all under storefront.
+  No backend, root docs, config/routing, bundles or live-preview flags changed.
+  task.md not written: none was supplied or found inside the allowed repository.

@@ -1,4 +1,100 @@
-# T004 — live-test basket preview (not checkout)
+# Storefront — basket preview and default-off T006 checkout
+
+## T006 execution reference (2026-10-26, recorded before source edits)
+
+Website-only working tree was clean. Read the replacement section of the backend
+checkout contract, existing model/API/view/controller, tests, CSS and Vercel config.
+The replacement durable-cart + prepare + acceptance + owned-status contract is
+authoritative, not the historical 503 stub. No backend/parked files are changed.
+No scenario skill root, assessment, task.md or breakdown hints were supplied; no
+workflow files are invented. Execution extension lookup returned none. Recovered
+runtime-validation guidance concerns an unavailable Modernizer runtime harness;
+this task instead explicitly requires dependency-free Node/mock validation.
+
+Scope is the specific frontend T006 feature: strict pure contract/attempt model,
+owned-cart/checkout coordinator, isolated drawer UI, exact API/proxy allowlists,
+and their tests/docs. These boundaries are implemented and validated in dependency
+order, with tests first; no whole-application migration or lifecycle tools apply.
+Preview and existing login remain unchanged when checkoutEnabled is not exactly
+true. Only authenticated, explicitly selected account baskets can prepare/pay.
+Quote tokens, immutable fulfillment and crypto-generated per-attempt keys stay in
+memory. No silent cart overwrite/retry, redirect-as-paid, provider call or deployment.
+
+Historical T004 notes below describe the preview baseline; the T006 section at the
+end documents the added independently gated feature and supersedes checkout claims.
+
+## T006 current behavior and rollout
+
+- Independent `checkoutEnabled: false` is checked in. Preview `enabled` still uses
+	only the two exact HTTPS production origins. Both must be strictly true to add
+	checkout controls or permit durable-cart/checkout requests. No URL/storage switch.
+- Optional login and anonymous preview remain available unchanged when checkout
+	is off. Login alone never fetches/saves/merges the account basket. The two explicit
+	choices say what they replace: Load discards the displayed edits; Save replaces
+	the account basket, first reading its version if needed. Loading does not write
+	account data into device storage. Device storage remains only item IDs/quantities.
+- Edits require explicit Save before Prepare. PUT uses the known version, strict
+	quantities and an exact India date within today..60 days. A 409 never retries or
+	reloads automatically: Load is explicit consent to discard edits. GET can expose
+	an older/unavailable date or null quote without pretending it is orderable.
+- Prepare obtains a fresh version-bound server quote/token; money is never computed
+	locally. Enter name, single-line full delivery address and both preferences, then
+	Review freezes that snapshot for display. Only **Confirm & Pay** submits it with
+	the accepted quote token and an in-memory `crypto.randomUUID()` key. This creates
+	a real delivery-only retail order awaiting Razorpay payment, not a preview or
+	an immediate paid order. Address is an order snapshot, not a profile update.
+- No automatic POST/PUT retry. Lost/invalid/5xx acceptance responses retain the
+	identical immutable payload/key. The explicit SAME attempt action recovers by
+	retransmitting exactly those fields, even if the quote expired/cart changed.
+	If an owned ID is known, recovery uses only its status GET, never acceptance.
+	A recovered link always shows the original immutable checkout quote and delivery
+	snapshot, explicitly distinct from any basket edits made after submission.
+	No keys, tokens, phone, name, address or session data are persisted. A reload or
+	identity change loses recovery memory: contact support, do not assume no order.
+- CREATING/UNKNOWN can poll at five-second intervals, at most ten GETs per page
+	flow, only while visible, online and the drawer is open. Manual Refresh verified
+	status remains available. UNKNOWN (including past deadline) and REVIEW_REQUIRED
+	need support; cancellation/expiry suppress links. PAID comes solely from the
+	owned server status. Opening/returning from Razorpay never marks anything paid.
+- Links require literal HTTPS on exact rzp.io or razorpay.com, a nonempty simple
+	provider path, no query, credentials, explicit ports, fragments or encoded path
+	tricks. They open in a separate no-referrer/noopener tab. A stricter path grammar
+	intentionally fails closed if a future provider URL format changes.
+- Any credit balance OR applied credit requires support, including a quote with
+	zero applied credit but a positive account balance. The backend enforces the
+	latter (the cart DTO does not disclose balance). Credits are not reserved or
+	consumed online. Zero-payable is support-only, never fake paid. Payment gateway
+	unavailable means no QR fallback. Capacity/quote changes need a fresh review.
+- Cart/date changes, close/cancel, offline, visibility changes, identity/cross-tab
+	uncertainty clear quote/review/link immediately and invalidate pending work.
+	Same-identity pause/offline retains only a private attempt for explicit recovery;
+	logout/cross-tab identity invalidation destroys it. Session is rechecked before
+	every checkout operation. Only allowlisted problem codes become fixed local
+	messages; backend error text is never rendered/logged. No history/subscription
+	or WhatsApp ordering cutover is included.
+
+### T006 checks and mock selectors
+
+Run `node --test storefront/tests/*.test.mjs`, syntax-check every storefront JS/MJS,
+and `git diff --check`. The suite uses fake fetch/session data, adversarial DTOs,
+abort-ignoring races and a dependency-free mock DOM. It covers the real UI click
+sequence Load → Prepare → Review → Confirm & Pay → open-link/status controls,
+fixed fulfillment despite hidden-field mutation, and immediate private-state clear.
+It never calls production, OTP or a payment provider. Browser layout/focus and
+actual Vercel rewrite execution are **not** proven by this mock DOM.
+
+For an isolated browser harness inject `{enabled:true, checkoutEnabled:true}` before
+scripts, intercept ALL `/api/**` with fixtures and deny outbound network. Selectors:
+`#sf-checkout`, `#sf-checkout-status`, `#sf-cart-load`, `#sf-cart-save`, `#sf-prepare`,
+`#sf-checkout-quote`, `#sf-delivery`, `#sf-delivery-name`, `#sf-delivery-address`,
+`#sf-delivery-preference`, `#sf-loaf-preference`, `#sf-review`, `#sf-accepted-details`,
+`#sf-confirm-pay`, `#sf-payment-link`, `#sf-checkout-refresh`, `#sf-checkout-retry`,
+`#sf-checkout-abort`. Existing preview/gallery selectors remain unchanged.
+
+T006 adds four host-guarded proxy rules (three literal routes and one exactly
+32-base64url-character status ID) to the existing six. Backend ownership/method/
+Origin/CSRF checks remain authoritative; the rules are not a general API proxy.
+See the T006 gate in the deployment guide. No push/deploy/bundle was performed.
 
 ## Current deployment decision (2026-10-26)
 

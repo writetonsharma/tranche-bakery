@@ -2,5 +2,6 @@
 // Local/preview domains remain off. Tests may inject a config before page scripts.
 // Emergency UI rollback: replace the enabled expression below with false.
 window.TRANCHE_STOREFRONT ??= Object.freeze({
-	enabled: ['https://www.tranchebakery.in', 'https://tranchebakery.in'].includes(window.location?.origin)
+	enabled: ['https://www.tranchebakery.in', 'https://tranchebakery.in'].includes(window.location?.origin),
+	checkoutEnabled: false // Independent rollout: durable cart + real order/payment, not preview.
 });

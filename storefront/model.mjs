@@ -34,18 +34,25 @@ export function catalogBindings(catalog, headings) {
     names.has(name)).map(name => [name, names.get(name)]));
 }
 
-export function validateLines(value, allowedIds) {
+// Persisted account lines can outlive catalogue membership; structure stays strict.
+export function validateLineStructure(value) {
   if (!Array.isArray(value) || value.length > MAX_LINES) throw new Error('Invalid basket');
   const seen = new Set();
   return value.map(line => {
     if (!line || Object.keys(line).sort().join(',') !== 'itemId,quantity' ||
-        !positiveId(line.itemId) || !allowedIds.has(line.itemId) || seen.has(line.itemId) ||
+        !positiveId(line.itemId) || seen.has(line.itemId) ||
         !Number.isInteger(line.quantity) || line.quantity < 1 || line.quantity > MAX_QUANTITY) {
       throw new Error('Invalid basket');
     }
     seen.add(line.itemId);
     return { itemId: line.itemId, quantity: line.quantity };
   });
+}
+
+export function validateLines(value, allowedIds) {
+  const lines = validateLineStructure(value);
+  if (lines.some(line => !allowedIds.has(line.itemId))) throw new Error('Invalid basket');
+  return lines;
 }
 
 export function readBasket(storage, allowedIds) {

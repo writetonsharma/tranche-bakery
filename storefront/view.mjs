@@ -125,6 +125,7 @@ export function createDrawer() {
   }
   function shut() {
     if (!dialog.open || closing) return;
+    dialog.dispatchEvent(new Event('sf-abort'));
     closing = true;
     dialog.classList.remove('sf-visible');
     const finish = () => {
@@ -154,16 +155,17 @@ export function createDrawer() {
     auth, identity, form, phone, send, otp, verify, timer, logout };
 }
 
-export function renderQuote(root, quote) {
+export function renderQuote(root, quote, mode = 'preview') {
   root.replaceChildren();
-  const heading = element('h3', quote.valid ? 'Server preview' : 'Preview needs attention');
+  const heading = element('h3', mode === 'accepted' ? 'Accepted checkout quote — original order' :
+    mode === 'prepared' ? 'Prepared server quote' : quote.valid ? 'Server preview' : 'Preview needs attention');
   root.append(heading);
   for (const line of quote.lines) {
     root.append(element('p', `${line.name} · ${line.quantity} × ${money.format(line.unitPrice)} · ${money.format(line.lineTotal)}`, 'sf-note'));
   }
   for (const [label, key] of [['List subtotal', 'listSubtotal'], ['Discount', 'discountAmount'],
     ['Batch discount', 'batchDiscountAmount'], ['Delivery', 'deliveryCharge'],
-    ['Credit applied', 'creditApplied'], ['Preview total', 'totalAmount']]) {
+    ['Credit applied', 'creditApplied'], [mode === 'preview' ? 'Preview total' : 'Checkout total', 'totalAmount']]) {
     const row = element('p', undefined, key === 'totalAmount' ? 'sf-total' : 'sf-total-row');
     row.append(element('span', label), element('strong', money.format(quote[key])));
     root.append(row);
@@ -173,5 +175,8 @@ export function renderQuote(root, quote) {
   }
   root.append(element('p', `Server delivery date: ${quote.date || 'not selected'}`, 'sf-note'));
   for (const problem of quote.problems) root.append(element('p', problem.message, 'sf-note'));
-  root.append(element('p', 'Preview only. Nothing has been ordered, reserved or charged.', 'sf-note'));
+  root.append(element('p', mode === 'accepted' ?
+    'This fixed quote belongs to this original checkout attempt, not any later basket edits. Payment is confirmed only by verified server status.' :
+    mode === 'prepared' ? 'Prepared only. Nothing ordered or reserved until Confirm & Pay.' :
+    'Preview only. Nothing has been ordered, reserved or charged.', 'sf-note'));
 }

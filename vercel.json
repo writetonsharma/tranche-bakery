@@ -2,6 +2,26 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "rewrites": [
     {
+      "source": "/api/cart",
+      "has": [{ "type": "host", "value": "^(?:www\\.)?tranchebakery\\.in$" }],
+      "destination": "https://tranchewa-app-production.up.railway.app/api/cart"
+    },
+    {
+      "source": "/api/checkout/prepare",
+      "has": [{ "type": "host", "value": "^(?:www\\.)?tranchebakery\\.in$" }],
+      "destination": "https://tranchewa-app-production.up.railway.app/api/checkout/prepare"
+    },
+    {
+      "source": "/api/checkout",
+      "has": [{ "type": "host", "value": "^(?:www\\.)?tranchebakery\\.in$" }],
+      "destination": "https://tranchewa-app-production.up.railway.app/api/checkout"
+    },
+    {
+      "source": "/api/checkout/:opaqueId([A-Za-z0-9_-]{32})",
+      "has": [{ "type": "host", "value": "^(?:www\\.)?tranchebakery\\.in$" }],
+      "destination": "https://tranchewa-app-production.up.railway.app/api/checkout/:opaqueId"
+    },
+    {
       "source": "/api/catalog",
       "has": [{ "type": "host", "value": "^(?:www\\.)?tranchebakery\\.in$" }],
       "destination": "https://tranchewa-app-production.up.railway.app/api/catalog"

@@ -1,6 +1,8 @@
 import { catalogBindings, readBasket, saveBasket, changeQuantity, LatestRequest, STORAGE_KEY, validateQuote } from './model.mjs';
 import { StorefrontApi } from './api.mjs';
 import { createDrawer, element, quantityControl, renderQuote } from './view.mjs';
+import { checkoutEnabled } from './checkout-model.mjs';
+import { attachCheckout } from './checkout-view.mjs';
 
 // Disabled means no fetch, storage access, DOM enhancement, or event listeners.
 if (window.TRANCHE_STOREFRONT?.enabled === true && typeof HTMLDialogElement !== 'undefined') {
@@ -11,7 +13,8 @@ if (window.TRANCHE_STOREFRONT?.enabled === true && typeof HTMLDialogElement !== 
 }
 
 async function start() {
-  const api = new StorefrontApi();
+  const checkoutOn = checkoutEnabled(window.TRANCHE_STOREFRONT);
+  const api = new StorefrontApi(undefined, { checkoutEnabled: checkoutOn });
   const [catalog, bootstrap] = await Promise.all([
     api.request('/api/catalog'), api.request('/api/session')
   ]);
@@ -34,6 +37,20 @@ async function start() {
   let expiryTimer;
   const latest = new LatestRequest();
   const ui = createDrawer();
+  const checkout = checkoutOn ? attachCheckout({ api, ui, allowedIds,
+    getBasket: () => ({ lines, date }),
+    onActivity: () => invalidate('Checkout is checking the account basket. Preview totals cleared.'),
+    onIdentityLost: () => identityUncertain(),
+    onBasket: basket => {
+      lines = basket.lines; date = basket.date;
+      // A readable stale account date is not silently changed to an offered date.
+      if (date && ![...ui.date.options].some(option => option.value === date)) {
+        const option = element('option', `${date} (account basket; recheck availability)`); option.value = date; ui.date.append(option);
+      }
+      ui.date.value = date; invalidate('Account basket loaded. Review its server quote below.'); renderBasket();
+    }
+  }) : null;
+  checkout?.identity(session?.authenticated ? session.customer.id : null);
   const controls = [];
   const drawerRows = new Map();
   const authStatus = element('p', '', 'sf-note');
@@ -112,6 +129,7 @@ async function start() {
   }
 
   function change(id, delta) {
+    checkout?.changed();
     lines = changeQuantity(lines, id, delta, allowedIds);
     persist();
     invalidate('Basket updated. Getting a fresh server preview…');
@@ -126,12 +144,18 @@ async function start() {
       ui.otp.value = '';
     }
     session = api.useSession(view);
+    checkout?.identity(session.authenticated ? session.customer.id : null);
     renderAuth();
   }
 
   async function quote() {
     if (busy) return;
     invalidate();
+    if (checkout?.engaged) {
+      checkout.suspend('refresh requested');
+      ui.status.textContent = 'Use account basket and checkout controls below to refresh safely.';
+      return;
+    }
     if (document.hidden) return;
     if (!navigator.onLine) {
       ui.status.textContent = 'You appear offline. Basket kept on this device; no current totals.';
@@ -163,6 +187,7 @@ async function start() {
       if ([401, 403].includes(error.status)) {
         api.clearSession();
         session = null;
+        checkout?.identity(null);
         renderAuth();
       }
       invalidate('Server preview unavailable or basket/date no longer available. No totals are current. Try refreshing or order on WhatsApp.');
@@ -200,6 +225,7 @@ async function start() {
       return;
     }
     busy = true;
+    checkout?.identity(null);
     const epoch = authEpoch;
     invalidate('Login state is changing. Previous totals have been cleared.');
     authStatus.textContent = 'Please wait…';
@@ -216,6 +242,7 @@ async function start() {
     } catch {
       api.clearSession();
       session = null;
+      checkout?.identity(null);
       challenge = undefined;
       ui.otp.value = '';
       authStatus.textContent = 'Verification unavailable or invalid. Please try again later.';
@@ -284,18 +311,22 @@ async function start() {
     } finally { channel?.postMessage('identity-changed'); }
   }));
   ui.otp.addEventListener('input', renderAuth);
-  ui.date.addEventListener('change', () => { date = ui.date.value; invalidate(); scheduleQuote(); });
+  ui.date.addEventListener('change', () => { checkout?.changed(); date = ui.date.value; invalidate(); scheduleQuote(); });
   ui.refresh.addEventListener('click', quote);
   ui.dialog.addEventListener('sf-open', () => { renderAuth(); quote(); });
   ui.dialog.addEventListener('close', () => {
+    checkout?.suspend('drawer closed');
     authEpoch += 1;
     challenge = undefined;
     invalidate('Preview closed. Reopen to get current server totals.');
     authStatus.textContent = '';
     renderAuth();
   });
+  ui.dialog.addEventListener('sf-abort', () => { checkout?.suspend('drawer closing'); invalidate(); });
 
-  function identityUncertain() {
+  function identityUncertain(retainAttempt = false) {
+    if (retainAttempt) checkout?.suspend('offline');
+    else checkout?.identity(null);
     authEpoch += 1;
     api.clearSession();
     session = null;
@@ -306,23 +337,25 @@ async function start() {
     renderAuth();
   }
   if (channel) channel.onmessage = event => { if (event.data === 'identity-changed') identityUncertain(); };
-  window.addEventListener('offline', () => { identityUncertain(); invalidate('Offline. No current totals; please reconnect and refresh.'); });
+  window.addEventListener('offline', () => { identityUncertain(true); invalidate('Offline. No current totals; please reconnect and refresh.'); });
   window.addEventListener('online', () => invalidate('Connection restored. Refresh the server preview.'));
   function returnedToPage() {
     // Keep an in-memory challenge when the user visits WhatsApp to read the code.
     // Re-bootstrap identity before the next quote without destroying that challenge.
     invalidate('Session needs rechecking. Refresh the server preview.');
+    checkout?.suspend('session needs rechecking');
     if (!busy && ui.dialog.open) scheduleQuote();
   }
   window.addEventListener('focus', returnedToPage);
   document.addEventListener('visibilitychange', () => {
-    if (document.hidden) invalidate('Preview paused. Refresh when you return.');
+    if (document.hidden) { checkout?.suspend('page hidden'); invalidate('Preview paused. Refresh when you return.'); }
     else returnedToPage();
   });
   window.addEventListener('pageshow', event => { if (event.persisted) identityUncertain(); });
   window.addEventListener('pagehide', () => { identityUncertain(); });
   window.addEventListener('storage', event => {
     if (event.key !== STORAGE_KEY && event.key !== null) return;
+    checkout?.changed();
     const restored = readBasket(storage, allowedIds);
     lines = restored.lines;
     storageWarning = restored.warning;

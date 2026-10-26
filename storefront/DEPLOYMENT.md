@@ -1,4 +1,81 @@
-# Live cart-preview + WhatsApp login test
+# Storefront deployment gates — checkout remains OFF
+
+## T006 independent checkout gate (2026-10-26)
+
+Final local validation: 381 backend tests / 64 frontend tests passed; scoped review
+PASS. This is not hosted/provider acceptance. The prior live OTP/login/logout test
+was user-confirmed; leave those working settings and the existing auth secret alone.
+
+Transfer the regenerated app and website bundles together, review and push from
+the other machine. Keep BAKERY_WEB_CHECKOUT_ENABLED=false and checkoutEnabled:false
+during this first deployment. V48–V51 are additive and must all reach Railway;
+V50/V51 also fence legacy WhatsApp link dispatch/revocation regardless of checkout
+flag, so smoke-test existing WhatsApp ordering/payment-link reuse after deployment.
+No new Razorpay account or webhook is required. Keep the existing signed live
+webhook active. Website checkout charges the actual quoted amount: the WhatsApp
+test-phone token-payment setting does NOT reduce a website payment to ₹1.
+
+After confirming the deployed build, enable backend checkout first for authenticated
+cart/prepare/status transport checks; frontend activation is a separate deliberate
+config change/deployment. Then perform one consented low-value real payment with
+the user, verify webhook-driven PAID, admin destination/order snapshot, receipt,
+reload/support recovery and WhatsApp regression before broader public use.
+Never test a real charge here automatically. A public frontend checkout flag is
+not a tester allowlist: enabling it exposes checkout to every logged-in visitor.
+
+Operational uncertainty: UNKNOWN/stranded CREATING claims must be reconciled
+against Razorpay reference/link/payment records by support before release or any
+replacement. There is no automatic claim reset or reconciliation dashboard in this
+batch. Do not manually clear a fence merely because a browser timed out. Current
+frontend recovery is in-memory; reload/logout loses its attempt handle. Use support
+rather than submitting a replacement when an order/payment may already exist.
+
+This implementation does not authorize launch. `checkoutEnabled: false` stays
+checked in, independently from the existing exact-production-origin preview flag.
+Keep `BAKERY_WEB_CHECKOUT_ENABLED=false` until the separately finalized backend
+durable cart/prepare/accept/status work and operational/payment verification are
+approved. No deployment, live API/provider call or real OTP was performed here.
+
+Routing now includes `/api/cart`, `/api/checkout/prepare`, `/api/checkout` and
+`/api/checkout/:opaqueId([A-Za-z0-9_-]{32})` to the SAME fixed Railway backend,
+with the same exact www/apex host guards and private/no-store headers. There is no
+general dynamic proxy. Backend enforces HTTP methods, ownership, feature flags,
+Origin and CSRF. Preview deployments do not reach production via these rules.
+
+Before a separately authorized rollout, validate mocked full flow, then hosted
+proxy/secure-cookie/CSRF/cache/ownership and strict status-ID rewrite semantics;
+the local source tests do not execute Vercel's routing engine. Backend must have
+durable idempotency, shared capacity, verified Razorpay webhooks, cancellation/
+expiry/late-payment reconciliation and configured payment availability. Only then
+consider enabling both backend checkout and frontend checkout flags. Do not enable
+OTP, make provider calls or launch payments merely to validate this code.
+
+Customer flow is explicit Load or Save account basket → Prepare fresh quote →
+Review immutable name/address/preferences → Confirm & Pay → secure payment link →
+Refresh server-verified status. Preparing is not a reservation. Confirm creates a
+real order awaiting payment. Neither redirects nor an opened link are proof of
+payment. UNKNOWN/REVIEW require support; no replacement order/second link is
+automatically requested. Cancellation/expiry hides payment URLs.
+
+Credit balance greater than zero OR applied credit blocks online acceptance and
+requires support. This includes positive balance with no credit applied; frontend
+cannot infer balance from the quote. Credits are neither reserved nor consumed.
+Zero-payable also requires support, never automatic PAID. PAYMENT_UNAVAILABLE has
+no UPI/QR fallback. Confirm uses a private in-memory UUID and immutable payload;
+network ambiguity offers only explicit SAME attempt recovery. Reload/logout loses
+that memory: support must reconcile before the customer orders/pays again.
+
+Checkout-only rollback: leave preview/login configuration intact, set frontend
+`checkoutEnabled: false` and backend `BAKERY_WEB_CHECKOUT_ENABLED=false` through the
+normal approved process. Reload open pages. Disabling checkout does not cancel
+existing orders, revoke a provider link or reverse paid money; monitor/reconcile
+existing attempts and webhooks. Never turn off settlement verification as a UI
+rollback. No history/subscriptions/WhatsApp cutover is part of T006.
+
+The older preview-only instructions below are historical operational context;
+their “six paths/no checkout” descriptions apply to the preview baseline only.
+
+## Historical live cart-preview + WhatsApp login test
 
 User approval: 2026-10-26. Use the live website for this bounded test; no separate
 staging environment is required by this decision. Nothing has been pushed or
