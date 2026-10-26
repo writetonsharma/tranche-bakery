@@ -1,0 +1,53 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "rewrites": [
+    {
+      "source": "/api/catalog",
+      "has": [{ "type": "host", "value": "^(?:www\\.)?tranchebakery\\.in$" }],
+      "destination": "https://tranchewa-app-production.up.railway.app/api/catalog"
+    },
+    {
+      "source": "/api/session",
+      "has": [{ "type": "host", "value": "^(?:www\\.)?tranchebakery\\.in$" }],
+      "destination": "https://tranchewa-app-production.up.railway.app/api/session"
+    },
+    {
+      "source": "/api/quote",
+      "has": [{ "type": "host", "value": "^(?:www\\.)?tranchebakery\\.in$" }],
+      "destination": "https://tranchewa-app-production.up.railway.app/api/quote"
+    },
+    {
+      "source": "/api/auth/challenge",
+      "has": [{ "type": "host", "value": "^(?:www\\.)?tranchebakery\\.in$" }],
+      "destination": "https://tranchewa-app-production.up.railway.app/api/auth/challenge"
+    },
+    {
+      "source": "/api/auth/verify",
+      "has": [{ "type": "host", "value": "^(?:www\\.)?tranchebakery\\.in$" }],
+      "destination": "https://tranchewa-app-production.up.railway.app/api/auth/verify"
+    },
+    {
+      "source": "/api/auth/logout",
+      "has": [{ "type": "host", "value": "^(?:www\\.)?tranchebakery\\.in$" }],
+      "destination": "https://tranchewa-app-production.up.railway.app/api/auth/logout"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/api/:path*",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-store, private" },
+        { "key": "CDN-Cache-Control", "value": "no-store" },
+        { "key": "Vercel-CDN-Cache-Control", "value": "no-store" },
+        { "key": "x-vercel-enable-rewrite-caching", "value": "0" },
+        { "key": "X-Content-Type-Options", "value": "nosniff" }
+      ]
+    },
+    {
+      "source": "/storefront/:path*",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-store" }
+      ]
+    }
+  ]
+}
