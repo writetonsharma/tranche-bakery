@@ -272,16 +272,16 @@ test('a conflict on explicit retry cannot discard an uncertain original payload 
   assert.equal(f.flow.state.attempt.id, id);
 });
 
-test('PAID requires explicit new order, preserves a newer basket and ignores the dismissed recovered ID', async () => {
+test('historical PAID does not install an attempt or require dismissal and preserves a newer basket', async () => {
   const f = fixture(historical('PAID')); await f.flow.resume();
   const newer = { lines: [{ itemId: 1, quantity: 9 }], date: '2026-11-05' };
   f.local = newer;
   f.flow.state.cart = { ...cart, version: 10, ...structuredClone(newer), quote: null };
   f.flow.state.dirty = true;
-  await f.flow.prepare(); await f.flow.confirm(details); await f.flow.poll();
-  assert.equal(f.flow.state.result.status, 'PAID');
-  assert.equal(f.flow.state.result.paymentUrl, null);
-  assert.equal(f.flow.state.attempt.id, id);
+  assert.equal(f.flow.state.result, null);
+  assert.equal(f.flow.state.attempt, null);
+  assert.equal(f.flow.recoveryReady, true);
+  assert.equal(f.flow.canEditBasket, true);
   f.flow.startNewOrder();
   assert.equal(f.flow.state.attempt, null);
   assert.equal(f.flow.state.result, null);
@@ -324,7 +324,7 @@ test('profile defaults callback runs once per identity; background resume never 
   assert.equal(f.defaults.length, 2);
 });
 
-test('optional default failure never hides a verified paid recovery; a later GET can load suggestions', async () => {
+test('optional default failure cannot install historical paid checkout; a later GET can load suggestions', async () => {
   const f = fixture(historical('PAID'));
   const original = f.api.request;
   let unavailable = true;
@@ -335,11 +335,12 @@ test('optional default failure never hides a verified paid recovery; a later GET
     return value;
   };
   await f.flow.resume();
-  assert.equal(f.flow.state.result.status, 'PAID');
-  assert.match(f.flow.state.message, /Payment received/);
+  assert.equal(f.flow.state.result, null);
+  assert.equal(f.flow.state.attempt, null);
+  assert.equal(f.flow.recoveryReady, true);
   assert.equal(f.flow.defaultsRead, false);
   unavailable = false; f.flow.suspend('page hidden'); await f.flow.resume();
-  assert.equal(f.flow.state.result.status, 'PAID');
+  assert.equal(f.flow.state.result, null);
   assert.deepEqual(f.defaults, [profile]);
   assert.equal(f.requests().some(call => call.path === '/api/checkout'), false);
 });
@@ -356,4 +357,130 @@ test('malformed recovery envelope or historical snapshot fails closed without PO
     assert.equal(f.defaults.length, 0);
     assert.deepEqual(f.requests().map(call => call.path), ['/api/account/checkout']);
   }
+});
+
+for (const status of ['PAID', 'CANCELLED', 'EXPIRED']) {
+  test(`historical ${status} permits fresh preparation without importing delivery or clearing current basket`, async () => {
+    const f = fixture(historical(status)); await f.flow.resume();
+    assert.equal(f.flow.state.attempt, null); assert.equal(f.flow.state.result, null);
+    assert.equal(f.flow.recoveryReady, true); assert.equal(f.flow.canEditBasket, true);
+    assert.deepEqual(f.local, basket); assert.equal(f.replacements.length, 0);
+    await f.flow.load(); await f.flow.prepare();
+    assert.equal(f.flow.state.prepared.cartVersion, cart.version);
+    assert.deepEqual(f.flow.state.prepared.quote.lines, liveQuote.lines);
+    assert.equal(f.flow.state.attempt, null);
+    assert.equal(f.requests().some(call => call.path === '/api/checkout'), false);
+    assert.equal(f.keys, 0);
+  });
+}
+
+test('a current-page accepted PAID remains a compact receipt until explicit Continue, never automatically clears edits', async () => {
+  const f = fixture(null); await f.flow.resume(); await f.flow.load(); await f.flow.prepare();
+  const original = f.api.request;
+  f.api.request = async (...args) => args[0] === '/api/checkout' ?
+    (f.calls.push({ path: args[0], body: structuredClone(args[1]) }), historical('PAID')) : original(...args);
+  await f.flow.confirm(details);
+  assert.equal(f.flow.state.result.status, 'PAID'); assert.equal(f.flow.state.attempt.id, id);
+  assert.match(f.flow.state.message, /Payment received/);
+  assert.equal(f.flow.canEditBasket, true);
+  const newer = { ...basket, lines: [{ itemId: 1, quantity: 9 }] }; f.local = newer;
+  await f.flow.prepare(); await f.flow.confirm(details); await f.flow.poll();
+  assert.equal(f.requests().filter(call => call.path === '/api/checkout').length, 1);
+  assert.deepEqual(f.local, newer);
+  f.flow.startNewOrder();
+  assert.equal(f.flow.state.attempt, null); assert.equal(f.flow.state.result, null);
+  assert.deepEqual(f.local, newer); assert.equal(f.replacements.length, 1, 'only explicit earlier Load replaced basket');
+});
+
+test('locally expired PAYABLE recovery keeps the pending fence until verified server termination', async () => {
+  const expired = { ...historical(), expiresAt: new Date(now - 1).toISOString() };
+  const f = fixture(expired), original = f.api.request;
+  let server = expired;
+  f.api.request = async (...args) => args[0] === `/api/account/orders/${id}` ?
+    (f.calls.push({ path: args[0], body: args[1] }), structuredClone(server)) : original(...args);
+  await f.flow.resume();
+  assert.equal(f.flow.state.attempt.id, id);
+  assert.equal(f.flow.state.result.status, 'PAYABLE', 'local deadline is not server termination');
+  assert.equal(f.flow.state.result.paymentUrl, null);
+  assert.match(f.flow.state.message, /link expired.*verified status/);
+  assert.equal(f.flow.canEditBasket, false);
+  assert.equal(f.flow.resolvedAttemptId, null);
+  const count = f.requests().length;
+  await f.flow.prepare(); await f.flow.confirm(details); f.flow.startNewOrder(); await f.flow.retry();
+  assert.equal(f.requests().length, count);
+  assert.equal(f.flow.state.attempt.id, id);
+  for (let i = 0; i < 15; i++) await f.flow.poll();
+  assert.equal(f.flow.polls, 10);
+  assert.equal(f.flow.canEditBasket, false);
+  assert.equal(f.flow.state.result.paymentUrl, null);
+  server = { ...historical('EXPIRED'), expiresAt: expired.expiresAt };
+  await f.flow.check();
+  assert.equal(f.flow.state.result.status, 'EXPIRED');
+  assert.equal(f.flow.canEditBasket, true);
+  f.flow.startNewOrder();
+  assert.equal(f.flow.state.attempt, null);
+  assert.equal(f.requests().some(call => call.path === '/api/checkout'), false);
+  assert.equal(f.keys, 0);
+});
+
+test('locally expired current-page acceptance and owned GET also retain the pending fence', async () => {
+  const f = fixture(null); await f.flow.resume(); await f.flow.load(); await f.flow.prepare();
+  const expired = { ...historical(), expiresAt: new Date(now - 1).toISOString() };
+  const original = f.api.request;
+  f.api.request = async (...args) => ['/api/checkout', `/api/checkout/${id}`].includes(args[0]) ?
+    (f.calls.push({ path: args[0], body: structuredClone(args[1]) }), expired) : original(...args);
+  await f.flow.confirm(details);
+  assert.equal(f.flow.state.attempt.id, id);
+  assert.equal(f.flow.state.result.status, 'PAYABLE');
+  assert.equal(f.flow.state.result.paymentUrl, null);
+  assert.equal(f.flow.canEditBasket, false);
+  await f.flow.check(); f.flow.startNewOrder();
+  assert.equal(f.flow.state.attempt.id, id);
+  assert.equal(f.flow.resolvedAttemptId, null);
+  assert.equal(f.flow.state.result.paymentUrl, null);
+  assert.equal(f.requests().filter(call => call.path === '/api/checkout').length, 1);
+});
+
+test('fresh unchanged null recovery preserves the exact prepared quote, review and message', async () => {
+  const f = fixture(null); await f.flow.resume(); await f.flow.load(); await f.flow.prepare();
+  f.flow.review(details);
+  const { prepared, review, message } = f.flow.state;
+  f.flow.polls = 4;
+  const count = f.requests().length;
+  await f.flow.resume();
+  assert.deepEqual(f.requests().slice(count).map(call => call.path), ['/api/account/checkout']);
+  assert.equal(f.flow.state.prepared, prepared);
+  assert.equal(f.flow.state.review, review);
+  assert.equal(f.flow.state.message, message);
+  assert.equal(f.flow.polls, 4);
+  assert.equal(f.defaults.length, 1);
+  assert.equal(f.flow.state.attempt, null);
+  assert.equal(f.flow.state.dirty, false);
+});
+
+test('initial null then pending is recovered on visible resume with no overlapping recovery reads', async () => {
+  const f = fixture(null); await f.flow.resume(); await f.flow.load(); await f.flow.prepare();
+  f.flow.review(details);
+  const original = f.api.request, started = deferred(), reply = deferred();
+  let reads = 0;
+  f.api.request = async (...args) => {
+    const value = await original(...args);
+    if (args[0] !== '/api/account/checkout') return value;
+    reads++; started.resolve(); await reply.promise;
+    return { checkout: historical('UNKNOWN') };
+  };
+  const pending = f.flow.resume(); await started.promise;
+  await Promise.all([f.flow.resume(), f.flow.resume(), f.flow.resume()]);
+  assert.equal(reads, 1);
+  assert.equal(f.flow.state.background, true);
+  reply.resolve(); await pending;
+  assert.equal(f.flow.state.attempt.id, id);
+  assert.equal(f.flow.state.result.status, 'UNKNOWN');
+  assert.equal(f.flow.state.prepared, null);
+  assert.equal(f.flow.state.review, null);
+  assert.equal(f.flow.canEditBasket, false);
+  assert.equal(f.flow.state.busy, false);
+  assert.equal(f.flow.state.background, false);
+  assert.equal(f.requests().some(call => call.path === '/api/checkout'), false);
+  assert.equal(f.keys, 0);
 });

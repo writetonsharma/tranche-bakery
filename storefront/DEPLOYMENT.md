@@ -1,5 +1,36 @@
 # Storefront deployment gates — approved checkout activation
 
+## Website-only UX cleanup — 2026-10-27 (local, not deployed)
+
+Local checks: **159/159 website tests** (148 retained + 11 new), **19 syntax checks**,
+whitespace validation and scoped editor diagnostics pass (0 errors / 0 warnings).
+
+This section supersedes earlier paid-history/Start new order drawer instructions.
+Previous orders and their delivery/quotes belong only in the customer's explicit
+My account history view. Latest terminal PAID/CANCELLED/EXPIRED recovery no longer
+installs an old attempt or blocks preparation. A current-page accepted payment
+retains a compact receipt until Continue shopping; no basket is auto-cleared.
+Pending/uncertain/review payments still fence new checkout, using owned GETs,
+safe links, explicit same-request recovery or support, never automatic POST retry.
+
+The basket now has one current flow: bakes/date → Review order → prefilled editable
+delivery → review total/details → Confirm & Pay. Load/Save choices appear only for
+actual basket reconciliation. Unchanged status/cart reads preserve quote/review
+nodes, fields, focus and scroll. Visible/online polling stays at five seconds,
+ten checks per return window and stops on terminal status. Opening waits for the
+native drawer slide; close cancels deferred reads, holds queued basket saves and
+allows existing save acknowledgements to settle safely before newer edits resume.
+Receiver-safe native timer wrappers are retained unchanged.
+
+No backend, routing, flags, dependencies or provider configuration changed.
+No bundle, push, deployment, production API, real OTP, order or payment performed.
+Local validation uses the actual module bootstrap in jsdom with fake APIs/timers;
+native-browser compositor smoothness, top-layer focus trapping, accessibility and
+hosted cookie/payment return remain manual acceptance limits, not proven by jsdom.
+After a separately approved deployment, verify historical-paid login with a new
+basket, pending payment return, mobile slide/Escape/rapid close, signed-out privacy
+and newer-edit retention without initiating another payment as an automated test.
+
 ## Account transport addition — locally validated, deployment pending
 
 Final local validation: **398 backend tests / 49 suites**, **132 website tests**,
@@ -57,7 +88,8 @@ The new frontend uses automatic versioned basket load/save after explicit
 device/account reconciliation where needed. Review order flushes writes before a
 fresh quote; delivery review and Confirm & Pay remain explicit. Return/reload reads
 the latest owned attempt, then bounds visible/online PAYABLE/CREATING/UNKNOWN
-checks. PAID requires explicit Start new order, leaving the basket unchanged.
+checks. The UX cleanup above replaces historical PAID's old Start new order fence;
+only current-page accepted terminal context needs explicit Continue shopping.
 The old manual Save/Load activation instructions below are historical, not this
 phase's customer flow. Validate profile conflicts, stale/in-flight cart writes,
 anonymous/account identity separation, privacy clearing and BFCache same-key

@@ -33,6 +33,8 @@ export class BasketSync {
     }
     this.state.busy = false; this.writing = false; this.emit();
   }
+  hold() { this.held = true; this.cancel(this.timer); }
+  release() { this.held = false; this.schedule(); }
   changed() {
     this.revision++; this.state.dirty = true;
     this.state.message = this.state.choice ? 'Choose which basket to use. Your edits are kept here.' : 'Basket changes waiting to save…';
@@ -40,21 +42,25 @@ export class BasketSync {
   }
   schedule() {
     this.cancel(this.timer);
-    if (this.identity && this.isActive() && this.state.associated && this.state.dirty && !this.state.choice) {
+    if (!this.held && this.identity && this.isActive() && this.state.associated && this.state.dirty && !this.state.choice) {
       this.timer = this.delay(() => this.save(), 400);
     }
   }
   async operation(action, writing = false) {
-    if (!this.identity || !this.isActive() || this.state.busy) return false;
+    if (this.held || !this.identity || !this.isActive() || this.state.busy) return false;
     const id = this.identity, ticket = this.latest.begin();
     const current = () => this.latest.current(ticket) && this.identity === id && this.isActive();
     this.state.busy = true; this.writing = writing; this.emit();
+    let deferred = false;
     try {
       const session = await this.api.session(ticket.signal);
       if (!current()) return false;
       if (!session.authenticated || session.customer?.id !== id) {
         this.setIdentity(null); this.onIdentityLost(); return false;
       }
+      // A transition may start while session bootstrap is in flight. Finish
+      // safely, but defer the next request instead of issuing it mid-slide.
+      if (this.held) { deferred = true; return false; }
       return await action(ticket.signal, current);
     } catch (error) {
       if (!current()) return false;
@@ -66,7 +72,10 @@ export class BasketSync {
         'Basket could not be confirmed. Your edits are kept; choose a basket to reconcile safely.';
       return false;
     } finally {
-      if (current()) { this.state.busy = false; this.writing = false; this.emit(); }
+      if (current()) {
+        this.state.busy = false; this.writing = false; this.emit();
+        if (deferred && !this.held) this.schedule();
+      }
     }
   }
   associate(cart, replace) {
@@ -81,7 +90,7 @@ export class BasketSync {
     const wasDirty = this.state.dirty;
     return this.operation(async (signal, current) => {
       const cart = validateCart(await this.api.request('/api/cart', undefined, signal));
-      if (!current()) return false;
+      if (!current() || this.held) return false;
       if (revision !== this.revision) {
         this.state.choice = true;
         this.state.cart = cart; this.state.message = 'Basket edited while account was loading. Choose which basket to use.';
@@ -103,7 +112,7 @@ export class BasketSync {
     const revision = this.revision;
     const ok = await this.operation(async (signal, current) => {
       const cart = validateCart(await this.api.request('/api/cart', undefined, signal));
-      if (!current() || revision !== this.revision) return false;
+      if (!current() || this.held || revision !== this.revision) return false;
       if (which === 'account') {
         if (cart.lines.some(line => !this.allowedIds.has(line.itemId))) {
           this.state.message = 'Unavailable account bakes cannot be loaded. Keep this device basket to replace them, or contact support.'; return false;

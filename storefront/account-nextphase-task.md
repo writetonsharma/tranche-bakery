@@ -1,5 +1,32 @@
 # Customer account next phase — execution reference
 
+## Approved website UX cleanup — verified research, 2026-10-27
+
+- Baseline verified clean at 166a54b. Read actual storefront, checkout flow/view,
+	BasketSync, native dialog/CSS, account validators and existing jsdom/fake tests.
+	No backend, parked source, production/provider access, push or bundle work.
+- Concrete causes: resume installs latest terminal historical order as an active
+	attempt; render always replaces quote/delivery and clears them during every
+	busy GET; opening starts quote immediately alongside startup's scheduled quote.
+	BasketSync emits on read start/end even when its cart version is unchanged.
+- Specific coherent change: separate historical terminal recovery from a current
+	page's accepted attempt; compact payment recovery without historical PII;
+	stage-only controls; keyed immutable quote/review rendering and quiet GET status
+	checks; coalesced resume and animation-delayed opening refresh with cancellation.
+	Preserve exact-key uncertain retry, session ownership, privacy and timer wrappers.
+- Atomic decomposition verdict: one integrated checkout/drawer lifecycle correction
+	with its UI regressions. No scenario root, assessment or Execution/Breakdown Hints
+	files forwarded; Execution extensions report none. Skill discovery returned only
+	the upgrade-specific runtime harness, not applicable to this non-upgrade task;
+	explicit user-approved local Node/jsdom checks are the validation boundary.
+- Done when historical terminal login/reload never shows past delivery or requires
+	Start new order; current accepted terminal has compact receipt and explicit
+	Continue without clearing basket; pending/uncertain fence and owned GET retained;
+	unchanged busy/status/cart reads preserve quote/form nodes/focus/scroll; bounded
+	visible-online checks stop terminal; synchronous privacy clearing; deferred open
+	and close/Escape/reduced-motion timer safety; full existing suite plus regressions
+	passes without new dependencies. Update this record/progress/deployment notes.
+
 Scope is the website repository only. Authoritative backend contract read from
 the backend account-contract document (2026-10-26); V52 must precede rollout.
 Existing modules verified: checkout-flow owns immutable acceptance payloads and

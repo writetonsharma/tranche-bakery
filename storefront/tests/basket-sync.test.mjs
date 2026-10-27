@@ -384,3 +384,24 @@ test('prepare flushes an inflight save and newer edits before quoting the final 
   assert.equal(f.timers.size, 0);
   f.sync.pause();
 });
+
+test('transition hold cancels debounce and defers post-bootstrap PUT until release without a conflict or busy deadlock', async () => {
+  const f = fixture(); f.sync.setIdentity(7); await f.sync.refresh();
+  f.edit({ ...basket, lines: [{ itemId: 1, quantity: 3 }] });
+  f.sync.hold(); assert.equal(f.timers.size, 0);
+  const count = f.calls.length;
+  await f.sync.save(); await f.sync.refresh();
+  assert.equal(f.calls.length, count);
+  f.sync.release(); assert.equal(f.timers.size, 1);
+  const bootstrap = deferred(), started = deferred();
+  f.api.session = async () => { started.resolve(); return bootstrap.promise; };
+  const saving = f.sync.save(); await started.promise;
+  f.sync.hold(); bootstrap.resolve(session); await saving;
+  assert.equal(f.requests().some(call => call.method === 'PUT'), false);
+  assert.equal(f.sync.state.busy, false); assert.equal(f.sync.state.choice, false);
+  assert.equal(f.sync.state.dirty, true);
+  f.sync.release(); await f.tick();
+  assert.equal(f.requests().filter(call => call.method === 'PUT').length, 1);
+  assert.equal(f.sync.state.cart.lines[0].quantity, 3);
+  assert.equal(f.sync.state.dirty, false); assert.equal(f.sync.state.busy, false);
+});

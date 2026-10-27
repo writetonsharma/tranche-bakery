@@ -184,7 +184,7 @@ async function start() {
   }
 
   async function quote() {
-    if (busy) return;
+    if (busy || ui.opening || ui.closing) return;
     invalidate();
     if (document.hidden) return;
     if (!navigator.onLine) {
@@ -234,7 +234,7 @@ async function start() {
 
   function scheduleQuote() {
     clearTimeout(quoteTimer);
-    if (!busy) quoteTimer = setTimeout(quote, 200);
+    if (!busy && !ui.opening && !ui.closing) quoteTimer = setTimeout(quote, 200);
   }
 
   function renderAuth() {
@@ -366,7 +366,12 @@ async function start() {
     date = ui.date.value; checkout?.changed(); invalidate(); scheduleQuote();
   });
   ui.refresh.addEventListener('click', quote);
-  ui.dialog.addEventListener('sf-open', () => { renderAuth(); quote(); });
+  ui.dialog.addEventListener('sf-opening', () => {
+    clearTimeout(quoteTimer);
+    latest.invalidate();
+    checkout?.suspend('drawer opening');
+  });
+  ui.dialog.addEventListener('sf-open', () => { clearTimeout(quoteTimer); renderAuth(); quote(); });
   ui.dialog.addEventListener('close', () => {
     checkout?.suspend('drawer closed');
     pauseAuth();
@@ -396,7 +401,6 @@ async function start() {
     // Keep an in-memory challenge when the user visits WhatsApp to read the code.
     // Re-bootstrap identity before the next quote without destroying that challenge.
     invalidate('Session needs rechecking. Refresh the server preview.');
-    checkout?.suspend('session needs rechecking');
     if (!busy && !document.hidden && navigator.onLine) scheduleQuote();
   }
   window.addEventListener('focus', returnedToPage);

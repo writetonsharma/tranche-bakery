@@ -3,13 +3,13 @@ import { cartInput, validateCart, validatePrepared, fulfillment, validateCheckou
 import { validateOrderDetail, validateProfile } from './account-model.mjs';
 
 const initial = () => ({ cart: null, prepared: null, review: null, attempt: null, result: null,
-  busy: false, ambiguous: false, suspended: false, dirty: false, needsReload: false, message: '' });
+  busy: false, background: false, ambiguous: false, suspended: false, dirty: false, needsReload: false, message: '' });
 const resolved = status => ['PAID', 'CANCELLED', 'EXPIRED'].includes(status);
 const stateMessage = status => ({
   CREATING: 'Payment link is being created. Do not submit another order.',
   PAYABLE: 'Order awaiting payment. Open the secure payment link, then refresh verified status here.',
   UNKNOWN: 'Payment creation is uncertain. Contact bakery support before any new order or payment. Status checks do not create another link.',
-  PAID: 'Payment received — verified by the bakery. This is your past order, not a new basket. Choose Start new order when ready; your basket will not be emptied automatically.',
+  PAID: 'Payment received. Thank you! Your basket has not been changed.',
   REVIEW_REQUIRED: 'Payment/order needs manual review. Contact bakery support; do not pay again.',
   CANCELLED: 'Checkout cancelled. No payment link is available. Contact support if money was debited.',
   EXPIRED: 'Checkout expired. Do not pay an old link. Contact support if money was debited.'
@@ -48,16 +48,21 @@ export class CheckoutFlow {
         payload: null, recovered: true });
     }
     // Preserve ONLY an already accepted/possibly sent attempt for same-identity explicit recovery.
-    Object.assign(this.state, { prepared: null, review: null, result: null, busy: false,
+    Object.assign(this.state, { prepared: null, review: null, result: null, busy: false, background: false,
       suspended: true, ambiguous: this.state.ambiguous || Boolean(this.state.attempt && !this.state.attempt.id),
-      message: `Checkout paused (${reason}). Recheck your login before recovering this attempt.` });
+      message: this.state.attempt ? 'Payment details hidden. Recheck securely or contact support before ordering or paying again.' : 'Review your basket when you are ready.' });
     this.emit();
   }
   changed() {
+    if (resolved(this.state.result?.status)) {
+      // A newer basket is independent of this receipt. Only explicit Continue
+      // dismisses it; privacy suspension still removes it synchronously.
+      this.state.dirty = true; this.emit(); return;
+    }
     this.suspend('basket changed');
     this.state.dirty = true; this.emit();
   }
-  async run(action, { acceptance = false } = {}) {
+  async run(action, { acceptance = false, background = false } = {}) {
     if (!this.enabled || !this.identity || this.state.busy || !this.isActive()) return;
     const identity = this.identity;
     const recovering = Boolean(this.state.attempt);
@@ -65,7 +70,9 @@ export class CheckoutFlow {
     let recoverRejected = false;
     const ticket = this.latest.begin();
     const current = () => this.latest.current(ticket) && this.identity === identity && this.isActive();
-    this.state.busy = true; this.state.message = 'Checking securely with the bakery…'; this.onActivity(); this.emit();
+    this.state.busy = true; this.state.background = background;
+    if (!background) { this.state.message = 'Checking securely with the bakery…'; this.onActivity(); }
+    this.emit();
     let sent = false;
     try {
       const session = await this.api.session(ticket.signal);
@@ -93,7 +100,7 @@ export class CheckoutFlow {
         'The response was lost or uncertain. Do not create a new order. Explicitly retry this SAME attempt to recover its status, or contact support.' : problemMessage(error.code);
       if (acceptance && sent && !this.state.ambiguous && !['CHECKOUT_IN_PROGRESS', 'IDEMPOTENCY_CONFLICT'].includes(error.code)) this.state.attempt = null;
     } finally {
-      if (current()) { this.state.busy = false; this.emit(); }
+      if (current()) { this.state.busy = false; this.state.background = false; this.emit(); }
     }
     if (recoverRejected && current() && !this.state.attempt) return this.resume();
   }
@@ -142,7 +149,7 @@ export class CheckoutFlow {
         this.state.message = problemMessage(value.quote.creditApplied > 0 ? 'CREDIT_SUPPORT_REQUIRED' : 'ZERO_PAYABLE_SUPPORT_REQUIRED'); return;
       }
       this.state.prepared = value; this.state.suspended = false;
-      this.state.message = 'Review this exact server quote and your delivery details. Preparing has not placed an order or reserved capacity.';
+      this.state.message = 'Check your total and delivery details. Nothing is ordered until you Confirm & Pay.';
     });
   }
   review(details) {
@@ -150,7 +157,7 @@ export class CheckoutFlow {
     try {
       if (Date.parse(this.state.prepared.expiresAt) <= this.now()) throw new Error('Expired');
       this.state.review = fulfillment(details);
-      this.state.message = 'Review the fixed delivery details and quoted total below. Confirm & Pay creates a real order and requests a payment link.';
+      this.state.message = 'Check your delivery details and total below. Confirm & Pay places your order and requests a secure payment link.';
     } catch { this.state.message = 'Enter a name (1–100 characters), single-line address (10–2000 characters) and both preferences, or refresh an expired quote.'; }
     this.emit();
   }
@@ -172,15 +179,22 @@ export class CheckoutFlow {
     const attempt = this.state.attempt;
     return this.run(async ({ signal, current, sending }) => {
       sending();
-      const result = validateCheckout(await this.api.request('/api/checkout', attempt.payload, signal), attempt.id, this.now());
+      const value = await this.api.request('/api/checkout', attempt.payload, signal);
+      const result = validateCheckout(value, attempt.id, this.now());
       if (!current()) return;
-      this.accept(result, attempt);
+      this.accept(result, attempt, value.status);
     }, { acceptance: true });
   }
-  accept(result, attempt) {
+  accept(result, attempt, verifiedStatus = result.status) {
+    // A browser deadline can hide a link, never verify server termination.
+    if (result.status === 'EXPIRED' && verifiedStatus === 'PAYABLE') {
+      result = immutable({ ...result, status: 'PAYABLE' });
+    }
     this.resolvedAttemptId = resolved(result.status) ? result.id : null;
     this.state.attempt = immutable({ ...attempt, id: result.id });
-    Object.assign(this.state, { result, suspended: false, ambiguous: false, message: stateMessage(result.status) });
+    Object.assign(this.state, { result, prepared: null, review: null, suspended: false, ambiguous: false,
+      message: result.status === 'PAYABLE' && Date.parse(result.expiresAt) <= this.now() ?
+        'Payment link expired. Do not pay an old link. Refresh verified status or contact support before placing another order.' : stateMessage(result.status) });
   }
   async retry() {
     if (!this.state.attempt || this.state.attempt.id || !this.state.ambiguous || this.state.busy) return;
@@ -191,13 +205,15 @@ export class CheckoutFlow {
     if (!attempt?.id) return;
     return this.run(async ({ signal, current }) => {
       if (attempt.recovered) {
-        const detail = validateOrderDetail(await this.api.request(`/api/account/orders/${attempt.id}`, undefined, signal), attempt.id, this.now());
-        if (current()) this.accept(detail, immutable({ ...attempt, payload: detail.fulfillment }));
+        const value = await this.api.request(`/api/account/orders/${attempt.id}`, undefined, signal);
+        const detail = validateOrderDetail(value, attempt.id, this.now());
+        if (current()) this.accept(detail, immutable({ ...attempt, payload: detail.fulfillment }), value.status);
         return;
       }
-      const result = validateCheckout(await this.api.request(`/api/checkout/${attempt.id}`, undefined, signal), attempt.id, this.now());
-      if (current()) this.accept(result, attempt);
-    });
+      const value = await this.api.request(`/api/checkout/${attempt.id}`, undefined, signal);
+      const result = validateCheckout(value, attempt.id, this.now());
+      if (current()) this.accept(result, attempt, value.status);
+    }, { background: true });
   }
   async poll() {
     if (this.state.suspended || this.state.busy || !['PAYABLE', 'CREATING', 'UNKNOWN'].includes(this.state.result?.status) || this.polls >= 10) return;
@@ -205,14 +221,19 @@ export class CheckoutFlow {
   }
   async resume() {
     if (!this.accountEnabled || !this.identity || !this.isActive()) return;
-    this.polls = 0;
+    if (this.state.busy) return;
+    if (!this.state.suspended && resolved(this.state.result?.status)) return;
+    // Every visible return checks for another window's order. Unchanged reads
+    // must not reset the poll bound, invalidate a review or churn its message.
+    const recovering = this.state.suspended || !this.recoveryReady;
+    if (this.state.suspended || !this.recoveryReady) this.polls = 0;
     if (this.state.attempt?.id) {
       await this.check();
       if (this.state.result && !this.defaultsRead) {
         return this.run(async ({ signal, current }) => {
           await this.readDefaults(signal, current);
           if (current() && this.state.result) this.state.message = stateMessage(this.state.result.status);
-        });
+        }, { background: true });
       }
       return;
     }
@@ -224,15 +245,17 @@ export class CheckoutFlow {
       if (!value || Object.keys(value).join(',') !== 'checkout') throw new Error('Invalid recovery');
       const detail = value.checkout === null ? null : validateOrderDetail(value.checkout, undefined, this.now());
       this.recoveryReady = true;
-      if (detail && detail.id !== this.dismissedAttemptId) {
+      // Only a validated SERVER terminal status belongs to history. Local link
+      // expiry must retain the owned pending fence until server resolution.
+      if (detail && !resolved(value.checkout.status) && detail.id !== this.dismissedAttemptId) {
         const attempt = immutable({ id: detail.id, quote: detail.quote, payload: detail.fulfillment, recovered: true });
-        this.accept(detail, attempt);
-      } else {
+        this.accept(detail, attempt, value.checkout.status);
+      } else if (recovering) {
         this.state.suspended = false;
         this.state.message = 'Account checked. Review your basket before placing a new order.';
       }
       await this.readDefaults(signal, current);
-    });
+    }, { background: !recovering });
   }
   async readDefaults(signal, current) {
     if (this.defaultsRead) return;
@@ -252,9 +275,10 @@ export class CheckoutFlow {
     if (this.state.busy || !resolved(this.state.result?.status)) return;
     this.latest.invalidate(); this.dismissedAttemptId = this.state.attempt.id;
     this.resolvedAttemptId = null;
+    this.recoveryReady = !this.accountEnabled;
     const cart = this.state.cart, dirty = this.state.dirty, needsReload = this.state.needsReload;
     this.state = { ...initial(), cart, dirty, needsReload,
-      message: 'New order selected. Your existing basket is unchanged — remove any past-order bakes you do not want, then review a fresh quote.' };
+      message: 'Your basket is unchanged. Check the bakes and date before reviewing another order.' };
     this.polls = 0; this.emit();
   }
 }

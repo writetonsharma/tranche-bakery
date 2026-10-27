@@ -309,3 +309,88 @@
   both missing controls and frozen counters; historical terminal-order gating is
   SECONDARY. No production/browser/provider API, backend, parked work, server,
   deployment, push or bundle operation. Parent retains bundling ownership.
+
+## Approved website-only checkout/drawer UX cleanup — 2026-10-27
+
+- Verified clean baseline 166a54b and actual source firsthand. Research/done-when
+  reference enriched in account-nextphase-task.md before source edits. Atomic
+  integrated checkout/drawer correction; no scenario root, assessment, Execution
+  stage or Breakdown Hints forwarded. Execution extensions returned none. No
+  workflow lifecycle tools, backend or parked sources used.
+- Terminal latest-account recovery is history-only, not an installed attempt.
+  New current preparation needs no Start new order on login. Current accepted
+  terminal payments retain a compact receipt until explicit Continue shopping,
+  even across newer basket edits. Pending/UNKNOWN/REVIEW, immutable same-key retry,
+  owned GET/session guards and support fences remain. No automatic basket clear.
+- Removed historical delivery/quote from basket DOM; it stays internal for safe
+  recovery and is explicitly viewable only via My account. Context-only actions,
+  one signed-in quote source, customer-friendly stage wording and defaults retained.
+  Quote/review keyed rendering preserves nodes during unchanged reads; background
+  payment GETs keep status/link stable and don't show whole-panel checking states.
+- Opening uses guarded double-rAF transform start, containment and deferred initial
+  resume; startup/open timers cancel/coalesce. Resume promises are generation-safe.
+  Focus/visible bursts coalesce without discarding prepared fields/review; ten
+  five-second visible/online checks stop terminal. Privacy/close aborts clear DOM
+  synchronously. Queued basket saves hold across transitions while existing PUT
+  acknowledgements settle; delayed cart reads cannot replace contents mid-slide.
+  Prior native timer receiver wrappers are unchanged.
+- Focused read-only reviewer found two concrete edge cases: closing could strand
+  saves, and newer edits could dismiss a current PAID receipt. Both fixed locally
+  and covered by actual bootstrap regressions plus transition-hold unit coverage.
+  No terminal agents ran; this worker exclusively executed local Node commands.
+- Changed source: basket-sync, checkout-flow, checkout-view, storefront controller,
+  native-dialog view and storefront CSS. Changed tests: basket-sync, bootstrap,
+  checkout and recovery. Updated execution reference and deployment/progress docs.
+- Validation pending final rerun below. jsdom is not evidence of native compositor
+  frame smoothness, real top-layer focus trap, mobile layout or hosted transport.
+  No extra dependencies, bundles, production/provider access, real OTP/order/payment,
+  deployment or push. Existing backend/provider/flag configuration untouched.
+
+### UX cleanup — final local validation
+
+- **159/159 website tests pass**: all 148 existing tests retained, 11 added;
+  0 failures, skips, cancellations or todos. Updated only genuine obsolete UX
+  assertions; pending fences, immutable payloads, ownership/privacy and prior
+  receiver-sensitive timer tests remain enforced. Actual bootstrap regressions
+  cover historical terminal new baskets, field/review/quote node identity and
+  focus/scroll, quiet/bounded/terminal polling, deferred/delayed animation work,
+  Escape/rapid close, queued/in-flight saves and stale-identity resume coalescing.
+- **19/19 JS/MJS syntax checks pass**, git diff --check passes; scoped editor
+  diagnostics report **0 errors / 0 warnings**. No separate static-site build
+  step exists. Only the website's 13 listed source/test/documentation files changed.
+- Remaining manual acceptance: native-browser slide frame smoothness, real dialog
+  focus trap/restoration/accessibility/mobile layout, actual tab/provider return
+  and hosted cookie transport. No runtime or deployment claim beyond local fake-API
+  jsdom/Node validation. No bundle generated.
+
+## Fix2 P2 reviewer recovery corrections — 2026-10-27
+
+- Root causes: account recovery filtered the browser-converted EXPIRED status as
+  terminal history even when the validated server status was still PAYABLE; an
+  initial null/defaults-ready shortcut then skipped all later visible recovery.
+- Terminal history now uses the validated raw server status. Acceptance and owned
+  GETs keep server-PAYABLE attempts pending even after local link expiry, with a
+  null payment link, explicit expired-link guidance, basket/new-order fences and
+  bounded status polling. Only verified server termination unlocks them. The view
+  does not repeatedly schedule an already-expired, hidden-link deadline.
+- Visible resumes now freshly GET account recovery; existing busy guards and view
+  resume-promise coalescing prevent overlapping work. Unchanged null/history keeps
+  exact prepared/review objects and messages, defaults apply only once, and quiet
+  reads do not disable/blur delivery inputs. A newly pending result removes stale
+  preparation/review. Owned and uncertain current attempts retain their existing
+  GET-only/same-key recovery paths; routine focus does not reset poll bounds.
+- Files changed by this correction: checkout-flow.mjs, checkout-view.mjs,
+  tests/recovery.test.mjs, tests/bootstrap.test.mjs and this progress log. Existing
+  parent changes preserved. Execution-extension lookup returned none applicable.
+- Added six regressions: expired recovered/current attempts; unchanged null quote
+  and review; coalesced null-to-UNKNOWN recovery; real-bootstrap null DOM/focus
+  preservation; still-visible focus detecting another window's PAYABLE checkout.
+  Existing PAID DOM test now also asserts fresh GET and enabled input while delayed.
+  Updated only the obsolete historical-PAID single-read assertion to expect refresh.
+- Validation: **165/165 tests pass** (all previous 159 plus six), zero failures,
+  skips or cancellations; **19/19 JS/MJS syntax checks pass**; git diff --check
+  passes. One initial new bootstrap assertion ran before released fake-network
+  continuations finished; corrected the test settling, not production behavior.
+- Website-only local Node/jsdom fake-API evidence. No backend, parked, production,
+  provider, bundle, server, deployment or push operations. No user decision needed;
+  native-browser/hosted acceptance remains manual as already documented above.

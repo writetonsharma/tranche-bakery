@@ -114,17 +114,36 @@ export function createDrawer() {
   document.body.append(opener, dialog);
   let restoreFocus;
   let closing = false;
+  let opening = false;
+  let openTimer;
+  let closeTimer;
+  let generation = 0;
   function open() {
     if (dialog.open || document.body.matches('.nav-open, .modal-open') ||
         document.querySelector('#detail-modal:not([hidden])')) return;
     restoreFocus = document.activeElement;
+    const current = ++generation;
+    opening = true;
     dialog.showModal(); // Native top-layer focus trap + background inertness.
     document.documentElement.classList.add('sf-lock');
-    requestAnimationFrame(() => dialog.classList.add('sf-visible'));
-    dialog.dispatchEvent(new Event('sf-open'));
+    dialog.dispatchEvent(new Event('sf-opening'));
+    // Let the closed transform paint before starting the slide; never force a
+    // synchronous layout of the drawer's (potentially large) contents.
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      if (current !== generation || !dialog.open || closing) return;
+      dialog.classList.add('sf-visible');
+      const ready = () => {
+        if (current !== generation || !dialog.open || closing) return;
+        opening = false;
+        dialog.dispatchEvent(new Event('sf-open'));
+      };
+      if (matchMedia('(prefers-reduced-motion: reduce)').matches) ready();
+      else openTimer = setTimeout(ready, 240);
+    }));
   }
   function shut() {
     if (!dialog.open || closing) return;
+    generation++; opening = false; clearTimeout(openTimer);
     dialog.dispatchEvent(new Event('sf-abort'));
     closing = true;
     dialog.classList.remove('sf-visible');
@@ -135,7 +154,7 @@ export function createDrawer() {
       if (restoreFocus?.isConnected) restoreFocus.focus({ preventScroll: true });
     };
     if (matchMedia('(prefers-reduced-motion: reduce)').matches) finish();
-    else setTimeout(finish, 240);
+    else closeTimer = setTimeout(finish, 240);
   }
   dialog.addEventListener('cancel', event => { event.preventDefault(); shut(); });
   dialog.addEventListener('keydown', event => {
@@ -147,18 +166,22 @@ export function createDrawer() {
   });
   dialog.addEventListener('click', event => { if (event.target === dialog) shut(); });
   dialog.addEventListener('close', () => {
+    generation++; opening = false; closing = false;
+    clearTimeout(openTimer); clearTimeout(closeTimer);
+    dialog.classList.remove('sf-visible');
     document.documentElement.classList.remove('sf-lock');
     phone.value = '';
     otp.value = '';
   });
   return { opener, dialog, status, items, date, totals, refresh,
-    auth, identity, form, phone, send, otp, verify, timer, logout };
+    auth, identity, form, phone, send, otp, verify, timer, logout,
+    get opening() { return opening; }, get closing() { return closing; } };
 }
 
 export function renderQuote(root, quote, mode = 'preview') {
   root.replaceChildren();
-  const heading = element('h3', mode === 'accepted' ? 'Accepted checkout quote — original order' :
-    mode === 'prepared' ? 'Prepared server quote' : quote.valid ? 'Server preview' : 'Preview needs attention');
+  const heading = element('h3', mode === 'accepted' ? 'Order total' :
+    mode === 'prepared' ? 'Review your order' : quote.valid ? 'Basket total' : 'Basket needs attention');
   root.append(heading);
   for (const line of quote.lines) {
     root.append(element('p', `${line.name} · ${line.quantity} × ${money.format(line.unitPrice)} · ${money.format(line.lineTotal)}`, 'sf-note'));
@@ -173,10 +196,10 @@ export function renderQuote(root, quote, mode = 'preview') {
   for (const key of ['discountLabel', 'batchDiscountLabel', 'giftLabel']) {
     if (typeof quote[key] === 'string' && quote[key]) root.append(element('p', quote[key], 'sf-note'));
   }
-  root.append(element('p', `Server delivery date: ${quote.date || 'not selected'}`, 'sf-note'));
+  root.append(element('p', `Delivery date: ${quote.date || 'not selected'}`, 'sf-note'));
   for (const problem of quote.problems) root.append(element('p', problem.message, 'sf-note'));
   root.append(element('p', mode === 'accepted' ?
     'This fixed quote belongs to this original checkout attempt, not any later basket edits. Payment is confirmed only by verified server status.' :
-    mode === 'prepared' ? 'Prepared only. Nothing ordered or reserved until Confirm & Pay.' :
+    mode === 'prepared' ? 'Check your delivery details and total. Nothing is ordered until Confirm & Pay.' :
     'Preview only. Nothing has been ordered, reserved or charged.', 'sf-note'));
 }

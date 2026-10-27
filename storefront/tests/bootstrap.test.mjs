@@ -27,7 +27,7 @@ const browserTimer = implementation => Function('implementation',
   'return function (...args) { return implementation.call(this, ...args); };')(implementation);
 
 async function fixture({ authenticated = false, status = null, hidden = false, storageLines = [],
-  accountLines = [{ itemId: 1, quantity: 2 }], recoveryFails = false } = {}) {
+  accountLines = [{ itemId: 1, quantity: 2 }], recoveryFails = false, reducedMotion = true } = {}) {
   const errors = [], calls = [], timers = new Map(), intervals = new Map(), timerCalls = [];
   const virtualConsole = new VirtualConsole();
   virtualConsole.on('jsdomError', error => errors.push(error));
@@ -35,6 +35,7 @@ async function fixture({ authenticated = false, status = null, hidden = false, s
   const dom = new JSDOM(html, { url: 'https://fixture.invalid/breads.html', virtualConsole });
   const { window } = dom, { document } = window;
   let visible = !hidden, online = true, loggedIn = authenticated, timerId = 0;
+  let requestHook = async () => {};
   let cart = { version: 1, lines: structuredClone(accountLines), date, quote: quoteFor(accountLines), problems: [] };
   Object.defineProperty(document, 'hidden', { configurable: true, get: () => !visible });
   Object.defineProperty(window.navigator, 'onLine', { configurable: true, get: () => online });
@@ -48,13 +49,17 @@ async function fixture({ authenticated = false, status = null, hidden = false, s
   const fetcher = async (path, options) => {
     const body = options.body === undefined ? undefined : JSON.parse(options.body);
     calls.push({ path, method: options.method, body, signal: options.signal });
+    await requestHook(path, options);
     let value;
     if (path === '/api/catalog') value = { items: PRODUCT_NAMES.map((name, i) => ({ id: i + 1, name })), deliveryDates: [date] };
     else if (path === '/api/session') value = session();
     else if (path === '/api/account/checkout') {
       if (recoveryFails) throw new TypeError('Fixture recovery offline');
       value = { checkout: status ? historical(status) : null };
-    } else if (path === `/api/account/orders/${id}`) value = historical(status);
+    } else if (path === `/api/account/orders/${id}` || path === `/api/checkout/${id}`) value = historical(status);
+    else if (path === '/api/checkout/prepare') value = { cartVersion: cart.version, quote: cart.quote,
+      quoteToken: 't'.repeat(43), expiresAt: new Date(Date.now() + 600000).toISOString() };
+    else if (path === '/api/checkout') { status = 'PAYABLE'; value = historical(status); }
     else if (path === '/api/account/profile') value = { version: 1, ...details };
     else if (path === '/api/cart') {
       if (options.method === 'PUT') cart = { ...body, version: body.version + 1, quote: quoteFor(body.lines, body.date), problems: [] };
@@ -68,7 +73,7 @@ async function fixture({ authenticated = false, status = null, hidden = false, s
   };
   const replacements = { window, document, navigator: window.navigator, HTMLDialogElement: window.HTMLDialogElement,
     Event: window.Event, fetch: fetcher, BroadcastChannel: class { postMessage() {} },
-    requestAnimationFrame: callback => callback(), matchMedia: () => ({ matches: true }),
+    requestAnimationFrame: callback => callback(), matchMedia: () => ({ matches: reducedMotion }),
     // Arrow fakes hide the native-browser Illegal invocation when timers are
     // stored on BasketSync and invoked with that instance as their receiver.
     setTimeout: browserTimer(function (callback, ms) {
@@ -94,6 +99,9 @@ async function fixture({ authenticated = false, status = null, hidden = false, s
     window, document, calls, errors, timerCalls,
     get pendingTimers() { return timers.size + intervals.size; },
     node: selector => document.querySelector(selector),
+    setStatus(value) { status = value; },
+    intercept(callback) { requestHook = callback; },
+    scheduled(ms) { return [...timers.values()].filter(timer => timer.ms === ms).length; },
     get cart() { return cart; },
     async tick(ms) {
       const ready = [...timers].filter(([, timer]) => timer.ms === ms);
@@ -188,7 +196,7 @@ test('initially hidden actual module defers all enhancement until visible, then 
 });
 
 for (const status of ['PAID', 'CANCELLED', 'EXPIRED']) {
-  test(`real signed-in refresh with latest ${status}: +/- edits basket but cannot create another order`, async () => {
+  test(`real signed-in refresh with historical ${status}: clean current basket without historical checkout fence`, async () => {
     const f = await fixture({ authenticated: true, status });
     try {
       assertStarted(f); await f.tick(200); assertStarted(f);
@@ -205,11 +213,17 @@ for (const status of ['PAID', 'CANCELLED', 'EXPIRED']) {
       assert.equal(f.cart.lines[0].quantity, 2);
       assert.equal(f.window.localStorage.getItem(STORAGE_KEY), null, 'account basket never persisted anonymously');
       f.node('#sf-open').click(); await settle();
-      assert.equal(f.node('#sf-new-order').hidden, false, 'new checkout still needs explicit Start new order');
-      assert.equal(f.node('#sf-prepare').disabled, true);
+      assert.equal(f.node('#sf-new-order').hidden, true, 'historical terminal orders never need Continue');
+      assert.equal(f.node('#sf-prepare').disabled, false);
+      assert.equal(f.node('#sf-accepted-details').children.length, 0);
+      assert.doesNotMatch(f.node('.sf-checkout').textContent, /Original checkout delivery|Delivery snapshot|WEB-FIXTURE|Fixture customer/);
+      assert.equal(f.node('#sf-cart-load').hidden, true);
+      assert.equal(f.node('#sf-cart-save').hidden, true);
+      assert.equal(f.node('#sf-checkout-refresh').hidden, true);
+      assert.equal(f.node('#sf-checkout-abort').hidden, true);
+      assert.equal(f.node('#sf-totals').hidden, true, 'only checkout owns the signed-in quote');
       assert.equal(f.calls.some(call => call.method === 'POST' && call.path.startsWith('/api/checkout')), false);
-      f.node('#sf-new-order').click();
-      assert.equal(quantity(f), '2', 'explicit new order does not clear or restore the historical basket');
+      assert.equal(quantity(f), '2', 'history does not clear or restore the basket');
       assert.equal(f.node('#sf-prepare').disabled, false);
       assert.equal(f.node('#sf-new-order').hidden, true);
       assert.equal(f.calls.some(call => call.method === 'POST' && call.path.startsWith('/api/checkout')), false);
@@ -256,7 +270,7 @@ test('resolved edit permission survives privacy pause, but account/logout still 
   try {
     await f.tick(200);
     f.node('#sf-open').click(); await settle();
-    assert.match(f.node('#sf-accepted-details').textContent, /Fixture customer/);
+    assert.equal(f.node('#sf-accepted-details').textContent, '', 'historical delivery belongs only in account history');
     await f.visibility(false);
     const calls = f.calls.length;
     await f.tick(200); await f.tick(400); await f.tick(5000);
@@ -302,7 +316,258 @@ test('failed latest-order recovery permits browsing but never prepares or submit
     f.node('#sf-open').click(); await settle();
     assert.equal(f.node('#sf-prepare').disabled, true);
     assert.equal(f.node('#sf-confirm-pay').hidden, true);
+    assert.equal(f.node('#sf-checkout-refresh').hidden, false, 'GET recovery fallback remains available');
     assert.equal(f.calls.some(call => call.method === 'POST' && call.path.startsWith('/api/checkout')), false);
+    assert.deepEqual(f.errors, []);
+  } finally { f.cleanup(); }
+});
+
+for (const status of [null, 'PAID']) {
+test(`real review keeps quote, delivery nodes, focus and scroll through unchanged ${status || 'null'} recovery and focus bursts`, async () => {
+  const f = await fixture({ authenticated: true, status });
+  try {
+    await f.tick(200); f.node('#sf-open').click(); await settle();
+    f.node('#sf-prepare').click(); await settle();
+    const form = f.node('#sf-delivery'), input = f.node('#sf-delivery-address');
+    const quote = f.node('#sf-checkout-quote').firstChild;
+    input.value = '999 Customer edited delivery street';
+    input.dispatchEvent(new f.window.Event('input', { bubbles: true })); input.focus();
+    const panel = f.node('.sf-panel'); panel.scrollTop = 321;
+    const calls = f.calls.length;
+    let release, started;
+    const began = new Promise(resolve => { started = resolve; });
+    const delayed = new Promise(resolve => { release = resolve; });
+    f.intercept(async path => { if (path === '/api/account/checkout') { started(); await delayed; } });
+    f.window.dispatchEvent(new f.window.Event('focus'));
+    f.window.dispatchEvent(new f.window.Event('focus'));
+    await f.visibility(true);
+    const refreshing = f.tick(200); await began;
+    assert.equal(f.node('#sf-delivery-address').disabled, false, 'quiet recovery cannot disable/blur the edited field');
+    assert.equal(f.document.activeElement, input);
+    assert.equal(f.node('#sf-checkout-quote').firstChild, quote);
+    release(); await refreshing;
+    f.intercept(async () => {});
+    assert.equal(f.calls.slice(calls).filter(call => call.path === '/api/account/checkout').length, 1, 'focus/visible events freshly check recovery once');
+    assert.equal(f.calls.slice(calls).filter(call => call.path === '/api/cart').length, 1, 'return events coalesce');
+    assert.equal(f.node('#sf-delivery'), form);
+    assert.equal(f.node('#sf-checkout-quote').firstChild, quote);
+    assert.equal(input.value, '999 Customer edited delivery street');
+    assert.equal(f.document.activeElement, input);
+    assert.equal(panel.scrollTop, 321);
+    assert.equal(f.node('#sf-review').disabled, false);
+    assert.equal(f.node('#sf-totals').hidden, true);
+    form.dispatchEvent(new f.window.Event('submit', { bubbles: true, cancelable: true }));
+    const deliveryNode = f.node('#sf-accepted-details').firstChild;
+    const edit = f.node('#sf-accepted-details button'); edit.focus();
+    f.window.dispatchEvent(new f.window.Event('focus')); await f.tick(200);
+    assert.equal(f.node('#sf-accepted-details').firstChild, deliveryNode);
+    assert.equal(f.node('#sf-checkout-quote').firstChild, quote);
+    assert.equal(f.document.activeElement, edit);
+    assert.equal(panel.scrollTop, 321);
+    assert.equal(f.node('#sf-confirm-pay').hidden, false);
+    assert.equal(f.calls.filter(call => call.path === '/api/checkout/prepare').length, 1, 'unchanged recovery never re-prepares a quote');
+    assert.deepEqual(f.errors, []);
+  } finally { f.cleanup(); }
+});
+}
+
+test('real still-visible drawer recovers another window pending checkout after initial null on coalesced focus', async () => {
+  const f = await fixture({ authenticated: true });
+  try {
+    await f.tick(200); f.node('#sf-open').click(); await settle();
+    f.node('#sf-prepare').click(); await settle();
+    assert.equal(f.node('#sf-delivery').hidden, false);
+    const count = f.calls.length;
+    f.setStatus('PAYABLE');
+    let release, started;
+    const began = new Promise(resolve => { started = resolve; });
+    const delayed = new Promise(resolve => { release = resolve; });
+    f.intercept(async path => { if (path === '/api/account/checkout') { started(); await delayed; } });
+    f.window.dispatchEvent(new f.window.Event('focus'));
+    f.window.dispatchEvent(new f.window.Event('focus'));
+    const refreshing = f.tick(200); await began;
+    f.window.dispatchEvent(new f.window.Event('focus'));
+    await f.tick(200);
+    assert.equal(f.calls.slice(count).filter(call => call.path === '/api/account/checkout').length, 1, 'in-flight resume is shared, not overlapped');
+    release(); await refreshing; await settle();
+    assert.equal(f.document.hidden, false);
+    assert.equal(f.node('#sf-drawer').open, true);
+    assert.equal(f.node('#sf-payment-link').hidden, false);
+    assert.equal(f.node('#sf-prepare').hidden, true);
+    assert.equal(f.node('#sf-delivery').hidden, true);
+    assert.equal(f.node('#sf-confirm-pay').hidden, true);
+    assert.equal(f.node('#sf-new-order').hidden, true);
+    assert.match(f.node('#sf-checkout-status').textContent, /awaiting payment/);
+    const pollsBefore = f.calls.filter(call => call.path === `/api/account/orders/${id}`).length;
+    for (let i = 0; i < 15; i++) await f.tick(5000);
+    assert.equal(f.calls.filter(call => call.path === `/api/account/orders/${id}`).length - pollsBefore, 10);
+    assert.equal(f.scheduled(5000), 0);
+    assert.equal(f.calls.some(call => call.path === '/api/checkout'), false);
+    assert.deepEqual(f.errors, []);
+  } finally { f.cleanup(); }
+});
+
+test('real current payment polls quietly, stops at PAID, and Continue preserves the newer basket', async () => {
+  const f = await fixture({ authenticated: true });
+  try {
+    await f.tick(200); f.node('#sf-open').click(); await settle();
+    f.node('#sf-prepare').click(); await settle();
+    f.node('#sf-delivery').dispatchEvent(new f.window.Event('submit', { cancelable: true }));
+    f.node('#sf-confirm-pay').click(); await settle();
+    assert.equal(f.calls.filter(call => call.path === '/api/checkout').length, 1);
+    const link = f.node('#sf-payment-link'), statusNode = f.node('#sf-checkout-status').firstChild;
+    const quote = f.node('#sf-checkout-quote'), accepted = f.node('#sf-accepted-details');
+    assert.equal(quote.children.length, 0); assert.equal(accepted.children.length, 0);
+    link.focus(); f.node('.sf-panel').scrollTop = 432;
+    let release, started;
+    const began = new Promise(resolve => { started = resolve; });
+    const delayed = new Promise(resolve => { release = resolve; });
+    f.intercept(async path => { if (path === `/api/checkout/${id}`) { started(); await delayed; } });
+    const polling = f.tick(5000); await began;
+    assert.equal(link.hidden, false, 'busy GET must not remove the payment link');
+    assert.equal(f.node('#sf-checkout-status').firstChild, statusNode, 'no checking-message churn');
+    assert.equal(f.document.activeElement, link); assert.equal(f.node('.sf-panel').scrollTop, 432);
+    release(); await polling;
+    assert.equal(f.node('#sf-checkout-status').firstChild, statusNode, 'unchanged response keeps text node');
+    assert.equal(f.node('#sf-payment-link'), link);
+    assert.equal(f.node('#sf-checkout-quote'), quote); assert.equal(f.node('#sf-accepted-details'), accepted);
+    f.setStatus('PAID'); await f.tick(5000);
+    assert.match(f.node('#sf-checkout-status').textContent, /Payment received/);
+    assert.equal(link.hasAttribute('href'), false);
+    assert.equal(f.node('#sf-new-order').hidden, false);
+    assert.equal(f.node('#sf-checkout-refresh').hidden, true);
+    assert.equal(f.scheduled(5000), 0);
+    const calls = f.calls.length; await f.tick(5000); assert.equal(f.calls.length, calls);
+    plus(f).click(); assert.equal(quantity(f), '3');
+    assert.equal(f.node('#sf-new-order').hidden, false, 'newer basket edits cannot dismiss the current receipt');
+    assert.match(f.node('#sf-checkout-status').textContent, /Payment received/);
+    await f.tick(400); await f.tick(200);
+    f.node('#sf-new-order').click(); await settle();
+    assert.equal(quantity(f), '3'); assert.equal(f.cart.lines[0].quantity, 3);
+    assert.equal(f.node('#sf-prepare').disabled, false);
+    assert.equal(f.node('#sf-new-order').hidden, true);
+    assert.equal(f.calls.filter(call => call.path === '/api/checkout').length, 1);
+    assert.deepEqual(f.errors, []);
+  } finally { f.cleanup(); }
+});
+
+test('real pending recovery has compact GET-only controls, ten polls, and synchronous privacy clearing', async () => {
+  const f = await fixture({ authenticated: true, status: 'PAYABLE' });
+  try {
+    await f.tick(200); f.node('#sf-open').click(); await settle();
+    assert.equal(f.node('#sf-prepare').hidden, true);
+    assert.equal(f.node('#sf-cart-load').hidden, true); assert.equal(f.node('#sf-cart-save').hidden, true);
+    assert.equal(f.node('#sf-accepted-details').children.length, 0);
+    assert.equal(f.node('#sf-checkout-quote').children.length, 0);
+    assert.doesNotMatch(f.node('.sf-checkout').textContent, /Fixture customer|123 Fixture Street/);
+    const before = f.calls.filter(call => call.path === `/api/account/orders/${id}`).length;
+    for (let i = 0; i < 15; i++) await f.tick(5000);
+    assert.equal(f.calls.filter(call => call.path === `/api/account/orders/${id}`).length - before, 10);
+    assert.equal(f.scheduled(5000), 0);
+    const hiding = f.visibility(false);
+    assert.equal(f.node('#sf-payment-link').hasAttribute('href'), false);
+    assert.equal(f.node('#sf-delivery-name').value, '');
+    await hiding;
+    const calls = f.calls.length; await f.tick(5000); assert.equal(f.calls.length, calls);
+    await f.visibility(true); await f.tick(200);
+    assert.equal(f.node('#sf-payment-link').hidden, false);
+    await f.logoutElsewhere();
+    assert.equal(f.node('#sf-payment-link').hasAttribute('href'), false);
+    assert.doesNotMatch(f.node('.sf-checkout').textContent, /WEB-FIXTURE|Fixture customer|123 Fixture Street/);
+    assert.equal(f.calls.some(call => call.method === 'POST' && call.path.startsWith('/api/checkout')), false);
+    assert.deepEqual(f.errors, []);
+  } finally { f.cleanup(); }
+});
+
+test('real drawer defers recovery until slide completes and late API cannot restart animation or restore closed details', async () => {
+  const f = await fixture({ authenticated: true, status: 'PAYABLE', reducedMotion: false });
+  try {
+    const opener = f.node('#sf-open'); opener.focus(); opener.click();
+    const dialog = f.node('#sf-drawer');
+    assert.equal(dialog.classList.contains('sf-visible'), true);
+    await f.tick(200);
+    assert.equal(f.calls.some(call => call.path === '/api/account/checkout'), false, 'startup resume cancelled during slide');
+    let release, started;
+    const delayed = new Promise(resolve => { release = resolve; });
+    const began = new Promise(resolve => { started = resolve; });
+    f.intercept(async path => { if (path === '/api/account/checkout') { started(); await delayed; } });
+    const opening = f.tick(240); await began;
+    assert.equal(f.calls.filter(call => call.path === '/api/account/checkout').length, 1);
+    const recovery = f.calls.at(-1);
+    assert.equal(dialog.classList.contains('sf-visible'), true);
+    assert.equal(f.scheduled(240), 0, 'API work never rearms animation');
+    f.node('#sf-close').click();
+    assert.equal(recovery.signal.aborted, true);
+    assert.equal(dialog.classList.contains('sf-visible'), false);
+    release(); await opening; await f.tick(240);
+    assert.equal(dialog.open, false); assert.equal(f.document.activeElement, opener);
+    assert.equal(f.node('#sf-payment-link').hasAttribute('href'), false);
+    const calls = f.calls.length; await f.tick(200); await f.tick(5000); assert.equal(f.calls.length, calls);
+    f.intercept(async () => {});
+    opener.click(); f.node('#sf-close').click(); opener.click();
+    await f.tick(240);
+    assert.equal(dialog.open, false, 'close during opening cancels deferred work');
+    assert.equal(dialog.classList.contains('sf-visible'), false);
+    assert.equal(f.calls.length, calls);
+    opener.click(); await f.tick(240);
+    assert.equal(dialog.open, true); assert.equal(f.node('#sf-payment-link').hidden, false);
+    dialog.dispatchEvent(new f.window.KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true }));
+    await f.tick(240); assert.equal(dialog.open, false);
+    assert.equal(f.document.documentElement.classList.contains('sf-lock'), false);
+    assert.deepEqual(f.errors, []);
+  } finally { f.cleanup(); }
+});
+
+test('real drawer closing defers basket saves and an in-flight acknowledgement cannot strand newer edits', async () => {
+  const f = await fixture({ authenticated: true, reducedMotion: false });
+  try {
+    await f.tick(200); f.node('#sf-open').click(); await f.tick(240);
+    plus(f).click();
+    f.node('#sf-close').click();
+    const calls = f.calls.length;
+    await f.tick(400); await f.tick(200);
+    assert.equal(f.calls.length, calls, 'no save starts during close animation');
+    await f.tick(240); await f.tick(400);
+    assert.equal(f.cart.lines[0].quantity, 3, 'deferred save resumes with drawer closed');
+    f.node('#sf-open').click(); await f.tick(240);
+    let release, started;
+    const began = new Promise(resolve => { started = resolve; });
+    const delayed = new Promise(resolve => { release = resolve; });
+    f.intercept(async (path, options) => {
+      if (path === '/api/cart' && options.method === 'PUT') { started(); await delayed; }
+    });
+    plus(f).click(); const saving = f.tick(400); await began;
+    plus(f).click(); assert.equal(quantity(f), '5'); f.node('#sf-close').click();
+    release(); await saving;
+    assert.equal(f.cart.lines[0].quantity, 4, 'first immutable save acknowledges normally during close');
+    await f.tick(240); f.intercept(async () => {}); await f.tick(400);
+    assert.equal(f.cart.lines[0].quantity, 5, 'newer edit saves after animation without reopening');
+    assert.deepEqual(f.errors, []);
+  } finally { f.cleanup(); }
+});
+
+test('real coalesced resume cannot let a late old identity response suppress fresh login recovery', async () => {
+  const f = await fixture({ authenticated: true, status: 'PAYABLE' });
+  try {
+    let release, started;
+    const delayed = new Promise(resolve => { release = resolve; });
+    const began = new Promise(resolve => { started = resolve; });
+    f.intercept(async path => { if (path === '/api/account/checkout') { started(); await delayed; } });
+    const boot = f.tick(200); await began;
+    const old = f.calls.at(-1);
+    await f.logoutElsewhere();
+    assert.equal(old.signal.aborted, true);
+    assert.equal(f.node('#sf-delivery-name').value, '');
+    assert.equal(f.node('#sf-payment-link').hasAttribute('href'), false);
+    f.intercept(async () => {});
+    await f.loginElsewhere();
+    assert.equal(f.calls.filter(call => call.path === '/api/account/checkout').length, 2);
+    assert.equal(f.calls.filter(call => call.path === '/api/account/profile').length, 1);
+    release(); await boot;
+    assert.equal(f.calls.filter(call => call.path === '/api/account/profile').length, 1, 'stale wrapper cannot continue private reads');
+    f.node('#sf-open').click(); await settle();
+    assert.equal(f.node('#sf-payment-link').hidden, false, 'fresh owned recovery is not suppressed');
+    assert.equal(f.node('#sf-accepted-details').children.length, 0);
     assert.deepEqual(f.errors, []);
   } finally { f.cleanup(); }
 });

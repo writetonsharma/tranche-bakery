@@ -548,8 +548,8 @@ test('mock DOM automatically resumes account basket/defaults, reviews immutable 
     assert.equal(checkout.flow.state.attempt.payload, null);
     await select('sf-checkout-refresh').fire('click');
     assert.equal(calls.at(-1).path, `/api/account/orders/${id}`);
-    assert.equal(select('sf-checkout-quote').children[0].textContent, 'Accepted checkout quote — original order');
-    assert.match(select('sf-accepted-details').children[0].textContent, /Original checkout delivery/);
+    assert.equal(select('sf-checkout-quote').children.length, 0, 'payment recovery is compact; historical quote is account-only');
+    assert.equal(select('sf-accepted-details').children.length, 0, 'private historical delivery never enters basket DOM');
     assert.deepEqual(checkout.flow.state.attempt.payload, details);
     assert.equal(checkout.flow.state.attempt.quote.totalAmount, 90);
     assert.equal(calls.filter(call => call.path === '/api/checkout').length, posts);
