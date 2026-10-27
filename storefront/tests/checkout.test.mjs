@@ -42,6 +42,23 @@ test('checkout independently requires strict true; preview flag alone never enab
   assert.equal(checkoutEnabled({ enabled: false, checkoutEnabled: true }), false);
   assert.equal(checkoutEnabled({ enabled: true, checkoutEnabled: true }), true);
 });
+
+test('prepare conflict notifies basket-sync owner exactly once without retrying prepare or checkout', async () => {
+  const f = fixture();
+  await f.flow.load();
+  let conflicts = 0;
+  f.flow.onCartConflict = () => { conflicts++; };
+  f.flow.api.request = async path => {
+    f.calls.push({ path });
+    throw Object.assign(new Error('conflict'), { status: 409, code: 'CART_CONFLICT' });
+  };
+  await f.flow.prepare(); await f.flow.prepare();
+  assert.equal(conflicts, 1);
+  assert.equal(f.flow.state.needsReload, true);
+  assert.equal(f.flow.state.prepared, null);
+  assert.equal(f.calls.filter(call => call.path === '/api/checkout/prepare').length, 1);
+  assert.equal(f.calls.some(call => call.path === '/api/checkout'), false);
+});
 test('durable cart exact versions, quantities and India date bounds reject coercion', () => {
   assert.deepEqual(cartInput(0, basket, ids, now), { version: 0, ...basket });
   for (const version of [-1, '1', 1.2, Number.MAX_SAFE_INTEGER]) assert.throws(() => cartInput(version, basket, ids, now));
@@ -480,7 +497,7 @@ test('mock DOM automatically resumes account basket/defaults, reviews immutable 
       querySelector: selector => selector === '#sf-auth .sf-note' ? authHelp : selector === '#sf-disclaimer' ? disclaimer : null };
     Object.defineProperty(globalThis, 'navigator', { configurable: true, value: { onLine: true } });
     const calls = [];
-    let local = structuredClone(basket);
+    let local = { lines: [], date: '' };
     let accountBasket = structuredClone(cart);
     let basketReplacements = 0;
     const defaults = { version: 2, ...details, name: 'Saved customer', address: '456 Saved Street, Gurugram' };
@@ -499,6 +516,7 @@ test('mock DOM automatically resumes account basket/defaults, reviews immutable 
       throw new Error(`Unexpected checkout request: ${method || 'GET'} ${path}`);
     } };
     checkout = attachCheckout({ api, ui: { auth: new Node('section'), dialog: { open: true } },
+      getShopping: () => ({ dates: [{ date: basket.date, maxItems: 5, itemIds: [...ids] }] }),
       allowedIds: ids, getBasket: () => local, onBasket: value => { local = value; basketReplacements++; } });
     checkout.identity(7);
     assert.equal(calls.length, 0);
@@ -509,7 +527,7 @@ test('mock DOM automatically resumes account basket/defaults, reviews immutable 
     assert.deepEqual(calls.map(call => call.path), ['/api/account/checkout', '/api/account/profile', '/api/cart']);
     assert.equal(checkout.accountOwned, true);
     assert.equal(checkout.canEdit, true);
-    assert.equal(basketReplacements, 0); // Identical local/account basket autoassociates without replacement.
+    assert.equal(basketReplacements, 1); // Empty local intent loads saved basket once.
     assert.equal(select('sf-cart-load').hidden, true);
     assert.equal(select('sf-cart-save').hidden, true);
     assert.equal(select('sf-prepare').disabled, false);
@@ -561,27 +579,25 @@ test('mock DOM automatically resumes account basket/defaults, reviews immutable 
     assert.equal(select('sf-delivery-name').value, '');
     checkout.identity(null);
     assert.equal(checkout.flow.state.attempt, null);
-    // Automatic resume of unavailable bakes still leaves an explicit choice;
-    // it must not clear or merge the newer device basket, nor write it back.
+    // Unavailable saved bakes merge without loss; never truncate, silently
+    // discard, offer cart choices or send unsupported lines back.
     local = structuredClone(basket);
     accountBasket = structuredClone(retiredCart);
     const replacementsBefore = basketReplacements;
     checkout.identity(7);
     await checkout.resume();
-    assert.equal(basketReplacements, replacementsBefore);
-    assert.deepEqual(local, basket);
-    assert.equal(select('sf-cart-save').hidden, false);
-    assert.equal(select('sf-cart-load').hidden, false);
-    assert.equal(select('sf-cart-save').disabled, false);
-    assert.equal(select('sf-cart-load').disabled, false);
+    assert.equal(basketReplacements, replacementsBefore + 1);
+    assert.deepEqual(local.lines, [{ itemId: 1, quantity: 4 }, { itemId: 99, quantity: 3 }]);
+    assert.equal(local.date, '');
+    assert.equal(select('sf-cart-save').hidden, true);
+    assert.equal(select('sf-cart-load').hidden, true);
     assert.equal(select('sf-prepare').disabled, true);
     assert.equal(select('sf-confirm-pay').hidden, true);
     assert.equal(select('sf-payment-link').href, undefined);
     assert.match(checkout.flow.state.message, /Account checked/i);
-    assert.equal(checkout.flow.state.needsReload, true);
-    assert.equal(checkout.accountOwned, false);
-    assert.equal(select('sf-checkout-quote').children.length, 1);
-    assert.doesNotMatch(select('sf-checkout-quote').children[0].textContent, /private backend text/);
+    assert.equal(checkout.flow.state.needsReload, false);
+    assert.equal(checkout.accountOwned, true);
+    assert.equal(select('sf-checkout-quote').children.length, 0, 'advisory saved quote never renders');
     assert.equal(calls.some(call => call.method === 'PUT'), false);
   } finally {
     checkout?.suspend('test complete');

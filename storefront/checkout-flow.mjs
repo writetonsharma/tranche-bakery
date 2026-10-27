@@ -18,9 +18,9 @@ const stateMessage = status => ({
 export class CheckoutFlow {
   constructor({ api, enabled, allowedIds, getBasket, onBasket, onChange = () => {},
     now = Date.now, uuid = () => globalThis.crypto.randomUUID(), onIdentityLost = () => {}, onActivity = () => {},
-    accountEnabled = false, isActive = () => true, beforePrepare = async () => true, onDefaults = () => {} }) {
+    accountEnabled = false, isActive = () => true, beforePrepare = async () => true, onDefaults = () => {}, onCartConflict = () => {} }) {
     Object.assign(this, { api, enabled: enabled === true, allowedIds, getBasket, onBasket, onChange, now, uuid, onIdentityLost, onActivity });
-    Object.assign(this, { accountEnabled, isActive, beforePrepare, onDefaults });
+    Object.assign(this, { accountEnabled, isActive, beforePrepare, onDefaults, onCartConflict });
     this.recoveryReady = !accountEnabled; this.defaultsRead = false; this.dismissedAttemptId = null;
     this.resolvedAttemptId = null;
     this.state = initial(); this.latest = new LatestRequest(); this.identity = null; this.polls = 0;
@@ -84,7 +84,7 @@ export class CheckoutFlow {
       this.state.prepared = null; this.state.review = null; this.state.result = null;
       this.state.dirty = true;
       if ([401, 403].includes(error.status)) { this.setIdentity(null); this.onIdentityLost(); return; }
-      if (error.code === 'CART_CONFLICT') this.state.needsReload = true;
+      if (error.code === 'CART_CONFLICT') { this.state.needsReload = true; this.onCartConflict(); }
       // Any non-contract response after POST may hide a committed order. NEVER create a new key.
       this.state.ambiguous = acceptance && (wasAmbiguous ||
         (sent || recovering) && (!error.code || error.status >= 500));

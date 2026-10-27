@@ -181,7 +181,7 @@ test('malformed session/header identity is rejected and clears existing credenti
     await assert.rejects(api.request('/api/auth/logout'));
   }
 });
-test('quantity controls expose a labelled polite status and preserve bounds', () => {
+test('quantity controls expose a labelled polite status; blocked + remains actionable for explanation', () => {
   const original = globalThis.document;
   try {
     globalThis.document = { createElement() { return {
@@ -198,7 +198,7 @@ test('quantity controls expose a labelled polite status and preserve bounds', ()
     assert.equal(count.textContent, '2');
     assert.equal(minus.disabled, false);
     control.update(99, false);
-    assert.equal(plus.disabled, true);
+    assert.equal(plus.disabled, false);
     control.update(0, false);
     assert.equal(minus.disabled, true);
   } finally {

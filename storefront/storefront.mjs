@@ -1,8 +1,10 @@
-import { catalogBindings, readBasket, saveBasket, changeQuantity, LatestRequest, STORAGE_KEY, validateQuote } from './model.mjs';
+import { catalogBindings, readBasket, saveBasket, LatestRequest, STORAGE_KEY } from './model.mjs';
+import { validateShopping, additionProblem, basketReadiness, fitsDate, estimatePaise, ESTIMATE_WARNING } from './shopping-model.mjs';
 import { StorefrontApi } from './api.mjs';
 import { createDrawer, element, quantityControl, renderQuote } from './view.mjs';
 import { checkoutEnabled } from './checkout-model.mjs';
 import { attachCheckout } from './checkout-view.mjs';
+import { GuestIntent } from './guest-intent.mjs';
 
 // Disabled means no fetch, storage access, DOM enhancement, or event listeners.
 if (window.TRANCHE_STOREFRONT?.enabled === true && typeof HTMLDialogElement !== 'undefined') {
@@ -10,7 +12,13 @@ if (window.TRANCHE_STOREFRONT?.enabled === true && typeof HTMLDialogElement !== 
     if (document.hidden || navigator.onLine === false) return;
     document.removeEventListener('visibilitychange', launch);
     window.removeEventListener('online', launch);
-    start().catch(() => {
+    start().then(started => {
+      if (started === false) {
+        document.addEventListener('visibilitychange', launch);
+        window.addEventListener('online', launch);
+        launch();
+      }
+    }).catch(() => {
       const note = element('p', 'Basket preview is unavailable. Please order on WhatsApp as usual.', 'sf-start-error');
       document.querySelector('.products-intro-copy')?.append(note);
     });
@@ -23,16 +31,39 @@ if (window.TRANCHE_STOREFRONT?.enabled === true && typeof HTMLDialogElement !== 
 async function start() {
   const checkoutOn = checkoutEnabled(window.TRANCHE_STOREFRONT);
   const api = new StorefrontApi(undefined, { checkoutEnabled: checkoutOn });
-  const [catalog, bootstrap] = await Promise.all([
-    api.request('/api/catalog'), api.request('/api/session')
-  ]);
-  let session = api.useSession(bootstrap);
+  const startup = new AbortController();
+  const stopStartup = () => { if (document.hidden || navigator.onLine === false) startup.abort(); };
+  document.addEventListener('visibilitychange', stopStartup);
+  window.addEventListener('offline', stopStartup);
+  let catalog, session, shopping;
+  try {
+    const [menu, bootstrap] = await Promise.all([
+      api.request('/api/catalog', undefined, startup.signal), api.request('/api/session', undefined, startup.signal)
+    ]);
+    if (startup.signal.aborted || document.hidden || navigator.onLine === false) return false;
+    catalog = menu; session = api.useSession(bootstrap);
+    const result = await api.request('/api/shopping', {}, startup.signal);
+    if (startup.signal.aborted || document.hidden || navigator.onLine === false) return false;
+    shopping = validateShopping(result);
+  } catch (error) {
+    if (startup.signal.aborted) return false;
+    throw error;
+  } finally {
+    document.removeEventListener('visibilitychange', stopStartup);
+    window.removeEventListener('offline', stopStartup);
+  }
+  let prices = new Map(shopping.items.map(item => [item.id, item]));
+  let snapshotUsable = true;
+  let offlineInvalid = false;
+  let shoppingPending = false;
+  let shoppingFailed = false;
   const cards = [...document.querySelectorAll('.product .text > h3')];
   const bindings = catalogBindings(catalog, cards.map(h3 => h3.textContent.trim()));
   const allowedIds = new Set([...bindings.values()].map(item => item.id));
   let storage;
   try { storage = window.localStorage; } catch { /* Private/blocked storage: memory only. */ }
   const restored = readBasket(storage, allowedIds);
+  const guestIntent = new GuestIntent(storage);
   let lines = restored.lines;
   let storageWarning = restored.warning;
   let date = '';
@@ -42,28 +73,25 @@ async function start() {
   let resendAt = 0;
   let authEpoch = 0;
   let authController;
-  let quoteTimer;
-  let expiryTimer;
+  let resumeTimer;
+  let resumingSession;
+  const sessionChecks = new LatestRequest();
   const latest = new LatestRequest();
   const ui = createDrawer();
-  const checkout = checkoutOn ? attachCheckout({ api, ui, allowedIds,
+  const checkout = checkoutOn ? attachCheckout({ api, ui, allowedIds, guestIntent,
     getBasket: () => ({ lines, date }),
-    onActivity: () => invalidate('Checkout is checking the account basket. Preview totals cleared.'),
+    getShopping: () => shopping,
+    getReadiness: () => shoppingPending ? 'Checking availability for this date. Your basket is kept.' : basketReadiness(snapshotUsable ? shopping : null, { lines, date }),
+    onActivity: () => invalidate('Checking the final server quote. Nothing has been ordered.'),
     onIdentityLost: () => identityUncertain(),
     onAssociate: () => {
-      try { storage?.removeItem(STORAGE_KEY); } catch { /* Account basket is memory/server only. */ }
       storageWarning = '';
     },
     onBasket: basket => {
       lines = basket.lines; date = basket.date;
-      // A readable stale account date is not silently changed to an offered date.
-      if (date && ![...ui.date.options].some(option => option.value === date)) {
-        const option = element('option', `${date} (account basket; recheck availability)`); option.value = date; ui.date.append(option);
-      }
-      ui.date.value = date; invalidate('Account basket loaded. Review its server quote below.'); renderBasket();
+      invalidate('Account basket merged. Your bakes are kept in full.'); renderBasket();
     }
   }) : null;
-  checkout?.identity(session?.authenticated ? session.customer.id : null);
   const controls = [];
   const drawerRows = new Map();
   const authStatus = element('p', '', 'sf-note');
@@ -72,15 +100,6 @@ async function start() {
   ui.auth.append(authStatus);
   let channel;
   try { channel = new BroadcastChannel('tranche.preview.identity'); } catch { /* Focus also revalidates. */ }
-
-  const placeholder = element('option', 'Choose a date');
-  placeholder.value = '';
-  ui.date.append(placeholder);
-  for (const value of [...new Set(catalog.deliveryDates)]) {
-    const option = element('option', value);
-    option.value = value;
-    ui.date.append(option);
-  }
 
   for (const h3 of cards) {
     const item = bindings.get(h3.textContent.trim());
@@ -91,23 +110,57 @@ async function start() {
     const control = quantityControl(item, change);
     wrapper.append(label, control.root);
     h3.parentElement.append(wrapper);
-    controls.push({ id: item.id, ...control });
+    let price = h3.parentElement.querySelector('.product-price-group');
+    if (!price) { price = element('p', 'Public prices are shown in product details.', 'sf-card-price'); wrapper.prepend(price); }
+    const publicPrice = [...price.childNodes].map(node => node.cloneNode(true));
+    const availability = element('p', '', 'sf-note sf-availability');
+    availability.setAttribute('role', 'status');
+    wrapper.append(availability);
+    controls.push({ id: item.id, ...control, price, publicPrice, availability });
   }
 
-  function invalidate(message = 'Preview needs refreshing. No totals are current.') {
-    latest.invalidate();
-    clearTimeout(quoteTimer);
-    clearTimeout(expiryTimer);
-    ui.totals.replaceChildren();
-    ui.totals.removeAttribute('data-current');
-    ui.totals.removeAttribute('aria-busy');
+  function invalidate(message = 'Estimated prices only. Review order for the final server quote.') {
     ui.status.textContent = message;
   }
 
+  function renderDates() {
+    ui.date.replaceChildren();
+    const placeholder = element('option', 'Choose a date'); placeholder.value = ''; ui.date.append(placeholder);
+    for (const day of shopping?.dates || []) {
+      const available = snapshotUsable && fitsDate(shopping, day.date, lines);
+      const option = element('option', `${day.date}${available ? '' : ' — unavailable for this basket'}`);
+      option.value = day.date; option.disabled = !available; ui.date.append(option);
+    }
+    if (date && ![...ui.date.options].some(option => option.value === date)) {
+      const option = element('option', `${date} — unavailable; choose another date`);
+      option.value = date; option.disabled = true; ui.date.append(option);
+    }
+    ui.date.value = date;
+  }
+
+  function renderEstimate() {
+    const paise = snapshotUsable ? estimatePaise(lines, prices) : null;
+    const text = paise === null ? 'Estimated product subtotal unavailable. Refresh availability; your basket is kept.' :
+      `Estimated product subtotal: ${new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(paise / 100)}`;
+    if (ui.totals.dataset.estimate === text) return;
+    ui.totals.dataset.estimate = text;
+    ui.totals.replaceChildren(element('h3', text), element('p', ESTIMATE_WARNING, 'sf-note'));
+  }
+
   function renderBasket() {
-    const full = lines.length >= 40;
     for (const control of controls) {
-      control.update(lines.find(line => line.itemId === control.id)?.quantity || 0, full);
+      control.update(lines.find(line => line.itemId === control.id)?.quantity || 0);
+      const item = snapshotUsable ? prices.get(control.id) : null;
+      const priceKey = item ? JSON.stringify([item.unitPrice, item.priceLabel]) : 'public';
+      if (control.price.dataset.shoppingPrice !== priceKey) {
+        control.price.dataset.shoppingPrice = priceKey;
+        if (item) control.price.textContent = `${new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(item.unitPrice)}${item.priceLabel ? ` · ${item.priceLabel}` : ''} · estimated unit price`;
+        else control.price.replaceChildren(...control.publicPrice.map(node => node.cloneNode(true)));
+      }
+      control.availability.textContent = !snapshotUsable ? 'Availability needs rechecking. Basket kept.' :
+        (date ? !shopping.dates.find(day => day.date === date)?.itemIds.includes(control.id) :
+          !shopping.dates.some(day => day.maxItems > 0 && day.itemIds.includes(control.id))) ?
+          'Unavailable for this date or basket. Choose another date or contact the bakery.' : '';
     }
     const count = lines.reduce((sum, line) => sum + line.quantity, 0); // Quantity only, never money.
     ui.opener.textContent = `Basket preview · ${count}`;
@@ -123,7 +176,7 @@ async function start() {
     for (const line of lines) {
       let row = drawerRows.get(line.itemId);
       if (!row) {
-        const item = [...bindings.values()].find(item => item.id === line.itemId);
+        const item = [...bindings.values()].find(item => item.id === line.itemId) || { id: line.itemId, name: 'Unavailable saved bake (reduce to remove)' };
         const root = element('div', undefined, 'sf-line');
         root.dataset.sfItem = String(item.id);
         const control = quantityControl(item, change);
@@ -132,13 +185,21 @@ async function start() {
         drawerRows.set(item.id, row);
         ui.items.append(root);
       }
-      row.update(line.quantity, full);
+      row.update(line.quantity);
     }
     if (!lines.length) ui.items.append(element('p', 'Your basket is a blank canvas. Add a bake to begin.', 'sf-empty'));
+    renderDates(); renderEstimate(); checkout?.availabilityChanged();
+    const problem = basketReadiness(snapshotUsable ? shopping : null, { lines, date });
+    if (storageWarning) ui.status.textContent = [storageWarning, problem].filter(Boolean).join(' ');
+    else if (problem) ui.status.textContent = problem;
   }
 
   function persist() {
     if (session?.authenticated || checkout?.hasIdentity || checkout?.accountOwned) return;
+    if (guestIntent.retaining || guestIntent.uncertain()) {
+      storageWarning = 'An earlier device-basket save may have succeeded. Original device additions remain stored; current edits last only on this page. Sign in and check the saved basket before discarding retained additions.';
+      return;
+    }
     storageWarning = saveBasket(storage, lines, allowedIds) ? '' : 'Device storage unavailable; this basket lasts only on this page.';
   }
 
@@ -164,77 +225,100 @@ async function start() {
   function change(id, delta) {
     if (!canEditBasket(id)) return;
     for (const control of controls) control.root.parentElement.querySelector('.sf-edit-note')?.remove();
-    lines = changeQuantity(lines, id, delta, allowedIds);
+    const problem = delta > 0 ? (!allowedIds.has(id) ? 'Basket unchanged. This saved bake is unavailable; reduce it to remove or contact the bakery.' :
+      additionProblem(snapshotUsable ? shopping : null, { lines, date }, id)) : '';
+    if (problem) {
+      ui.status.textContent = problem;
+      for (const root of [controls.find(control => control.id === id)?.root.parentElement, drawerRows.get(id)?.root].filter(Boolean)) {
+        let note = root.querySelector('.sf-edit-note');
+        if (!note) { note = element('p', '', 'sf-note sf-edit-note'); note.setAttribute('role', 'status'); root.append(note); }
+        note.textContent = problem;
+      }
+      return;
+    }
+    const next = lines.map(line => ({ ...line }));
+    const row = next.find(line => line.itemId === id);
+    if (row) row.quantity += delta;
+    else if (delta > 0) next.push({ itemId: id, quantity: 1 });
+    lines = next.filter(line => line.quantity > 0);
     checkout?.changed();
     persist();
-    invalidate('Basket updated. Getting a fresh server preview…');
+    invalidate(storageWarning || 'Basket updated locally. Final price at Review order.');
     renderBasket();
-    scheduleQuote();
   }
 
   function applySession(view) {
-    if (session && (session.authenticated !== view.authenticated || session.customer?.id !== view.customer?.id)) {
+    const changed = !session || session.authenticated !== view.authenticated || session.customer?.id !== view.customer?.id;
+    if (changed) {
       challenge = undefined;
       ui.phone.value = '';
       ui.otp.value = '';
+      latest.invalidate();
+      shopping = null; prices = new Map(); snapshotUsable = false;
     }
     session = api.useSession(view);
     checkout?.identity(session.authenticated ? session.customer.id : null);
     renderAuth();
+    if (changed || !shopping) { renderBasket(); return refreshShopping(true); }
   }
 
-  async function quote() {
-    if (busy || ui.opening || ui.closing) return;
-    invalidate();
-    if (document.hidden) return;
-    if (!navigator.onLine) {
-      ui.status.textContent = 'You appear offline. Basket kept on this device; no current totals.';
-      return;
-    }
+  async function refreshShopping(unscoped = false) {
+    if (document.hidden || navigator.onLine === false) return;
     const ticket = latest.begin();
-    const input = { lines: lines.map(line => ({ ...line })), ...(date ? { date } : {}) };
-    const quoteDate = date;
-    ui.status.textContent = 'Checking your basket with the bakery…';
-    ui.totals.setAttribute('aria-busy', 'true');
+    const requestedDate = unscoped ? null : date || null;
+    shoppingPending = true; renderBasket();
     try {
-      // Recheck cookie identity before every quote. Never trust a cached customer.
-      const view = await api.request('/api/session', undefined, ticket.signal);
-      if (!latest.current(ticket) || busy) return;
-      applySession(view);
-      if (checkout && session?.authenticated) {
-        ui.totals.replaceChildren();
-        ui.status.textContent = 'Account basket saves automatically. Choose Review order below for a fresh quote; only Confirm & Pay places an order.';
-        await checkout.resume();
-        return;
-      }
-      if (!input.lines.length) {
-        ui.status.textContent = storageWarning || 'Add a bake to preview server prices.';
-        return;
-      }
-      const result = await api.request('/api/quote', input, ticket.signal);
-      if (!latest.current(ticket) || busy) return;
-      const checked = validateQuote(result, input.lines, quoteDate);
-      renderQuote(ui.totals, checked);
-      ui.totals.dataset.current = 'true';
-      ui.status.textContent = storageWarning || (checked.valid ? 'Server preview updated. This is not an order.' : 'Check the preview messages below. Nothing is reserved.');
-      expiryTimer = setTimeout(() => invalidate('This preview has expired. Refresh to check current prices and availability.'), 60000);
+      const result = validateShopping(await api.request('/api/shopping', requestedDate ? { date: requestedDate } : {}, ticket.signal), requestedDate);
+      if (!latest.current(ticket) || document.hidden || navigator.onLine === false) return;
+      shopping = result;
+      // Scoped responses omit ineligible products. Keep the unscoped active
+      // catalogue's prices; eligibility comes from every date's independent IDs.
+      if (!requestedDate) prices = new Map();
+      for (const item of result.items) if (allowedIds.has(item.id)) prices.set(item.id, item);
+      snapshotUsable = true; offlineInvalid = false; shoppingPending = false; shoppingFailed = false;
+      invalidate(storageWarning || 'Availability updated. Estimates only; final price at Review order.');
+      renderBasket();
+      if (session?.authenticated) scheduleResume();
     } catch (error) {
       if (!latest.current(ticket)) return;
       if ([401, 403].includes(error.status)) {
         api.clearSession();
         session = null;
         checkout?.identity(null);
+        shopping = null; prices = new Map();
         renderAuth();
       }
-      invalidate('Server preview unavailable or basket/date no longer available. No totals are current. Try refreshing or order on WhatsApp.');
-    } finally {
-      if (latest.current(ticket)) ui.totals.removeAttribute('aria-busy');
+      snapshotUsable = false; shoppingPending = false; shoppingFailed = true; renderBasket();
+      invalidate('Availability unavailable. Basket kept; refresh availability or contact the bakery.');
     }
   }
 
-  function scheduleQuote() {
-    clearTimeout(quoteTimer);
-    if (!busy && !ui.opening && !ui.closing) quoteTimer = setTimeout(quote, 200);
+  function scheduleResume() {
+    clearTimeout(resumeTimer);
+    if (!busy && !ui.opening && !ui.closing && !document.hidden && navigator.onLine !== false) resumeTimer = setTimeout(recheckSession, 200);
+  }
+
+  async function recheckSession() {
+    if (resumingSession) return resumingSession;
+    if (busy || document.hidden || navigator.onLine === false || ui.opening || ui.closing) return;
+    const epoch = authEpoch;
+    const ticket = sessionChecks.begin();
+    const task = (async () => {
+      try {
+        const view = await api.request('/api/session', undefined, ticket.signal);
+        if (epoch !== authEpoch || !sessionChecks.current(ticket) || busy || document.hidden || navigator.onLine === false) return;
+        await applySession(view);
+        if (epoch !== authEpoch || document.hidden || navigator.onLine === false) return;
+        snapshotUsable = Boolean(shopping) && !offlineInvalid && !shoppingFailed;
+        renderBasket();
+        // Recovery owns its own coalescing/epoch. Never let a slow order GET
+        // prevent a newer focus session check from revoking that identity.
+        resumingSession = null;
+        await checkout?.resume();
+      } catch { if (epoch === authEpoch && sessionChecks.current(ticket)) identityUncertain(true); }
+    })();
+    resumingSession = task;
+    try { await task; } finally { if (resumingSession === task) resumingSession = null; }
   }
 
   function renderAuth() {
@@ -260,8 +344,12 @@ async function start() {
       if (!navigator.onLine) authStatus.textContent = 'Verification unavailable while offline.';
       return;
     }
+    authEpoch += 1;
+    sessionChecks.invalidate(); resumingSession = null; clearTimeout(resumeTimer);
     busy = true;
-    checkout?.identity(null);
+    checkout?.suspend('authentication');
+    latest.invalidate(); snapshotUsable = false; shoppingPending = false;
+    renderBasket();
     const epoch = authEpoch;
     const controller = new AbortController(); authController = controller;
     const checkCurrent = () => {
@@ -274,29 +362,33 @@ async function start() {
       // Always get a current bootstrap. Unsafe operations are NEVER auto-retried.
       const view = await api.request('/api/session', undefined, controller.signal);
       checkCurrent();
-      applySession(view);
+      await applySession(view);
       await action(checkCurrent, controller.signal);
       checkCurrent();
     } catch {
       if (epoch !== authEpoch || controller.signal.aborted) return;
       api.clearSession();
       session = null;
-      checkout?.identity(null);
+      checkout?.suspend('authentication uncertain');
+      latest.invalidate(); shopping = null; prices = new Map(); snapshotUsable = false; renderBasket();
       challenge = undefined;
       ui.otp.value = '';
       authStatus.textContent = 'Verification unavailable or invalid. Please try again later.';
     } finally {
       if (epoch === authEpoch) {
         authController = undefined; busy = false;
+        snapshotUsable = Boolean(shopping) && !offlineInvalid && !shoppingFailed;
+        renderBasket();
         renderAuth();
         if (challenge && ui.dialog.open && !document.hidden) ui.otp.focus();
-        invalidate('Previous totals cleared. Refresh the server preview to check current login state and totals.');
-        if (session?.authenticated && !document.hidden && navigator.onLine) scheduleQuote();
+        invalidate('Estimates only. Review order for the final server quote.');
+        if (session?.authenticated && !document.hidden && navigator.onLine) scheduleResume();
       }
     }
   }
 
   function pauseAuth() {
+    sessionChecks.invalidate(); resumingSession = null; clearTimeout(resumeTimer);
     authEpoch += 1; authController?.abort(); authController = undefined; busy = false;
     ui.phone.value = ''; ui.otp.value = '';
     renderAuth();
@@ -340,7 +432,7 @@ async function start() {
       try {
         const view = await api.request('/api/auth/verify', input, signal);
         checkCurrent();
-        applySession(view); // Includes replacement CSRF, not a cookie read.
+        await applySession(view); // Includes replacement CSRF, not a cookie read.
         challenge = undefined;
         authStatus.textContent = 'WhatsApp verified. Refresh the preview for current totals.';
         ui.phone.value = '';
@@ -353,7 +445,7 @@ async function start() {
     try {
       const view = await api.request('/api/auth/logout', undefined, signal);
       checkCurrent();
-      applySession(view);
+      await applySession(view);
       challenge = undefined;
       ui.phone.value = '';
       ui.otp.value = '';
@@ -363,52 +455,63 @@ async function start() {
   ui.otp.addEventListener('input', renderAuth);
   ui.date.addEventListener('change', () => {
     if (!canEditBasket()) { ui.date.value = date; return; }
-    date = ui.date.value; checkout?.changed(); invalidate(); scheduleQuote();
+    const next = ui.date.value;
+    if (next === date) return;
+    if (next && (!snapshotUsable || !fitsDate(shopping, next, lines))) {
+      ui.date.value = date;
+      invalidate('Date unchanged. Unavailable for your whole basket; reduce the basket or contact the bakery for a bulk order.');
+      return;
+    }
+    date = next; checkout?.changed(); invalidate(); renderBasket(); refreshShopping();
   });
-  ui.refresh.addEventListener('click', quote);
+  ui.refresh.addEventListener('click', async () => {
+    await recheckSession();
+    if (!busy && !document.hidden && navigator.onLine !== false) await refreshShopping();
+  });
   ui.dialog.addEventListener('sf-opening', () => {
-    clearTimeout(quoteTimer);
-    latest.invalidate();
+    clearTimeout(resumeTimer);
     checkout?.suspend('drawer opening');
   });
-  ui.dialog.addEventListener('sf-open', () => { clearTimeout(quoteTimer); renderAuth(); quote(); });
+  ui.dialog.addEventListener('sf-open', () => { clearTimeout(resumeTimer); renderAuth(); recheckSession(); });
   ui.dialog.addEventListener('close', () => {
     checkout?.suspend('drawer closed');
     pauseAuth();
     challenge = undefined;
-    invalidate('Preview closed. Reopen to get current server totals.');
+    invalidate('Basket kept. Estimates only; final server quote at Review order.');
     authStatus.textContent = '';
     renderAuth();
   });
   ui.dialog.addEventListener('sf-abort', () => { checkout?.suspend('drawer closing'); invalidate(); });
 
   function identityUncertain(retainAttempt = false) {
-    if (retainAttempt) checkout?.suspend('offline');
-    else checkout?.identity(null);
+    // Uncertainty is not a verified logout. Keep basket ownership and any
+    // original ambiguous attempt, but synchronously remove all private UI.
+    checkout?.suspend(retainAttempt ? 'offline' : 'identity uncertain');
     pauseAuth();
     api.clearSession();
-    session = null;
+    latest.invalidate(); snapshotUsable = false; shoppingPending = false;
+    if (!retainAttempt) { shopping = null; prices = new Map(); }
     challenge = undefined;
     ui.phone.value = '';
     ui.otp.value = '';
-    invalidate('Session may have changed. Refresh the server preview.');
+    renderBasket();
+    invalidate('Session may have changed. Your basket is kept; recheck securely.');
     renderAuth();
   }
-  if (channel) channel.onmessage = event => { if (event.data === 'identity-changed') identityUncertain(); };
-  window.addEventListener('offline', () => { identityUncertain(true); invalidate('Offline. No current totals; please reconnect and refresh.'); });
-  window.addEventListener('online', () => { invalidate('Connection restored. Rechecking your session…'); scheduleQuote(); });
+  if (channel) channel.onmessage = event => { if (event.data === 'identity-changed') { identityUncertain(); scheduleResume(); } };
+  window.addEventListener('offline', () => { offlineInvalid = true; identityUncertain(true); invalidate('Offline. Basket kept; reconnect and refresh availability.'); });
+  window.addEventListener('online', () => { invalidate('Connection restored. Rechecking your session…'); scheduleResume(); });
   function returnedToPage() {
     // Keep an in-memory challenge when the user visits WhatsApp to read the code.
-    // Re-bootstrap identity before the next quote without destroying that challenge.
-    invalidate('Session needs rechecking. Refresh the server preview.');
-    if (!busy && !document.hidden && navigator.onLine) scheduleQuote();
+    // Same identity may revalidate session/payment recovery, not cart/shopping.
+    if (!busy && !document.hidden && navigator.onLine) scheduleResume();
   }
   window.addEventListener('focus', returnedToPage);
   document.addEventListener('visibilitychange', () => {
-    if (document.hidden) { pauseAuth(); checkout?.suspend('page hidden'); invalidate('Preview paused. Refresh when you return.'); }
+    if (document.hidden) { pauseAuth(); latest.invalidate(); snapshotUsable = false; shoppingPending = false; checkout?.suspend('page hidden'); renderBasket(); invalidate('Preview paused. Your basket is kept.'); }
     else returnedToPage();
   });
-  window.addEventListener('pageshow', event => { if (event.persisted) { identityUncertain(true); scheduleQuote(); } });
+  window.addEventListener('pageshow', event => { if (event.persisted) { identityUncertain(true); scheduleResume(); } });
   // BFCache retains the in-memory ambiguous payload/key. Only actual identity
   // changes may discard it; a page return must never enable a fresh-key retry.
   window.addEventListener('pagehide', () => { identityUncertain(true); });
@@ -431,10 +534,11 @@ async function start() {
     ui.timer.textContent = challenge ? `Code expires in ${Math.max(0, Math.ceil((expires - Date.now()) / 1000))}s.` : '';
     renderAuth();
   }, 1000);
+  checkout?.identity(session?.authenticated ? session.customer.id : null);
   renderBasket();
   renderAuth();
-  ui.status.textContent = storageWarning || 'Device-only basket. Open to get a server preview.';
-  if (session?.authenticated && !document.hidden && navigator.onLine) scheduleQuote();
+  ui.status.textContent = storageWarning || basketReadiness(shopping, { lines, date }) || 'Estimated prices only. Review order for the final server quote.';
+  if (session?.authenticated && !document.hidden && navigator.onLine) scheduleResume();
   if (window.location.hash === '#sf-auth' && !document.hidden) {
     ui.opener.click();
     if (ui.dialog.open && !session?.authenticated) ui.phone.focus();

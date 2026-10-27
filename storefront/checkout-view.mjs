@@ -3,7 +3,8 @@ import { CheckoutFlow } from './checkout-flow.mjs';
 import { BasketSync } from './basket-sync.mjs';
 
 // Called only behind BOTH strict feature flags. No checkout DOM/listeners otherwise.
-export function attachCheckout({ api, ui, allowedIds, getBasket, onBasket, onIdentityLost, onActivity, onAssociate = () => {} }) {
+export function attachCheckout({ api, ui, allowedIds, getBasket, onBasket, onIdentityLost, onActivity, onAssociate = () => {}, guestIntent,
+  getShopping = () => null, getReadiness = () => '' }) {
   const root = element('section', undefined, 'sf-checkout');
   root.id = 'sf-checkout'; root.setAttribute('aria-labelledby', 'sf-checkout-title');
   const title = element('h3', 'Delivery checkout'); title.id = 'sf-checkout-title';
@@ -11,10 +12,12 @@ export function attachCheckout({ api, ui, allowedIds, getBasket, onBasket, onIde
   const status = element('p', '', 'sf-status'); status.id = 'sf-checkout-status'; status.setAttribute('role', 'status');
   const choices = element('div', undefined, 'sf-checkout-actions');
   const basketStatus = element('p', '', 'sf-note'); basketStatus.setAttribute('role', 'status');
-  const load = button('Use account basket / discard device edits', () => sync.choose('account')); load.id = 'sf-cart-load';
-  const save = button('Keep device basket / replace account basket', () => sync.choose('device')); save.id = 'sf-cart-save';
+  const load = button('Retry loading basket (keep current edits)', () => sync.retry()); load.id = 'sf-cart-load';
+  const save = button('Retry saving basket', () => sync.retry()); save.id = 'sf-cart-save';
+  const discardGuest = button('I checked the saved basket: discard retained device additions', () => sync.discardRetainedGuest());
+  discardGuest.id = 'sf-guest-discard';
   const prepare = button('Review order', () => flow.prepare()); prepare.id = 'sf-prepare';
-  choices.append(load, save, prepare);
+  choices.append(load, save, discardGuest, prepare);
   const accountLink = element('a', 'My account · delivery defaults & order history', 'sf-account-link'); accountLink.href = 'account.html';
   const quoteRoot = element('div', undefined, 'sf-totals'); quoteRoot.id = 'sf-checkout-quote';
   const form = element('form'); form.id = 'sf-delivery'; form.autocomplete = 'off';
@@ -52,7 +55,7 @@ export function attachCheckout({ api, ui, allowedIds, getBasket, onBasket, onIde
   recovery.append(retry, check, payment, newOrder, abort);
   root.append(title, accountLink, help, status, basketStatus, choices, quoteRoot, form, accepted, confirm, recovery, support);
   ui.auth.after(root);
-  document.querySelector('#sf-auth .sf-note').textContent = 'Verify WhatsApp for your account basket, saved defaults and website orders. Account basket edits save automatically after any device/account choice. Nothing is merged.';
+  document.querySelector('#sf-auth .sf-note').textContent = 'Verify WhatsApp for your account basket, saved defaults and website orders. Device additions and your saved basket merge once on login; edits save automatically. Nothing is silently removed.';
   document.querySelector('#sf-disclaimer').textContent = 'Browsing and preparing reserve nothing. Optional checkout below creates a real order only when you explicitly Confirm & Pay. WhatsApp ordering remains available.';
   let identity = null;
   let pollTimer;
@@ -66,15 +69,23 @@ export function attachCheckout({ api, ui, allowedIds, getBasket, onBasket, onIde
   let resumeEpoch = 0;
   const pageActive = () => navigator.onLine !== false && !document.hidden;
   const networkActive = () => pageActive() && !ui.opening && !ui.closing;
-  const sync = new BasketSync({ api, allowedIds, getBasket, onBasket, onIdentityLost, onAssociate,
+  const sync = new BasketSync({ api, allowedIds, getBasket, onBasket, onIdentityLost, onAssociate, getShopping, guestIntent,
     isActive: pageActive, onChange: state => {
       if (flow.state.prepared && state.cart && flow.state.cart?.version !== state.cart.version) flow.suspend('account basket refreshed');
       flow.state.cart = state.cart; flow.state.dirty = state.dirty;
-      flow.state.needsReload = state.choice;
+      if (state.retry || state.migrationBlocked) flow.state.needsReload = true;
       render(flow.state);
     } });
   const flow = new CheckoutFlow({ api, enabled: true, allowedIds, getBasket, onBasket, onIdentityLost, onActivity,
-    accountEnabled: true, isActive: networkActive, beforePrepare: () => sync.flush(),
+    onCartConflict: () => sync.conflict(),
+    accountEnabled: true, isActive: networkActive, beforePrepare: async () => {
+      if (getReadiness()) { flow.state.message = getReadiness(); flow.emit(); return false; }
+      const saved = await sync.flush();
+      flow.state.cart = sync.state.cart;
+      flow.state.dirty = sync.state.dirty;
+      if (saved) flow.state.needsReload = false;
+      return saved && !getReadiness();
+    },
     onDefaults: profile => {
       if (fieldsTouched || !networkActive() || !flow.identity) return;
       pendingDefaults = profile;
@@ -98,27 +109,26 @@ export function attachCheckout({ api, ui, allowedIds, getBasket, onBasket, onIde
     const message = !identity ? 'Sign in to use your account basket and checkout.' :
       `${state.message || 'Checking your account…'}${privateVisible && state.result?.orderNumber ? ` Order ${state.result.orderNumber}.` : ''}`;
     if (status.textContent !== message) status.textContent = message;
-    const basketMessage = identity && !state.attempt ? sync.state.message : '';
+    const basketMessage = identity && !state.attempt ? [sync.state.message, getReadiness()].filter(Boolean).join(' ') : '';
     if (basketStatus.textContent !== basketMessage) basketStatus.textContent = basketMessage;
     basketStatus.hidden = !basketMessage;
     root.setAttribute('aria-busy', String(state.busy && !state.attempt?.id));
-    // Signed-in checkout owns its quote. Never show a second preview above it.
-    if (ui.totals) ui.totals.hidden = Boolean(identity);
-    if (ui.refresh) ui.refresh.hidden = Boolean(identity);
-    load.hidden = save.hidden = !identity || !sync.state.choice || Boolean(state.attempt);
+    // Only prepared quotes are exact. Ordinary cart acknowledgements never
+    // replace the local estimated product subtotal or churn its DOM.
+    if (ui.totals) ui.totals.hidden = Boolean(state.prepared || state.attempt);
+    if (ui.refresh) ui.refresh.hidden = false;
+    load.hidden = !identity || !sync.state.retry || sync.state.associated || Boolean(state.attempt);
+    save.hidden = !identity || !sync.state.retry || !sync.state.associated || Boolean(state.attempt);
+    discardGuest.hidden = !identity || !sync.state.migrationBlocked || Boolean(state.attempt);
+    discardGuest.disabled = !active || state.busy || sync.state.busy;
     load.disabled = save.disabled = !active || state.busy || sync.state.busy || Boolean(state.attempt);
-    prepare.hidden = !identity || !flow.recoveryReady || Boolean(state.attempt || state.prepared) || sync.state.choice;
-    prepare.disabled = !active || state.busy || !flow.recoveryReady || !state.cart || state.needsReload || Boolean(state.attempt);
+    prepare.hidden = !identity || !flow.recoveryReady || Boolean(state.attempt || state.prepared);
+    prepare.disabled = !active || state.busy || !flow.recoveryReady || !state.cart || sync.state.retry || Boolean(state.attempt) || Boolean(getReadiness()) || !sync.writable();
     const nextQuoteKey = privateVisible && !state.attempt ? JSON.stringify([
-      state.prepared?.quote || (!state.dirty ? state.cart?.quote : null),
-      state.prepared?.expiresAt, state.cart?.problems]) : '';
+      state.prepared?.quote, state.prepared?.expiresAt]) : '';
     if (quoteKey !== nextQuoteKey) {
       quoteKey = nextQuoteKey; quoteRoot.replaceChildren();
-      if (privateVisible && (state.prepared || state.cart) && !state.attempt) {
-        const quote = state.prepared?.quote || (!state.dirty ? state.cart?.quote : null);
-        if (quote) renderQuote(quoteRoot, quote, state.prepared ? 'prepared' : 'preview');
-        if (!quote) for (const problem of state.cart?.problems || []) quoteRoot.append(element('p', problem.message, 'sf-note'));
-      }
+      if (privateVisible && state.prepared && !state.attempt) renderQuote(quoteRoot, state.prepared.quote, 'prepared');
     }
     form.hidden = !privateVisible || !state.prepared || Boolean(state.review);
     if (!form.hidden && pendingDefaults && !fieldsTouched && !defaultsApplied) {
@@ -179,13 +189,14 @@ export function attachCheckout({ api, ui, allowedIds, getBasket, onBasket, onIde
       const task = (async () => {
         await flow.resume();
         if (epoch !== resumeEpoch || !flow.identity || !networkActive()) return;
-        if (!sync.state.choice && (!sync.state.dirty || !sync.state.associated)) await sync.refresh();
+        if (!sync.state.associated) await sync.refresh();
         else sync.schedule();
       })();
       resuming = task;
       try { await task; } finally { if (resuming === task) resuming = null; }
     },
     changed() { flow.changed(); sync.changed(); },
+    availabilityChanged() { render(flow.state); },
     suspend(reason) {
       resumeEpoch++; resuming = null;
       // Closing the private drawer is not a logout: non-PII basket saves may

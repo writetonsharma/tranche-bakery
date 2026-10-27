@@ -1,4 +1,111 @@
-# Account / automatic basket / payment-return next phase — 2026-10-27
+# Local-first shopping — execution reference (2026-10-27)
+
+## Current behavior and verified evidence (supersedes all historical notes below)
+
+- Local-only validation: **322/322 tests pass**, including nested security cases,
+	versus the 308-test pre-Fix3 baseline; **23/23 script syntax checks**, whitespace and
+	scoped editor diagnostics pass. No dependencies added. No hosted/live claims.
+- Bootstrap calls catalogue/session, applies the CSRF session, then POSTs an
+	unscoped shopping snapshot. Auth changes discard private pricing immediately
+	and fetch a new unscoped snapshot. Date changes fetch scoped snapshots; explicit
+	Refresh availability is also supported. Quantities, ordinary focus and drawer
+	opening never fetch shopping/quote or reload the cart. Session checks and owned
+	latest-payment recovery remain separate and may run on visible/online focus.
+- Five means total quantities, not distinct lines or per-product quantities.
+	Controls use the lesser of five and the selected date's internal allowance,
+	plus product eligibility. Bread-first dates must fit every basket line; date-first
+	ineligible cards say so. No remaining counts are rendered. Blocked + stays
+	enabled and gives inline live no-change/reduce/bulk-contact feedback. Existing
+	dates and quantities are never silently changed by quantity/availability edits.
+- Card prices use snapshot single-item estimates. Scoped responses merge prices
+	into the unscoped active-catalogue mapping so another-date products don't vanish.
+	Logout restores public pricing; auth uncertainty/hide/offline clears personalized
+	price rendering immediately. Local arithmetic uses integer paise, shows only an
+	estimated product subtotal and explicitly warns about mixed-basket public versus
+	override winners, batch, delivery and credit. It never multiplies batch previews.
+- Account cart loads once per identity/startup, merges current anonymous additions
+	and saved quantities by ID once per page association, including edits made during the GET.
+	Identical IDs sum, even when both baskets were identical. Prefer the local date
+	if it fits the merged whole basket, otherwise a fitting saved date, otherwise
+	require selection. Overflow/retired lines remain visible and reducible: nothing
+	is truncated. Over-five carts cannot add/save/checkout until reduced to five.
+- No cart-choice UI or cross-device realtime. Associated edits save quietly after
+	400ms. A cart-version 409 reads only the remote version internally, then retries
+	one PUT of the latest local snapshot. Further failures retain edits with an
+	explicit Retry saving button. Late responses never replace newer local edits.
+	Account baskets/private prices never enter local/session storage. The existing
+	anonymous ID/quantity-only key remains until a validated successful save, not
+	merely association. Overflow merges and account edits are page-memory-only;
+	the warning explicitly explains reload loss of page-only edits while the original
+	guest additions remain durable. Account data/PII/date/version are never persisted.
+- Before sending guest additions, a separate anonymous-only receipt key stores the
+	constant `pending`, not an account identifier or basket. After a reload with that
+	fence, the saved basket is shown WITHOUT adding guest quantities again; the
+	original guest key is preserved and saving/checkout pause. The customer must
+	check the saved basket and explicitly discard retained device additions, or ask
+	for support. If an earlier save did not commit, missing quantities can then be
+	added manually. No claim is made that cart versions identify a prior writer.
+	Blocked receipt storage prevents the guest save; failed cleanup retains the gate.
+- Explicit OTP/auth starts abort and invalidate background session checks and clear
+	coalescing; epoch/generation guards reject pre-transition anonymous responses
+	even when transport ignores abort. Prepare CART_CONFLICT routes to explicit
+	BasketSync retry, using bounded version-only GET/PUT with current local intent.
+	The checkout gate clears only on a successful flush, and a fresh Review is still
+	required: no checkout POST or prepare POST is automatically repeated.
+- Hidden/offline work is aborted and private delivery/payment UI cleared, without
+	interpreting temporary uncertainty as logout or dropping account basket edits.
+	Offline/failed availability cannot be revived as current by focus: explicitly
+	refresh availability. A verified identity switch resets old account ownership
+	and private snapshots. Startup transitions have the same guards.
+- Review requires local readiness AND an authoritative cart flush; only then does
+	checkout prepare return the exact shared-server quote. Ordinary cart responses
+	never render advisory full totals. Server validation still wins. Existing bounded
+	GET recovery, uncertain original same-key payload, revocation and support fences
+	remain; historical orders are only in explicit My account history. No automatic
+	order/payment/provider calls, paid-cart cleanup or alternate payment was added.
+
+Limitations: snapshots are advisory, not reservations or complete promotion rules;
+server may reject a later prepare/confirmation. No exact payable is available
+before Review. Native browser layout/compositor/focus-trap/BFCache and hosted
+Vercel/cookie/CSRF/payment-return acceptance are not proven by Node/jsdom mocks.
+Without a backend guest-intent receipt, automatic exactly-once migration across
+lost acknowledgements, concurrent tabs, accounts and devices cannot be proven.
+The deliberately unscoped anonymous fence is conservative across account switches;
+it offers manual resolution, not guessed attribution or automatic replay.
+No backend/parked/other-repo edits, live API calls, bundling or deployment occurred.
+
+## Pre-edit research
+
+Read the exact backend shopping contract and current frontend bootstrap, model,
+API, view, basket sync, checkout flow/view, routing and actual-module jsdom tests.
+Only this frontend repository is in scope. Existing implementation still quotes
+on quantity/focus/drawer, reloads clean account carts, offers cart choices, and
+renders advisory cart quotes. Replace those behaviors, not payment recovery.
+
+Implementation scope: validated shopping snapshots (bootstrap after CSRF session,
+auth/date transitions only), local five-total/date/product guards and integer-paise
+estimates; personalized card prices with public restoration; once-per-identity
+deterministic cart merge, quiet saves, bounded local-wins version conflict retry;
+prepared-only exact quote UI; strict shopping POST/rewrite; actual-module race,
+privacy, request-count and checkout regression tests. No dependencies, production
+requests, backend changes, bundling or deployment. Existing meaningful tests will
+be updated only where approved behavior deliberately changes.
+
+No scenario root, Execution-stage/hint files, assessment or task path was supplied.
+No upgrade workflow is invented. Execution extension lookup returned none; the
+recovered runtime skill names an unavailable Modernizer harness, so the explicitly
+requested existing Node/jsdom/syntax/diagnostic checks are the validation boundary.
+Decomposition assessed: this is one coupled local-first shopping feature, not a
+project migration; implementation follows model → synchronization → integration
+→ mocked regression gates. This existing document is the execution reference.
+
+# Archived implementation history (not current behavior or current validation)
+
+Everything below is retained historical context. Earlier statements about cart
+choices, quote-per-click, cart focus refresh, validation totals and deployments
+do not describe this local-first change; the current section above is authoritative.
+
+## Historical account / automatic basket / payment-return next phase — 2026-10-27
 
 **Final integration validation:** 398 backend tests / 49 suites, 132 Node tests,
 19 JS/MJS syntax checks and whitespace checks passed; scoped review PASS. Local

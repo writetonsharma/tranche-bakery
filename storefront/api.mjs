@@ -1,7 +1,8 @@
 import { OPAQUE_ID, PROBLEMS } from './checkout-model.mjs';
+import { shoppingInput } from './shopping-model.mjs';
 
 const ROUTES = new Map([
-  ['/api/catalog', 'GET'], ['/api/session', 'GET'], ['/api/quote', 'POST'],
+  ['/api/catalog', 'GET'], ['/api/session', 'GET'], ['/api/quote', 'POST'], ['/api/shopping', 'POST'],
   ['/api/auth/challenge', 'POST'], ['/api/auth/verify', 'POST'], ['/api/auth/logout', 'POST']
 ]);
 
@@ -67,6 +68,7 @@ export class StorefrontApi {
     if (!method) throw new Error('Disallowed API route');
     if (requestedMethod !== undefined && requestedMethod !== method) throw new Error('Disallowed API method');
     if (method === 'GET' && body !== undefined) throw new Error('Disallowed API body');
+    if (path === '/api/shopping') body = shoppingInput(body);
     if (accountRoute && method === 'PUT') body = profileInput(body);
     const headers = { Accept: 'application/json' };
     if (method !== 'GET') {

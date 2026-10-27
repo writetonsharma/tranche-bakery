@@ -26,7 +26,8 @@ export function quantityControl(item, change) {
   return { root, update(quantity, full) {
     minus.disabled = quantity === 0;
     count.textContent = String(quantity);
-    plus.disabled = quantity >= 99 || (full && !quantity);
+    // Keep + actionable: a blocked addition must explain itself inline.
+    plus.disabled = false;
   } };
 }
 
@@ -64,7 +65,7 @@ export function createDrawer() {
   dateLabel.append(date);
   const totals = element('div', undefined, 'sf-totals');
   totals.id = 'sf-totals';
-  const refresh = button('Refresh server preview', () => {});
+  const refresh = button('Refresh availability', () => {});
   refresh.id = 'sf-refresh';
   const auth = element('section', undefined, 'sf-auth');
   auth.id = 'sf-auth';

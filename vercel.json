@@ -2,6 +2,11 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "rewrites": [
     {
+      "source": "/api/shopping",
+      "has": [{ "type": "host", "value": "^(?:www\\.)?tranchebakery\\.in$" }],
+      "destination": "https://tranchewa-app-production.up.railway.app/api/shopping"
+    },
+    {
       "source": "/api/account/profile",
       "has": [{ "type": "host", "value": "^(?:www\\.)?tranchebakery\\.in$" }],
       "destination": "https://tranchewa-app-production.up.railway.app/api/account/profile"

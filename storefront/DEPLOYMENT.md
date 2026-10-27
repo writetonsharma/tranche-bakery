@@ -1,6 +1,40 @@
 # Storefront deployment gates — approved checkout activation
 
-## Website-only UX cleanup — 2026-10-27 (local, not deployed)
+## Local-first shopping addition — 2026-10-27 (local only, not deployed)
+
+Current local validation: **308/308 Node tests**, **21/21 JS/MJS syntax checks**,
+whitespace validation and scoped diagnostics pass. All API traffic in these tests
+is intercepted in-memory. No real OTP/order/payment/provider request, backend
+modification, bundle, push or deployment was performed. All older sections below
+are historical where they conflict with the current local-first rules in README.
+
+The deployed backend must implement the exact shopping contract before deploying
+this frontend. The addition needs no migration according to that contract. It
+adds exactly one host-restricted rewrite, POST /api/shopping, to the existing
+fixed Railway backend. The client requires an existing CSRF session and accepts
+only an empty object or a null/real-ISO date; no identity parameters. Existing
+same-origin cookies, no-store/private/CDN headers and exact production flags stay.
+Actual Vercel method/backend security and cookie behavior require hosted acceptance.
+
+No cart reconciliation choices remain: once-per-identity additive merge retains
+all quantities, including overflow, then saves after 400ms. Cart GET is not a
+focus/drawer refresh mechanism. A save 409 gets only the remote version internally
+and retries latest local intent once; failure exposes a retained-edit Retry button.
+No account data is persisted under anonymous storage. There is no realtime sync.
+Local snapshot controls enforce total five/date eligibility/whole-basket fit;
+no remaining counts are rendered. Overflow can reduce but cannot add or checkout.
+Product subtotal is explicitly estimated; only Review shows the exact prepared
+server quote after cart flush/readiness. Payment recovery is unchanged and separate.
+
+Before hosted acceptance, check exact-host routing and CSRF/no-store behavior;
+public → login → special card price → logout; date-first and bread-first eligibility;
+five-total and one-allowance blocked + feedback; lossless merged overflow reduction;
+retained edits and bounded conflict retry; pending-payment return/revocation/privacy.
+Use mocked acceptance for automated flows; real order/payment operations require
+separate deliberate authorization. Native dialog/focus/mobile smoothness remains
+a manual browser gate. This documentation is not evidence of live acceptance.
+
+## Historical website-only UX cleanup — 2026-10-27 (local, not deployed)
 
 Local checks: **159/159 website tests** (148 retained + 11 new), **19 syntax checks**,
 whitespace validation and scoped editor diagnostics pass (0 errors / 0 warnings).

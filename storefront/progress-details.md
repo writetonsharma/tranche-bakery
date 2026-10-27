@@ -394,3 +394,113 @@
 - Website-only local Node/jsdom fake-API evidence. No backend, parked, production,
   provider, bundle, server, deployment or push operations. No user decision needed;
   native-browser/hosted acceptance remains manual as already documented above.
+
+## Approved local-first shopping — 2026-10-27
+
+- Read exact backend shopping-contract.md and current frontend source/tests;
+  recorded research/scope in README before source edits. No scenario root, task
+  path, assessment or Execution/Breakdown Hints supplied; no workflow invented.
+  Execution extensions returned none. Atomic coupled shopping behavior verdict.
+- Added shopping-model.mjs: strict snapshot/request validation, five-total/day
+  allowance/product/whole-basket guards, deterministic lossless merge/date priority
+  and integer-paise product estimates. Scoped prices retain active catalogue mapping.
+- Changed storefront.mjs, view.mjs: bootstrap after CSRF, auth/date-only snapshot
+  refresh (plus explicit refresh), personalized card prices/public restoration,
+  local estimates/warnings, generic unavailable dates and live inline blocked +
+  explanations. No quantity quote/session/shopping reads. Focus/drawer checks only
+  session and independent payment recovery. Native timer receivers preserved.
+- Changed basket-sync.mjs: once-per-identity initial merge including in-flight
+  edits; no choices/truncation; retained overflow/retired reduction; 400ms quiet
+  saves; bounded version-only conflict GET plus latest-local retry; retained-edit
+  failure Retry; late acknowledgements cannot replace current local intent.
+- Changed checkout-view.mjs and checkout-model.mjs: readiness + authoritative
+  flush before prepare, prepared-only exact quote, RETAIL_LIMIT_EXCEEDED safe
+  message and retry-only cart controls. CheckoutFlow/payment semantics untouched.
+  Existing pending fences, bounded owned GET polls, exact ambiguous same-key retry,
+  revocation, historical account separation and privacy regressions stay enforced.
+- Added strict api.mjs POST route and one exact-host vercel.json rewrite. Updated
+  tests/basket-sync, bootstrap, checkout, routing, storefront and new shopping tests.
+  Meaningful existing cases retained; only approved changed-behavior assertions
+  updated. README and DEPLOYMENT distinguish current rules from archived history.
+- Review found startup hide/offline continuation, failed snapshot resurrection
+  on focus and delayed auth price clearing; corrected all with regressions.
+  Fresh Review now reuses authoritative sync state after server rejection without
+  showing stale cart quotes. No production errors were hidden by test changes.
+- Final local check: **308/308 tests pass** (165 baseline; includes nested strict
+  security cases), **21/21 JS/MJS syntax checks pass**, git diff --check passes.
+  Editor diagnostics report no errors/warnings. No static-site build script exists.
+- Actual-module jsdom tests cover shopping/cart request counts, public/login/logout
+  card prices, local estimates/final exact quote, one-slot/no-count feedback,
+  date/product/whole-basket controls, merge-overflow/no-loss, in-flight load/edit,
+  old save/snapshot callbacks, conflict version-only reads, retry and server
+  rejection, startup/hidden/offline privacy and unchanged bounded payment recovery.
+- Limits: advisory snapshot may change before server checkout; no full estimated
+  payable. Native layout/animation/top-layer focus/BFCache and actual hosted
+  Vercel/cookie/CSRF/payment-return integration remain unverified. Only this frontend
+  repo edited. No backend/parked changes, network/provider/OTP/order operations,
+  dependencies, bundles, push or deployment. No backend issue discovered requiring
+  an implementation change.
+
+## Fix3 P2 frontend reviewer corrections — 2026-10-27
+
+- Root causes: explicit auth reused the background session epoch/coalesced GET;
+  prepare CART_CONFLICT set a flow-only reload gate with no BasketSync retry;
+  initial association deleted durable guest intent before any save acknowledgement.
+- Explicit auth now increments the epoch, cancels the resume timer, aborts and
+  invalidates session checks, and clears coalescing. Epoch plus generation/current
+  guards reject old anonymous GETs even when fetch ignores abort. Fresh recovery
+  can run without waiting for the old response, preserving authenticated pricing.
+- Checkout conflicts notify BasketSync, which retains local lines/date and gates
+  autosave until explicit Retry saving. One internal version-only GET and at most
+  two PUTs retain latest local intent; repeated errors remain explicit. Local edits
+  do not clear retry. Only successful flush clears the flow gate; the customer
+  must Review again. No automatic prepare or checkout POST repeat.
+- Added guest-intent.mjs: original anonymous ID/quantity storage survives merge,
+  overflow, failed/interrupted saves and in-page logout/anonymous edits. Retirement
+  and onAssociate occur once on a validated save acknowledgement (an empty guest
+  association needs no write). A constant anonymous pending receipt is written
+  before sending durable guest intent; it contains no account ID, PII, cart copy,
+  date, token or server version. Blocked writes fail closed before PUT.
+- On reload with an uncertainty fence, display the saved account basket WITHOUT
+  adding retained guest quantities; retain the original key, explain uncertainty,
+  and block saving/checkout until the customer explicitly checks/discards retained
+  device additions or contacts support. Both committed and noncommitted lost-ack
+  paths are tested. Noncommitted missing quantities need manual re-addition after
+  explicit resolution; no version-based inference or account-scoped fingerprint.
+- Overflow remains lossless page memory with an explicit unsaved/reload warning;
+  only original guest intent is durable. A reload before any PUT reconstructs the
+  original merge; page-only account edits/reductions are intentionally not stored.
+- Files changed in this correction: storefront.mjs, basket-sync.mjs,
+  checkout-flow.mjs, checkout-view.mjs, new guest-intent.mjs; tests/bootstrap,
+  basket-sync, checkout and new guest-intent tests; README and this progress log.
+  Existing unrelated working-tree changes were preserved. All edits used patches.
+- Validation: **322/322 Node tests pass** (308 existing + 14 regressions), zero
+  failures/skips/cancellations/todos; **23/23 JS/MJS syntax checks pass**;
+  git diff --check passes; scoped VS Code diagnostics report no errors.
+  Real-module jsdom tests exercise OTP/focus delayed abort-ignoring replies,
+  conflict retry/fresh Review, 3+3 overflow/reload/ack retention, both lost-ack
+  outcomes and logout protection; unit tests cover generation, receipt privacy/
+  blocked storage/crash order, callback count and conflict fence behavior.
+- Limits/decision: backend versions cannot identify a previous merge writer;
+  without a backend intent receipt no automatic exactly-once guarantee across
+  concurrent tabs/accounts/devices is claimed. The privacy-minimal global fence
+  deliberately uses manual resolution rather than ambiguous automatic replay.
+  Native browser/hosted cookie, transport and simultaneous-tab acceptance remain
+  unverified. Website-only; sole terminal owner; no backend/parked/live API,
+  provider, dependency, server, bundle, push or deployment operations.
+
+## Final local validation — 2026-10-27
+
+- Independent final frontend correction review and backend security/boundary
+  review both PASS. Clean backend Maven run: 439 tests across 49 suites, zero
+  failures/errors/skips. Frontend: 322 tests and 23 syntax checks pass.
+- Native Chromium, local read-only server and mocked APIs only, 390×844:
+  date allowance of one accepts the first addition and rejects the second with
+  inline feedback while retaining an enabled plus button; switching to a suitable
+  date permits five total and rejects the sixth with bulk-order feedback.
+  Quantity clicks made no additional network requests. No browser errors or
+  horizontal overflow. Integrated visibility was overridden for the fixture;
+  the module was explicitly imported after enabling local configuration.
+- No live OTP, account writes, order, payment or provider activity. Hosted
+  personalized-login/payment acceptance and device motion remain user checks
+  after deployment. Backend must be deployed before this website update.

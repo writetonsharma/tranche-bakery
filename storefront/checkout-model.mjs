@@ -5,7 +5,8 @@ export const OPAQUE_ID = /^[A-Za-z0-9_-]{32}$(?![\s\S])/;
 export const checkoutEnabled = config => config?.enabled === true && config?.checkoutEnabled === true;
 export const PROBLEMS = Object.freeze({
   PROFILE_CONFLICT: 'Saved website defaults changed elsewhere. Reload them before explicitly saving again.',
-  CART_CONFLICT: 'Account basket changed. Choose Load account basket to discard local edits, then review again.',
+  CART_CONFLICT: 'Account basket changed. Your local edits are kept. Retry saving, then review again.',
+  RETAIL_LIMIT_EXCEEDED: 'Online baskets are limited to five items total. Reduce your basket or contact the bakery for a bulk order.',
   QUOTE_CHANGED: 'Prices or availability changed. Prepare and review a fresh quote.',
   QUOTE_EXPIRED: 'Quote expired. Prepare and review a fresh quote.',
   IDEMPOTENCY_CONFLICT: 'This attempt needs support review. Do not create another order.',

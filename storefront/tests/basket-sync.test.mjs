@@ -13,7 +13,9 @@ function deferred() {
   const promise = new Promise(done => { resolve = done; });
   return { promise, resolve };
 }
-function fixture(local = basket, remote = accountCart()) {
+const shopping = { dates: ['2026-11-01', '2026-11-03', '2026-11-04'].map(date =>
+  ({ date, maxItems: 5, itemIds: [1, 2] })) };
+function fixture(local = { lines: [], date: '' }, remote = accountCart(), snapshot = shopping) {
   const calls = [], timers = new Map(), replacements = [];
   let device = structuredClone(local), active = true, timerId = 0, associations = 0, lost = 0;
   const api = {
@@ -24,6 +26,7 @@ function fixture(local = basket, remote = accountCart()) {
     }
   };
   const sync = new BasketSync({ api, allowedIds: new Set([1, 2]), now: () => now,
+    getShopping: () => snapshot,
     getBasket: () => device, onBasket: value => { replacements.push(value); device = value; },
     onAssociate: () => associations++, onIdentityLost: () => lost++, isActive: () => active,
     delay: callback => { const id = ++timerId; timers.set(id, callback); return id; },
@@ -62,6 +65,7 @@ test('default timers retain global receiver through anonymous changes, identity 
   try {
     // Deliberately omit delay/cancel: injected arrow fakes bypassed the defect.
     const sync = new BasketSync({ allowedIds: new Set([1]), now: () => now,
+      getShopping: () => shopping,
       getBasket: () => local, onBasket: value => { local = value; },
       api: { session: async () => session, request: async () => accountCart() } });
     assert.throws(() => globalThis.clearTimeout.call(sync, undefined), /native clearTimeout rejects/);
@@ -87,7 +91,7 @@ test('default timers retain global receiver through anonymous changes, identity 
   keys.forEach((key, index) => assert.deepEqual(Object.getOwnPropertyDescriptor(globalThis, key), saved[index]));
 });
 
-test('anonymous edits stay local; differing login baskets require a choice before any write', async () => {
+test('anonymous edits stay local; login merges once and retains totals over five until reduced', async () => {
   const device = { ...basket, lines: [{ itemId: 1, quantity: 5 }] };
   const f = fixture(device);
   f.sync.changed();
@@ -95,38 +99,60 @@ test('anonymous edits stay local; differing login baskets require a choice befor
   assert.equal(f.calls.length, 0);
   f.sync.setIdentity(7);
   assert.equal(f.calls.length, 0);
-  assert.equal(await f.sync.refresh(), false);
-  assert.equal(f.sync.state.choice, true);
-  assert.equal(f.sync.state.associated, false);
-  assert.deepEqual(f.local, device);
-  assert.equal(f.replacements.length, 0);
+  assert.equal(await f.sync.refresh(), true);
+  assert.equal(typeof f.sync.choose, 'undefined');
+  assert.equal(f.sync.state.retry, false);
+  assert.equal(f.sync.state.associated, true);
+  assert.deepEqual(f.local, { lines: [{ itemId: 1, quantity: 7 }], date: '' });
+  assert.equal(f.replacements.length, 1);
+  assert.equal(f.associations, 0, 'overflow has no accepted save yet');
+  assert.equal(f.timers.size, 0);
   await f.sync.save(); await f.sync.refresh(); await f.tick();
   assert.equal(await f.sync.flush(), false);
   assert.deepEqual(f.requests().map(call => call.method), [undefined]);
-  await f.sync.choose('merge');
-  assert.equal(f.requests().length, 1);
-  assert.equal(await f.sync.choose('device'), true);
-  assert.deepEqual(f.requests().map(call => call.method), [undefined, undefined, 'PUT']);
+  assert.match(f.sync.state.message, /five|bulk/i);
+  f.edit(device); await f.tick();
+  assert.deepEqual(f.requests().map(call => call.method), [undefined, 'PUT']);
   assert.deepEqual(f.requests().at(-1).body, { version: 4, ...device });
   assert.deepEqual(f.local, device);
   assert.equal(f.sync.state.cart.version, 5);
-  assert.equal(f.sync.state.choice, false);
+  assert.equal(f.sync.state.dirty, false);
 });
 
-test('explicit account choice rereads and replaces the whole device basket, never merges or writes', async () => {
-  const f = fixture({ lines: [{ itemId: 2, quantity: 8 }], date: '2026-11-03' });
-  f.sync.setIdentity(7); await f.sync.refresh();
-  const latest = { lines: [{ itemId: 1, quantity: 7 }], date: '2026-11-04' };
-  const original = f.api.request;
-  f.api.request = async (...args) => { await original(...args); return accountCart(9, latest); };
-  assert.equal(await f.sync.choose('account'), true);
-  assert.deepEqual(f.local, latest);
-  assert.equal(f.sync.state.cart.version, 9);
-  assert.equal(f.replacements.length, 1);
-  assert.equal(f.requests().some(call => call.method === 'PUT'), false);
-});
+for (const [label, localDate, snapshot, expectedDate] of [
+  ['valid local whole-basket date wins', '2026-11-03', shopping, '2026-11-03'],
+  ['local date without capacity falls back to saved', '2026-11-03', { dates: [
+    { date: '2026-11-03', maxItems: 1, itemIds: [1, 2] }, ...shopping.dates.filter(day => day.date !== '2026-11-03')
+  ] }, basket.date],
+  ['local date missing a merged product falls back to saved', '2026-11-03', { dates: [
+    { date: '2026-11-03', maxItems: 5, itemIds: [2] }, ...shopping.dates.filter(day => day.date !== '2026-11-03')
+  ] }, basket.date],
+  ['invalid local date falls back to saved', '2026-11-09', shopping, basket.date],
+  ['neither date fits', '2026-11-03', { dates: [] }, ''],
+  ['missing availability clears date', '2026-11-03', null, '']
+]) {
+  test(`initial merge keeps both baskets with deterministic IDs: ${label}`, async () => {
+    const f = fixture({ lines: [{ itemId: 2, quantity: 1 }], date: localDate }, accountCart(9), snapshot);
+    f.sync.setIdentity(7);
+    assert.equal(await f.sync.refresh(), true);
+    const merged = { lines: [{ itemId: 1, quantity: 2 }, { itemId: 2, quantity: 1 }], date: expectedDate };
+    assert.deepEqual(f.local, merged);
+    assert.equal(f.sync.state.cart.version, 9);
+    assert.equal(f.replacements.length, 1);
+    assert.equal(f.associations, 0, 'merge is not a save acknowledgement');
+    assert.deepEqual(f.requests().map(call => call.method), [undefined]);
+    assert.equal(await f.sync.refresh(), false);
+    await f.tick();
+    assert.deepEqual(f.requests().map(call => call.method), [undefined, 'PUT']);
+    assert.deepEqual(f.requests().at(-1).body, { version: 9, ...merged, date: expectedDate || null });
+    assert.equal(await f.sync.refresh(), false);
+    assert.equal(await f.sync.flush(), true);
+    assert.deepEqual(f.local, merged);
+    assert.equal(f.replacements.length, 1);
+  });
+}
 
-test('identical baskets autoassociate regardless of line order without replacing or writing', async () => {
+test('identical baskets sum exactly once regardless of line order, retaining every item above the limit', async () => {
   const local = { ...basket, lines: [...basket.lines, { itemId: 2, quantity: 1 }] };
   const remote = { ...local, lines: [...local.lines].reverse() };
   assert.equal(sameBasket(local, remote), true);
@@ -135,10 +161,34 @@ test('identical baskets autoassociate regardless of line order without replacing
   f.sync.setIdentity(7);
   assert.equal(await f.sync.refresh(), true);
   assert.equal(f.sync.state.associated, true);
-  assert.equal(f.associations, 1);
-  assert.equal(f.replacements.length, 0);
-  assert.equal(await f.sync.flush(), true);
+  assert.equal(f.associations, 0);
+  const merged = { lines: [{ itemId: 1, quantity: 4 }, { itemId: 2, quantity: 2 }], date: '' };
+  assert.deepEqual(f.local, merged);
+  assert.equal(f.replacements.length, 1);
+  assert.equal(f.sync.state.dirty, true);
+  assert.equal(await f.sync.flush(), false);
+  assert.equal(await f.sync.refresh(), false);
+  await f.sync.save(); await f.tick();
+  assert.deepEqual(f.local, merged);
+  assert.equal(f.associations, 0);
   assert.equal(f.requests().length, 1);
+});
+
+test('identical saveable baskets also sum exactly once and never reload on repeated refresh', async () => {
+  const f = fixture(basket);
+  f.sync.setIdentity(7); await f.sync.refresh();
+  const merged = { ...basket, lines: [{ itemId: 1, quantity: 4 }] };
+  assert.deepEqual(f.local, merged);
+  assert.equal(f.sync.state.dirty, true);
+  await f.sync.refresh(); await f.tick();
+  assert.deepEqual(f.requests().at(-1).body, { version: 4, ...merged });
+  const count = f.calls.length;
+  await f.sync.refresh(); await f.sync.refresh(); await f.tick();
+  assert.equal(await f.sync.flush(), true);
+  assert.equal(f.calls.length, count);
+  assert.deepEqual(f.local, merged);
+  assert.equal(f.associations, 1);
+  assert.equal(f.replacements.length, 1);
 });
 
 test('an empty device automatically loads an available account basket without PUT', async () => {
@@ -146,19 +196,44 @@ test('an empty device automatically loads an available account basket without PU
   f.sync.setIdentity(7); await f.sync.refresh();
   assert.deepEqual(f.local, basket);
   assert.equal(f.replacements.length, 1);
-  assert.equal(f.sync.state.choice, false);
+  assert.equal(f.sync.state.retry, false);
   assert.equal(f.sync.state.associated, true);
   assert.deepEqual(f.requests().map(call => call.method), [undefined]);
 });
 
-test('unavailable account lines require choice and cannot be silently loaded or sent', async () => {
-  const f = fixture(basket, accountCart(12, { ...basket, lines: [{ itemId: 99, quantity: 3 }] }));
-  f.sync.setIdentity(7); await f.sync.refresh();
-  assert.equal(f.sync.state.choice, true);
-  assert.equal(await f.sync.choose('account'), false);
+test('a failed initial GET retains device intent until explicit retry merges it once', async () => {
+  const f = fixture(basket), original = f.api.request;
+  f.api.request = async (...args) => { await original(...args); throw new Error('private backend text'); };
+  f.sync.setIdentity(7);
+  assert.equal(await f.sync.refresh(), false);
+  assert.equal(f.sync.state.retry, true);
+  assert.equal(f.sync.state.associated, false);
   assert.deepEqual(f.local, basket);
   assert.equal(f.replacements.length, 0);
-  assert.equal(await f.sync.choose('device'), true);
+  assert.doesNotMatch(f.sync.state.message, /private backend text/);
+  const count = f.calls.length;
+  await f.sync.refresh(); await f.sync.save(); await f.tick();
+  assert.equal(f.calls.length, count);
+  f.api.request = original;
+  assert.equal(await f.sync.retry(), true);
+  assert.deepEqual(f.local, { ...basket, lines: [{ itemId: 1, quantity: 4 }] });
+  assert.equal(f.associations, 0);
+  assert.equal(f.sync.state.retry, false);
+  assert.deepEqual(f.requests().map(call => call.method), [undefined, undefined]);
+  assert.equal(await f.sync.flush(), true);
+});
+
+test('unavailable account lines are retained in the merge but never sent until explicitly removed locally', async () => {
+  const f = fixture(basket, accountCart(12, { ...basket, lines: [{ itemId: 99, quantity: 3 }] }));
+  f.sync.setIdentity(7); await f.sync.refresh();
+  assert.equal(f.sync.state.associated, true);
+  assert.deepEqual(f.local, { lines: [{ itemId: 1, quantity: 2 }, { itemId: 99, quantity: 3 }], date: '' });
+  assert.equal(f.replacements.length, 1);
+  assert.equal(await f.sync.save(), false);
+  await f.tick();
+  assert.deepEqual(f.requests().map(call => call.method), [undefined]);
+  f.edit(basket);
+  assert.equal(await f.sync.flush(), true);
   assert.deepEqual(f.requests().at(-1).body, { version: 12, ...basket });
 });
 
@@ -189,15 +264,15 @@ test('edits during PUT keep the exact first snapshot and save newer edits with i
   assert.equal(f.sync.state.dirty, false);
 });
 
-for (const kind of ['wrong version', 'wrong lines', 'wrong date', 'malformed', '409']) {
-  test(`${kind} save acknowledgement preserves local edits and requires explicit choice, never retries`, async () => {
+for (const kind of ['wrong version', 'wrong lines', 'wrong date', 'malformed', 'network']) {
+  test(`${kind} save acknowledgement preserves local edits and requires explicit retry, never auto-retries`, async () => {
     const f = fixture(); f.sync.setIdentity(7); await f.sync.refresh();
-    const edit = { ...basket, lines: [{ itemId: 1, quantity: 6 }] };
+    const edit = { ...basket, lines: [{ itemId: 1, quantity: 3 }] };
     const original = f.api.request;
     f.api.request = async (...args) => {
       const value = await original(...args);
       if (args[3] !== 'PUT') return value;
-      if (kind === '409') throw Object.assign(new Error('private backend text'), { status: 409 });
+      if (kind === 'network') throw new Error('private backend text');
       if (kind === 'wrong version') return { ...value, version: value.version + 1 };
       if (kind === 'wrong lines') return accountCart(value.version, basket);
       if (kind === 'wrong date') return { ...value, date: '2026-11-02' };
@@ -205,7 +280,7 @@ for (const kind of ['wrong version', 'wrong lines', 'wrong date', 'malformed', '
     };
     f.edit(edit);
     assert.equal(await f.sync.save(), false);
-    assert.equal(f.sync.state.choice, true);
+    assert.equal(f.sync.state.retry, true);
     assert.equal(f.sync.state.dirty, true);
     assert.equal(f.sync.state.cart.version, 4);
     assert.deepEqual(f.local, edit);
@@ -215,13 +290,87 @@ for (const kind of ['wrong version', 'wrong lines', 'wrong date', 'malformed', '
     assert.equal(await f.sync.flush(), false);
     assert.equal(f.calls.length, count);
     f.api.request = original;
-    assert.equal(await f.sync.choose('device'), true);
+    assert.equal(await f.sync.retry(), true);
+    assert.equal(f.sync.state.retry, false);
+    assert.equal(f.sync.state.dirty, false);
+    assert.equal(f.replacements.length, 1, 'save acknowledgements never replace the local basket');
     assert.equal(f.requests().filter(call => call.method === 'PUT').length, 2);
     assert.deepEqual(f.requests().at(-1).body, { version: 4, ...edit });
   });
 }
 
-test('device edits during initial GET reject stale auto-load and leave an explicit choice', async () => {
+test('409 reads only the remote version and retries once using the latest edit made during that GET', async () => {
+  const f = fixture(); f.sync.setIdentity(7); await f.sync.refresh();
+  const reply = deferred(), started = deferred(), original = f.api.request;
+  const first = { ...basket, lines: [{ itemId: 1, quantity: 3 }] };
+  const newer = { lines: [{ itemId: 2, quantity: 4 }], date: '2026-11-03' };
+  f.api.request = async (...args) => {
+    const value = await original(...args);
+    if (args[3] === 'PUT' && args[1].version === 4) {
+      throw Object.assign(new Error('private conflict text'), { status: 409 });
+    }
+    if (args[3] !== 'PUT') { started.resolve(); return reply.promise; }
+    return value;
+  };
+  f.edit(first);
+  const pending = f.sync.save(); await started.promise;
+  assert.deepEqual(f.local, first);
+  assert.equal(f.replacements.length, 1);
+  f.edit(newer);
+  // Deliberately not a valid cart: conflict recovery must consume version ONLY.
+  reply.resolve({ version: 9, lines: [{ itemId: 99, quantity: 90 }], date: 'not-a-date', quote: 'private remote quote' });
+  assert.equal(await pending, true);
+  assert.deepEqual(f.requests().map(call => call.method), [undefined, 'PUT', undefined, 'PUT']);
+  assert.deepEqual(f.requests().filter(call => call.method === 'PUT').map(call => call.body),
+    [{ version: 4, ...first }, { version: 9, ...newer }]);
+  assert.equal(f.calls.filter(call => call.path === 'session').length, 2);
+  assert.deepEqual(f.local, newer);
+  assert.equal(f.replacements.length, 1, 'neither conflict GET nor PUT acknowledgement applies remote intent');
+  assert.equal(f.sync.state.cart.version, 10);
+  assert.equal(f.sync.state.dirty, false);
+  assert.equal(f.sync.state.retry, false);
+  const count = f.calls.length;
+  await f.tick(); await f.sync.refresh();
+  assert.equal(await f.sync.flush(), true);
+  assert.equal(f.calls.length, count);
+});
+
+test('repeated 409 is bounded to one internal GET and two PUTs, then requires explicit retry', async () => {
+  const f = fixture(); f.sync.setIdentity(7); await f.sync.refresh();
+  const original = f.api.request;
+  const edit = { ...basket, lines: [{ itemId: 2, quantity: 3 }] };
+  f.api.request = async (...args) => {
+    await original(...args);
+    if (args[3] === 'PUT') throw Object.assign(new Error('private conflict text'), { status: 409 });
+    return { version: 9, lines: [{ itemId: 1, quantity: 5 }], date: '2026-11-04' };
+  };
+  f.edit(edit);
+  assert.equal(await f.sync.save(), false);
+  assert.deepEqual(f.requests().map(call => call.method), [undefined, 'PUT', undefined, 'PUT']);
+  assert.deepEqual(f.requests().filter(call => call.method === 'PUT').map(call => call.body),
+    [{ version: 4, ...edit }, { version: 9, ...edit }]);
+  assert.equal(f.sync.state.cart.version, 9);
+  assert.deepEqual(f.sync.state.cart.lines, basket.lines, 'conflict GET never adopts remote lines');
+  assert.equal(f.sync.state.cart.date, basket.date, 'conflict GET never adopts remote date');
+  assert.deepEqual(f.local, edit);
+  assert.equal(f.replacements.length, 1);
+  assert.equal(f.sync.state.retry, true);
+  assert.equal(f.sync.state.dirty, true);
+  assert.doesNotMatch(f.sync.state.message, /private conflict text/);
+  const count = f.calls.length;
+  f.sync.schedule(); await f.tick(); await f.sync.refresh(); await f.sync.save();
+  assert.equal(await f.sync.flush(), false);
+  assert.equal(f.calls.length, count);
+  f.api.request = original;
+  assert.equal(await f.sync.retry(), true);
+  assert.deepEqual(f.requests().at(-1).body, { version: 9, ...edit });
+  assert.equal(f.sync.state.cart.version, 10);
+  assert.equal(f.sync.state.retry, false);
+  assert.equal(f.sync.state.dirty, false);
+  assert.equal(f.requests().filter(call => call.method === 'PUT').length, 3);
+});
+
+test('device edits during initial GET merge current intent once with the saved basket', async () => {
   const f = fixture({ lines: [], date: '' }), reply = deferred(), started = deferred();
   const original = f.api.request;
   f.api.request = async (...args) => { await original(...args); started.resolve(); return reply.promise; };
@@ -229,25 +378,32 @@ test('device edits during initial GET reject stale auto-load and leave an explic
   const pending = f.sync.refresh(); await started.promise;
   const edit = { ...basket, lines: [{ itemId: 2, quantity: 3 }] };
   f.edit(edit); reply.resolve(accountCart());
-  assert.equal(await pending, false);
-  assert.deepEqual(f.local, edit);
-  assert.equal(f.replacements.length, 0);
-  assert.equal(f.sync.state.choice, true);
+  assert.equal(await pending, true);
+  const merged = { ...basket, lines: [{ itemId: 1, quantity: 2 }, { itemId: 2, quantity: 3 }] };
+  assert.deepEqual(f.local, merged);
+  assert.equal(f.replacements.length, 1);
+  assert.equal(f.sync.state.associated, true);
   assert.equal(f.sync.state.dirty, true);
-  await f.tick(); assert.equal(f.requests().length, 1);
+  assert.deepEqual(f.requests().map(call => call.method), [undefined]);
+  f.api.request = original;
+  await f.tick();
+  assert.deepEqual(f.requests().at(-1).body, { version: 4, ...merged });
+  assert.equal(await f.sync.refresh(), false);
+  assert.deepEqual(f.local, merged);
 });
 
-test('edits before the initial account GET still load its version and offer reconciliation', async () => {
+test('edits before the initial account GET merge once and save with the fetched version', async () => {
   const f = fixture({ lines: [], date: '' }); f.sync.setIdentity(7);
-  const edit = { ...basket, lines: [{ itemId: 2, quantity: 4 }] };
+  const edit = { ...basket, lines: [{ itemId: 2, quantity: 3 }] };
   f.edit(edit);
-  assert.equal(await f.sync.refresh(), false);
-  assert.equal(f.sync.state.choice, true);
+  assert.equal(await f.sync.refresh(), true);
+  assert.equal(f.sync.state.associated, true);
   assert.equal(f.sync.state.cart.version, 4);
-  assert.deepEqual(f.local, edit);
+  const merged = { ...basket, lines: [{ itemId: 1, quantity: 2 }, { itemId: 2, quantity: 3 }] };
+  assert.deepEqual(f.local, merged);
   assert.equal(f.requests().some(call => call.method === 'PUT'), false);
-  assert.equal(await f.sync.choose('device'), true);
-  assert.deepEqual(f.requests().at(-1).body, { version: 4, ...edit });
+  assert.equal(await f.sync.flush(), true);
+  assert.deepEqual(f.requests().at(-1).body, { version: 4, ...merged });
 });
 
 for (const reason of ['hidden', 'offline', 'identity']) {
@@ -268,7 +424,7 @@ for (const reason of ['hidden', 'offline', 'identity']) {
     f.active = false;
     const count = f.calls.length;
     f.edit(basket); f.sync.schedule();
-    await f.sync.refresh(); await f.sync.save(); await f.sync.choose('device'); await f.tick();
+    await f.sync.refresh(); await f.sync.save(); await f.sync.retry(); await f.tick();
     assert.equal(await f.sync.flush(), false);
     assert.equal(f.calls.length, count);
   });
@@ -281,7 +437,7 @@ for (const reason of ['hidden', 'offline']) {
     f.active = false;
     assert.equal(await f.sync.refresh(), false);
     f.active = true;
-    const edit = { ...basket, lines: [{ itemId: 1, quantity: 7 }] };
+    const edit = { ...basket, lines: [{ itemId: 1, quantity: 3 }] };
     f.edit(edit);
     assert.equal(f.timers.size, 1);
     f.active = false; // The callback must recheck activity even without pause cancelling it.
@@ -316,13 +472,15 @@ test('a newer GET supersedes an aborted GET without accepting its late response'
   assert.equal(f.replacements.length, 1);
 });
 
-test('interrupted PUT retains edits and forces explicit reconciliation after reconnect, not automatic retry', async () => {
+test('interrupted PUT retains newer edits and requires explicit retry after reconnect, not automatic saving', async () => {
   const f = fixture(); f.sync.setIdentity(7); await f.sync.refresh();
   const reply = deferred(), started = deferred(), original = f.api.request;
   f.api.request = async (...args) => { const value = await original(...args);
     if (args[3] === 'PUT') { started.resolve(); return reply.promise; } return value; };
-  const edit = { ...basket, lines: [{ itemId: 1, quantity: 8 }] };
+  const edit = { ...basket, lines: [{ itemId: 1, quantity: 3 }] };
   f.edit(edit); const pending = f.sync.save(); await started.promise;
+  const newer = { ...basket, lines: [{ itemId: 2, quantity: 4 }] };
+  f.edit(newer);
   f.active = false; f.sync.pause();
   assert.equal(f.requests().at(-1).signal.aborted, true);
   reply.resolve(accountCart(5, edit)); await pending;
@@ -331,9 +489,15 @@ test('interrupted PUT retains edits and forces explicit reconciliation after rec
   f.sync.schedule(); await f.tick(); await f.sync.refresh(); await f.sync.save();
   assert.equal(await f.sync.flush(), false);
   assert.equal(f.calls.length, count);
-  assert.equal(f.sync.state.choice, true);
+  assert.equal(f.sync.state.retry, true);
   assert.equal(f.sync.state.cart.version, 4);
-  assert.deepEqual(f.local, edit);
+  assert.equal(f.sync.state.dirty, true);
+  assert.deepEqual(f.local, newer);
+  f.api.request = original;
+  assert.equal(await f.sync.retry(), true);
+  assert.deepEqual(f.requests().at(-1).body, { version: 4, ...newer });
+  assert.equal(f.sync.state.retry, false);
+  assert.equal(await f.sync.flush(), true);
 });
 
 test('associated account basket is removed on identity change and mismatched session prevents account reads', async () => {
@@ -398,10 +562,46 @@ test('transition hold cancels debounce and defers post-bootstrap PUT until relea
   const saving = f.sync.save(); await started.promise;
   f.sync.hold(); bootstrap.resolve(session); await saving;
   assert.equal(f.requests().some(call => call.method === 'PUT'), false);
-  assert.equal(f.sync.state.busy, false); assert.equal(f.sync.state.choice, false);
+  assert.equal(f.sync.state.busy, false); assert.equal(f.sync.state.retry, false);
   assert.equal(f.sync.state.dirty, true);
   f.sync.release(); await f.tick();
   assert.equal(f.requests().filter(call => call.method === 'PUT').length, 1);
   assert.equal(f.sync.state.cart.lines[0].quantity, 3);
   assert.equal(f.sync.state.dirty, false); assert.equal(f.sync.state.busy, false);
+});
+
+test('checkout conflict fence survives local edits and failed explicit retry until a successful flush', async () => {
+  const f = fixture(); f.sync.setIdentity(7); await f.sync.refresh();
+  const original = f.api.request;
+  f.sync.conflict();
+  f.edit({ ...basket, lines: [{ itemId: 2, quantity: 3 }] });
+  assert.equal(f.sync.state.retry, true);
+  const count = f.calls.length;
+  await f.tick(); assert.equal(await f.sync.flush(), false);
+  assert.equal(f.calls.length, count);
+  f.api.request = async () => { throw new Error('offline'); };
+  assert.equal(await f.sync.retry(), false);
+  assert.equal(f.sync.state.retry, true);
+  assert.equal(await f.sync.flush(), false);
+  f.api.request = original;
+  assert.equal(await f.sync.retry(), true);
+  assert.equal(await f.sync.flush(), true);
+  assert.deepEqual(f.requests().at(-1).body, { version: 4, lines: [{ itemId: 2, quantity: 3 }], date: basket.date });
+});
+
+test('association retirement occurs once only after accepted save, never merge or lost acknowledgement', async () => {
+  const f = fixture({ ...basket, lines: [{ itemId: 2, quantity: 1 }] });
+  let receipts = 0, accepted = 0;
+  f.sync.guestIntent = { uncertain: () => false, beforeSave: () => { receipts++; return true; }, accepted: () => { accepted++; return true; } };
+  f.sync.setIdentity(7); await f.sync.refresh();
+  assert.equal(f.associations, 0); assert.equal(accepted, 0);
+  const original = f.api.request;
+  f.api.request = async (...args) => { if (args[3] === 'PUT') throw new Error('lost'); return original(...args); };
+  assert.equal(await f.sync.save(), false);
+  assert.equal(receipts, 1); assert.equal(accepted, 0); assert.equal(f.associations, 0);
+  f.api.request = original;
+  assert.equal(await f.sync.retry(), true);
+  assert.equal(accepted, 1); assert.equal(f.associations, 1);
+  f.edit(basket); await f.sync.flush();
+  assert.equal(accepted, 1); assert.equal(f.associations, 1);
 });

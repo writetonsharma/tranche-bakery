@@ -8,7 +8,7 @@ const otherOrigins = ['http://www.tranchebakery.in', 'http://tranchebakery.in',
   'https://www.tranchebakery.in:8443', 'http://localhost:8765', 'http://127.0.0.1:8765',
   'https://tranche-bakery.vercel.app', 'https://tranche-bakery-preview.vercel.app',
   'https://www.tranchebakery.in.attacker.example', 'https://other.tranchebakery.in', 'null'];
-const paths = ['/api/catalog', '/api/session', '/api/quote',
+const paths = ['/api/catalog', '/api/session', '/api/quote', '/api/shopping',
   '/api/auth/challenge', '/api/auth/verify', '/api/auth/logout',
   '/api/cart', '/api/checkout/prepare', '/api/checkout', '/api/checkout/:opaqueId([A-Za-z0-9_-]{32})',
   '/api/account/profile', '/api/account/orders', '/api/account/checkout',
