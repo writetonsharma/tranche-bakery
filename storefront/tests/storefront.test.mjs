@@ -258,3 +258,26 @@ test('disabled and non-boolean config produce ZERO network/storage/DOM/listener 
     else globalThis.window = original;
   }
 });
+
+test('enabled startup makes no requests or storage reads while initially hidden or offline', async () => {
+  const saved = Object.fromEntries(['window', 'document', 'navigator', 'HTMLDialogElement', 'fetch'].map(key => [key, Object.getOwnPropertyDescriptor(globalThis, key)]));
+  try {
+    for (const [hidden, onLine] of [[true, true], [false, false], [true, false]]) {
+      const win = new EventTarget(), doc = new EventTarget();
+      win.TRANCHE_STOREFRONT = { enabled: true, checkoutEnabled: true }; doc.hidden = hidden;
+      Object.defineProperty(win, 'localStorage', { get() { throw new Error('Must not read storage'); } });
+      Object.defineProperty(globalThis, 'window', { configurable: true, value: win });
+      Object.defineProperty(globalThis, 'document', { configurable: true, value: doc });
+      Object.defineProperty(globalThis, 'navigator', { configurable: true, value: { onLine } });
+      Object.defineProperty(globalThis, 'HTMLDialogElement', { configurable: true, value: class {} });
+      let calls = 0;
+      Object.defineProperty(globalThis, 'fetch', { configurable: true, value: () => { calls++; throw new Error('Must not fetch'); } });
+      await import(`../storefront.mjs?paused=${hidden}-${onLine}`);
+      assert.equal(calls, 0);
+    }
+  } finally {
+    for (const [key, descriptor] of Object.entries(saved)) {
+      if (descriptor) Object.defineProperty(globalThis, key, descriptor); else delete globalThis[key];
+    }
+  }
+});

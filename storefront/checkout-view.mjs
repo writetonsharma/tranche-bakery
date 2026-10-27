@@ -1,18 +1,21 @@
 import { element, button, renderQuote } from './view.mjs';
 import { CheckoutFlow } from './checkout-flow.mjs';
+import { BasketSync } from './basket-sync.mjs';
 
 // Called only behind BOTH strict feature flags. No checkout DOM/listeners otherwise.
-export function attachCheckout({ api, ui, allowedIds, getBasket, onBasket, onIdentityLost, onActivity }) {
+export function attachCheckout({ api, ui, allowedIds, getBasket, onBasket, onIdentityLost, onActivity, onAssociate = () => {} }) {
   const root = element('section', undefined, 'sf-checkout');
   root.id = 'sf-checkout'; root.setAttribute('aria-labelledby', 'sf-checkout-title');
   const title = element('h3', 'Delivery checkout'); title.id = 'sf-checkout-title';
   const help = element('p', 'This is real retail ordering and Razorpay payment, not just a preview. Login first. Preparing reserves nothing. Confirm & Pay creates an order awaiting payment. Only verified server status confirms payment.', 'sf-note');
   const status = element('p', '', 'sf-status'); status.id = 'sf-checkout-status'; status.setAttribute('role', 'status');
   const choices = element('div', undefined, 'sf-checkout-actions');
-  const load = button('Load account basket (discard these edits)', () => flow.load()); load.id = 'sf-cart-load';
-  const save = button('Save this basket to account (replace account basket)', () => flow.save()); save.id = 'sf-cart-save';
-  const prepare = button('Prepare server quote', () => flow.prepare()); prepare.id = 'sf-prepare';
+  const basketStatus = element('p', '', 'sf-note'); basketStatus.setAttribute('role', 'status');
+  const load = button('Use account basket / discard device edits', () => sync.choose('account')); load.id = 'sf-cart-load';
+  const save = button('Keep device basket / replace account basket', () => sync.choose('device')); save.id = 'sf-cart-save';
+  const prepare = button('Review order', () => flow.prepare()); prepare.id = 'sf-prepare';
   choices.append(load, save, prepare);
+  const accountLink = element('a', 'My account · saved defaults & website orders', 'sf-account-link'); accountLink.href = 'account.html';
   const quoteRoot = element('div', undefined, 'sf-totals'); quoteRoot.id = 'sf-checkout-quote';
   const form = element('form'); form.id = 'sf-delivery'; form.autocomplete = 'off';
   const field = (label, id, tag = 'input') => {
@@ -35,21 +38,43 @@ export function attachCheckout({ api, ui, allowedIds, getBasket, onBasket, onIde
   const recovery = element('div', undefined, 'sf-checkout-actions');
   const retry = button('Check / retry SAME attempt (not a new order)', () => flow.retry()); retry.id = 'sf-checkout-retry';
   const check = button('Refresh verified payment status', () => flow.check()); check.id = 'sf-checkout-refresh';
+  const newOrder = button('Start new order (keep basket)', () => flow.startNewOrder()); newOrder.id = 'sf-new-order';
   const payment = element('a', 'Open secure Razorpay payment link ↗', 'sf-payment-link'); payment.id = 'sf-payment-link';
   payment.target = '_blank'; payment.rel = 'noopener noreferrer'; payment.referrerPolicy = 'no-referrer';
-  const abort = button('Pause checkout / hide private details', () => flow.suspend('paused by you')); abort.id = 'sf-checkout-abort';
-  const support = element('p', 'For uncertain payments, credit, zero-payable baskets or review, contact the bakery using the WhatsApp link below. Do not submit another order or pay again. Reloading this page loses the in-memory recovery key; contact support if status cannot be recovered.', 'sf-note');
-  recovery.append(retry, check, payment, abort);
-  root.append(title, help, status, choices, quoteRoot, form, accepted, confirm, recovery, support);
+  const abort = button('Pause checkout / hide private details', () => {
+    flow.suspend('paused by you'); clearFields(); pendingDefaults = null;
+    if (!defaultsApplied && !fieldsTouched) flow.defaultsRead = false;
+  }); abort.id = 'sf-checkout-abort';
+  const support = element('p', 'For uncertain payments, credit or review, contact the bakery using WhatsApp below. Do not submit another order or pay again. Returning to this page checks your latest website order securely. An uncertain send retains its exact recovery key only on this page; account reads never retry or create a payment.', 'sf-note');
+  recovery.append(retry, check, payment, newOrder, abort);
+  root.append(title, accountLink, help, status, basketStatus, choices, quoteRoot, form, accepted, confirm, recovery, support);
   ui.auth.after(root);
-  document.querySelector('#sf-auth .sf-note').textContent = 'Verify your WhatsApp number for personalised prices and optional delivery checkout. Your basket is never silently merged or saved.';
+  document.querySelector('#sf-auth .sf-note').textContent = 'Verify WhatsApp for your account basket, saved defaults and website orders. Account basket edits save automatically after any device/account choice. Nothing is merged.';
   document.querySelector('#sf-disclaimer').textContent = 'Browsing and preparing reserve nothing. Optional checkout below creates a real order only when you explicitly Confirm & Pay. WhatsApp ordering remains available.';
   let identity = null;
   let pollTimer;
   let expirationTimer;
-  let previouslyPrivate = false;
-  const flow = new CheckoutFlow({ api, enabled: true, allowedIds, getBasket, onBasket, onIdentityLost, onActivity, onChange: render });
+  let fieldsTouched = false;
+  let pendingDefaults = null;
+  let defaultsApplied = false;
+  const networkActive = () => navigator.onLine !== false && !document.hidden;
+  const sync = new BasketSync({ api, allowedIds, getBasket, onBasket, onIdentityLost, onAssociate,
+    isActive: networkActive, onChange: state => {
+      if (flow.state.prepared && flow.state.cart?.version !== state.cart?.version) flow.suspend('account basket refreshed');
+      flow.state.cart = state.cart; flow.state.dirty = state.dirty;
+      flow.state.needsReload = state.choice;
+      render(flow.state);
+    } });
+  const flow = new CheckoutFlow({ api, enabled: true, allowedIds, getBasket, onBasket, onIdentityLost, onActivity,
+    accountEnabled: true, isActive: networkActive, beforePrepare: () => sync.flush(),
+    onDefaults: profile => {
+      if (fieldsTouched || !networkActive() || !flow.identity) return;
+      pendingDefaults = profile;
+    }, onChange: render });
   const clearFields = () => { name.value = ''; address.value = ''; delivery.value = ''; loaf.value = ''; };
+  for (const input of [name, address, delivery, loaf]) input.addEventListener('input', () => {
+    fieldsTouched = true; flow.state.review = null;
+  });
   form.addEventListener('submit', event => {
     event.preventDefault();
     flow.review({ name: name.value, address: address.value, deliveryPreference: delivery.value, loafPreference: loaf.value });
@@ -59,13 +84,15 @@ export function attachCheckout({ api, ui, allowedIds, getBasket, onBasket, onIde
     identity = flow.identity;
     const active = identity !== null && navigator.onLine && ui.dialog.open && !document.hidden;
     const privateVisible = active && !state.suspended;
-    if (!privateVisible || (!state.prepared && previouslyPrivate)) clearFields();
-    previouslyPrivate = Boolean(state.prepared);
-    status.textContent = !identity ? 'Login to choose an account basket. No automatic saving or merging.' : state.message || 'Choose whether to load your account basket or save this basket. Nothing is merged automatically.';
+    // A background version refresh invalidates the quote, not the customer's
+    // in-progress per-order form. Privacy transitions call clearFields explicitly.
+    if (!networkActive() || !identity) clearFields();
+    status.textContent = !identity ? 'Sign in to use your account basket and checkout.' : state.message || 'Checking your account…';
+    basketStatus.textContent = identity ? sync.state.message : 'Anonymous basket stays on this device only.';
     root.setAttribute('aria-busy', String(state.busy));
-    load.disabled = save.disabled = !active || state.busy || Boolean(state.attempt);
-    save.disabled ||= state.needsReload;
-    prepare.disabled = !active || state.busy || !state.cart || state.dirty || state.needsReload || Boolean(state.attempt);
+    load.hidden = save.hidden = !identity || !sync.state.choice;
+    load.disabled = save.disabled = !active || state.busy || sync.state.busy || Boolean(state.attempt);
+    prepare.disabled = !active || state.busy || !flow.recoveryReady || !state.cart || state.needsReload || Boolean(state.attempt);
     quoteRoot.replaceChildren(); accepted.replaceChildren();
     if (privateVisible && !state.busy && (state.prepared || state.cart) && !state.attempt) {
       const quote = state.prepared?.quote || (!state.dirty ? state.cart?.quote : null);
@@ -76,6 +103,11 @@ export function attachCheckout({ api, ui, allowedIds, getBasket, onBasket, onIde
       if (!quote) for (const problem of state.cart?.problems || []) quoteRoot.append(element('p', problem.message, 'sf-note'));
     }
     form.hidden = !privateVisible || !state.prepared || Boolean(state.review);
+    if (!form.hidden && pendingDefaults && !fieldsTouched && !defaultsApplied) {
+      name.value = pendingDefaults.name; address.value = pendingDefaults.address;
+      delivery.value = pendingDefaults.deliveryPreference; loaf.value = pendingDefaults.loafPreference;
+      defaultsApplied = true; pendingDefaults = null;
+    }
     for (const input of [name, address, delivery, loaf, review]) input.disabled = state.busy;
     if (privateVisible && state.review) {
       accepted.append(element('h4', 'Delivery snapshot — fixed on confirmation'));
@@ -103,8 +135,10 @@ export function attachCheckout({ api, ui, allowedIds, getBasket, onBasket, onIde
     if (privateVisible && !state.busy && state.result?.paymentUrl) { payment.href = state.result.paymentUrl; payment.hidden = false; }
     abort.hidden = !active || state.suspended || (!state.prepared && !state.attempt);
     // Poll only an already owned opaque ID, at most ten GETs, no hidden-page work.
-    if (privateVisible && !state.busy && ['CREATING', 'UNKNOWN'].includes(state.result?.status) && flow.polls < 10) {
-      pollTimer = setTimeout(() => { if (ui.dialog.open && !document.hidden && navigator.onLine) flow.poll(); }, 5000);
+    newOrder.hidden = !active || !['PAID', 'CANCELLED', 'EXPIRED'].includes(state.result?.status);
+    newOrder.disabled = state.busy;
+    if (networkActive() && !state.suspended && !state.busy && ['PAYABLE', 'CREATING', 'UNKNOWN'].includes(state.result?.status) && flow.polls < 10) {
+      pollTimer = setTimeout(() => { if (networkActive()) flow.poll(); }, 5000);
     }
     const deadline = state.prepared?.expiresAt || (state.result?.status === 'PAYABLE' ? state.result.expiresAt : null);
     if (privateVisible && deadline) expirationTimer = setTimeout(() => flow.suspend('quote or payment deadline reached'), Math.min(2147483647, Math.max(1, Date.parse(deadline) - Date.now())));
@@ -112,9 +146,33 @@ export function attachCheckout({ api, ui, allowedIds, getBasket, onBasket, onIde
   render(flow.state);
   return {
     flow,
-    identity(id) { identity = Number.isSafeInteger(id) ? id : null; flow.setIdentity(identity); render(flow.state); },
-    changed() { flow.changed(); },
-    suspend(reason) { flow.suspend(reason); clearFields(); },
+    identity(id) {
+      const next = Number.isSafeInteger(id) ? id : null;
+      if (next !== flow.identity) { clearFields(); fieldsTouched = false; pendingDefaults = null; defaultsApplied = false; }
+      // Flow must clear the old attempt before account-basket removal notifies the outer UI.
+      flow.setIdentity(next); sync.setIdentity(next); render(flow.state);
+    },
+    async resume() {
+      if (!networkActive()) return;
+      await flow.resume();
+      if (!flow.identity || !networkActive()) return;
+      // Recovery never creates an order; even a paid past order does not clear the cart.
+      if (!sync.state.choice && (!sync.state.dirty || !sync.state.associated)) await sync.refresh();
+      else sync.schedule();
+    },
+    changed() { flow.changed(); sync.changed(); },
+    suspend(reason) {
+      // Closing the private drawer is not a logout: non-PII basket saves may
+      // finish while the document remains visible and online.
+      if (!['drawer closed', 'drawer closing'].includes(reason)) sync.pause();
+      flow.suspend(reason); clearFields(); pendingDefaults = null;
+      // Suggestions cleared for privacy may be fetched again, but never applied
+      // after the first application or after the customer starts editing.
+      if (!defaultsApplied && !fieldsTouched) flow.defaultsRead = false;
+    },
+    get canEdit() { return !flow.state.attempt; },
+    get hasIdentity() { return flow.identity !== null; },
+    get accountOwned() { return sync.state.associated; },
     get engaged() { return Boolean(flow.state.cart || flow.state.attempt || flow.state.prepared); }
   };
 }

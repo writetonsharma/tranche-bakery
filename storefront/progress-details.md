@@ -161,3 +161,76 @@
   tests/checkout.test.mjs and this append-only progress record, all under storefront.
   No backend, root docs, config/routing, bundles or live-preview flags changed.
   task.md not written: none was supplied or found inside the allowed repository.
+
+## Account / automatic basket / payment-return next phase — 2026-10-27
+
+- Research recorded before source edits in account-nextphase-task.md. Read the
+  authoritative current backend account contract and actual OrderStatus enum.
+  No scenario skill root, Execution/hint files, assessment or task.md was supplied;
+  skill discovery returned no match and no applicable Execution extensions.
+  Independent account UI and transport/test concerns were delegated; integrated
+  acceptance/basket lifecycle stayed with one owner. No lifecycle tools called.
+- Added account.html, storefront/account.css, account-model.mjs and account.mjs;
+  normal index/breads/about/faq navigation and checkout link to My account. The
+  logged-out page links to the existing WhatsApp sign-in drawer without PII.
+  Explicit five-field versioned profile saves/conflict reload, website-only
+  bounded history and historical fulfillment/quote detail remain memory-only.
+- Added basket-sync.mjs and integrated checkout flow/view/storefront: automatic
+  clean login load, differing device/account explicit choices, no merge, exact
+  acknowledged-version debounce writes, in-flight edit retention and explicit
+  409/uncertain reconciliation. Account baskets never use anonymous persistence;
+  logout/identity removes account-origin baskets and storage events cannot leak
+  a prior account basket into a later identity. Review flushes writes first.
+- Defaults only prefill the first eligible delivery form and never overwrite
+  touched per-order fields or implicitly save a profile. Background version
+  refresh clears quote/review, not entered delivery text. Hidden/offline/logout/
+  identity transitions clear private DOM/model and reject abort-ignoring replies.
+- Owned account GET recovers the real historical checkout including PAID;
+  no automatic POST, fabricated key or payment-link retry. PAYABLE joins bounded
+  visible/online polling; focus/return rechecks identity and rearms ten checks.
+  Ambiguous create keeps its exact original payload/key across BFCache for
+  explicit retry only. Full reload cannot preserve that key. Known attempts
+  discard private payload on pause and recover it with owned detail GET.
+- Payment received is a server-verified state. Start new order explicitly drops
+  only UI attempt context, ignores that dismissed recovery ID and leaves newer
+  basket edits intact. Pending/uncertain attempts fence new orders; no automatic
+  paid-cart cleanup was added or claimed. Original retained basket is explained.
+- Extended api.mjs and vercel.json with four exact-host account rewrites and
+  strict client methods, canonical page bounds, opaque IDs and real CSRF. Updated
+  README/DEPLOYMENT for backend-first additive V52 and parent validation gates.
+- Added tests/account.test.mjs, account-api.test.mjs, basket-sync.test.mjs,
+  recovery.test.mjs; updated checkout/routing/storefront tests. Coverage authored
+  for exact schemas/privacy, profile CAS, defaults non-overwrite, choices/debounce/
+  races/409, hidden/offline/identity stale responses, flush, GET-only historical
+  recovery, PAYABLE bounds, paid new-order/no basket clearing and startup gating.
+- Read-only review corrections: initial dirty/unassociated deadlock, BFCache key
+  loss, cleared unapplied defaults, stale prepared version, hidden auth POST race,
+  URL/ID newline normalization and optional profile failure hiding payment state.
+  Polling with drawer closed is intentional only for visible/online documents;
+  no unconditional network timer loop. Each request keeps its 15-second bound.
+- Editor diagnostics reported no errors in inspected sources, tests, HTML and
+  routing. **No terminal commands, tests, builds, production/provider access,
+  deployment or push were performed. No runtime passing claim.** Parent owns
+  Node/syntax execution, real browser layout/accessibility/BFCache/privacy tests,
+  Vercel cookie/CSRF/cache/routing execution and backend V52/regression validation.
+
+## Two reviewed recovery / legacy-suggestion fixes — 2026-10-27
+
+- Root causes: a definitive CHECKOUT_IN_PROGRESS left a fresh rejected idless
+  snapshot blocking owned GET recovery; version-zero profile GET exposed raw
+  shared-customer text that the frontend's strict profile validator rejected.
+- CheckoutFlow now discards only a fresh, definitively rejected 409 snapshot and
+  resumes owned GET recovery after releasing busy state. A failed recovery keeps
+  preparation gated. An already ambiguous original retains its payload/key and
+  explicit-retry availability even when a later retry receives that conflict.
+- WebAccountService normalizes legacy layout separators to spaces and omits
+  unsafe/short/overlength suggestions. No profile/shared-customer GET writes;
+  saved defaults and strict PUT validation are unchanged.
+- Regression tests: two prebootstrapped tabs recovering the actual ID by exact
+  GET without resend; recovery failure gating; ambiguous same-key conflict retry;
+  frontend profile/history bootstrap and editable suggestions; backend read-only
+  GET/history/editability for multiline/control/overlength legacy data; isolated
+  service coverage for overlength names/NUL beyond current database constraints.
+- Re-validation: editor diagnostics report no errors in all six implementation
+  and test files. No tests/builds/terminal/provider/parked/push operations performed;
+  runtime validation remains with the parent. No lifecycle tools were called.

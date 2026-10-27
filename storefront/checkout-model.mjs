@@ -1,9 +1,10 @@
 import { validateLines, validateLineStructure, validateQuote, validDate } from './model.mjs';
 
 // Server currently generates 192-bit base64url attempt IDs. Bounded, not a path.
-export const OPAQUE_ID = /^[A-Za-z0-9_-]{32}$/;
+export const OPAQUE_ID = /^[A-Za-z0-9_-]{32}$(?![\s\S])/;
 export const checkoutEnabled = config => config?.enabled === true && config?.checkoutEnabled === true;
 export const PROBLEMS = Object.freeze({
+  PROFILE_CONFLICT: 'Saved website defaults changed elsewhere. Reload them before explicitly saving again.',
   CART_CONFLICT: 'Account basket changed. Choose Load account basket to discard local edits, then review again.',
   QUOTE_CHANGED: 'Prices or availability changed. Prepare and review a fresh quote.',
   QUOTE_EXPIRED: 'Quote expired. Prepare and review a fresh quote.',
@@ -66,7 +67,7 @@ export function validatePrepared(value, cart, now = Date.now()) {
 export function fulfillment(value) {
   if (!value || Object.keys(value).sort().join(',') !== 'address,deliveryPreference,loafPreference,name') throw new Error('Invalid details');
   const text = (key, min, max) => {
-    if (typeof value[key] !== 'string' || /[\u0000-\u001f\u007f-\u009f]/.test(value[key])) throw new Error('Invalid details');
+    if (typeof value[key] !== 'string' || /[\u0000-\u001f\u007f-\u009f\u2028\u2029]/.test(value[key])) throw new Error('Invalid details');
     const trimmed = value[key].trim();
     if (trimmed.length < min || trimmed.length > max) throw new Error('Invalid details');
     return trimmed;
@@ -78,6 +79,7 @@ export function fulfillment(value) {
 export function paymentUrl(value) {
   // Reject normalization tricks as well as unsafe hosts. Provider links need no query.
   if (typeof value !== 'string' || value.length > 2048 ||
+      /[\u0000-\u0020\u007f-\u009f]/.test(value) ||
       !/^https:\/\/(?:rzp\.io|razorpay\.com)\/[A-Za-z0-9/_-]+$/.test(value) ||
       /\/\//.test(value.slice(8)) || value.endsWith('/')) throw new Error('Invalid payment URL');
   const url = new URL(value);
@@ -89,7 +91,7 @@ export function validateCheckout(value, expectedId, now = Date.now()) {
   if (!value || !OPAQUE_ID.test(value.id) || (expectedId && value.id !== expectedId) ||
       !['CREATING', 'PAYABLE', 'UNKNOWN', 'PAID', 'REVIEW_REQUIRED', 'CANCELLED', 'EXPIRED'].includes(value.status) ||
       typeof value.expiresAt !== 'string' || !Number.isFinite(Date.parse(value.expiresAt))) throw new Error('Invalid checkout');
-  const expired = ['PAYABLE', 'CREATING'].includes(value.status) && Date.parse(value.expiresAt) <= now;
+  const expired = value.status === 'PAYABLE' && Date.parse(value.expiresAt) <= now;
   return immutable({ id: value.id, status: expired ? 'EXPIRED' : value.status, expiresAt: value.expiresAt,
     paymentUrl: !expired && value.status === 'PAYABLE' && value.paymentUrl != null ? paymentUrl(value.paymentUrl) : null });
 }

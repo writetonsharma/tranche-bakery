@@ -1,3 +1,62 @@
+# Account / automatic basket / payment-return next phase — 2026-10-27
+
+**Final integration validation:** 398 backend tests / 49 suites, 132 Node tests,
+19 JS/MJS syntax checks and whitespace checks passed; scoped review PASS. Local
+browser fixtures confirmed account rendering/profile save, no horizontal overflow
+at 462px/1280px and private-data removal on simulated hidden state. Hosted account
+acceptance remains pending. Earlier worker-only “not run” notes below are historical.
+
+This section supersedes the older preview-only and manual-load/save descriptions
+below. No dependencies or framework/build changes. Backend account endpoints and
+Flyway **V52 must be deployed and validated before this frontend**. No terminal,
+build, test execution, production calls, bundling or push was performed in this pass.
+
+- `account.html` uses the existing site navigation and olive/cream treatment.
+	Products/drawer and normal site navs link to it. Signed-out access exposes no
+	account data; its sign-in link opens the existing WhatsApp-auth drawer on Products.
+	Dedicated profile saves use exact safe versions; conflicts retain the form and
+	require explicit reload. Order history is **website only**, ten/page, with
+	read-only original fulfillment and historical quote, not current menu pricing.
+- Profile suggestions prefill the first checkout delivery form for an identity,
+	never reapply over entered fields, and never save from checkout. Background cart
+	refresh invalidates old quotes without replacing in-progress delivery text.
+	Explicit privacy transitions clear form fields, private DOM and pending defaults.
+- `BasketSync` owns independent abort/generation and revision tracking. Clean login
+	loads the account basket automatically. Differing nonempty device intent requires
+	Use account / Keep device choices before any PUT; never merge. Identical baskets
+	associate without writing. Once associated, edits debounce 400ms and save only
+	with the last validated version. Edits during a write remain dirty; a subsequent
+	write uses only its exact valid acknowledgement. 409, lost acknowledgements and
+	interrupted writes retain edits and fence further writes behind explicit choice.
+- Account baskets are never written under the anonymous device storage key; that
+	key is removed on association. Identity/logout clears the former account basket;
+	unresolved genuine anonymous intent may remain. Anonymous storage events cannot
+	replace an active account basket. No identity, profile, address, phone, key, quote
+	token or payment URL is persisted in local/session storage.
+- Review order flushes pending basket writes before preparing a fresh quote.
+	Delivery review and Confirm & Pay remain explicit. Recovery/status never POSTs,
+	invents a key, creates a link or retries acceptance. An ambiguous sent attempt
+	retains only its original immutable in-memory payload for explicit same-key retry,
+	including BFCache return. Full reload cannot recover a missing original key.
+- Login/reload checks `/api/account/checkout` and displays the actual historical
+	attempt (including paid), not a reconstructed basket. Uncertain/review states
+	require support. PAID says Payment received; Start new order explicitly dismisses
+	only UI attempt context. It does **not** clear a newer basket or automatically pay
+	the retained past-order basket again. Backend paid-cart cleanup remains deferred.
+- PAYABLE/CREATING/UNKNOWN checks are event-triggered or at most ten five-second
+	polls per return window. Visible, online documents only (the private drawer need
+	not be open); hidden/offline work is aborted, old callbacks ignored. Focus/visible
+	rechecks session and rearms the bounded window. No automatic order/link creation.
+
+Parent validation: run the dependency-free Node suites (including new account,
+account-api, basket-sync and recovery fixtures), module syntax checks and browser
+flows against intercepted local mocks. Tests were authored but **not run here**;
+editor diagnostics are not execution evidence. Native-dialog focus/keyboard,
+responsive account layout, BFCache, cookies/CSRF, actual Vercel rewrite execution,
+provider return and backend migration/regressions remain parent-owned gates.
+Private state clearing is tested with retained detached input references and
+abort-ignoring fake APIs, not merely with hidden containers.
+
 # Storefront — basket preview and T006 checkout
 
 ## Approved production activation (2026-10-26)

@@ -1,5 +1,68 @@
 # Storefront deployment gates — approved checkout activation
 
+## Account transport addition — locally validated, deployment pending
+
+Final local validation: **398 backend tests / 49 suites**, **132 website tests**,
+**19 JS/MJS syntax checks**, whitespace checks and scoped review PASS. Reviewer
+findings on a second-tab CHECKOUT_IN_PROGRESS rejection and legacy multiline
+profile suggestions were fixed with regressions. Local browser fixture checks
+cover account rendering/save and private-data clearing at mobile/desktop widths;
+document visibility was simulated for this isolated harness. Hosted account
+cookie/CSRF/rewrite/cross-device and actual payment-return acceptance remain pending.
+
+The earlier checkout pilot was user-reported successful: real Razorpay payment
+followed by server-verified paid status. Admin order destination/receipt/notification
+acceptance was not reported. No real OTP or payment was initiated for this update.
+
+Deploy the account backend **first**, including additive Flyway **V52** (website
+profile table and history index), and confirm migration/backend health before
+deploying this frontend. This supersedes the earlier activation-only statement
+that no backend update is needed. Do not change existing auth secrets or payment,
+webhook, WhatsApp or checkout settings as part of this transport addition.
+
+Account requests independently require the existing frontend `checkoutEnabled`
+gate to be exactly true; enabling the preview/login surface alone does not permit
+them. Backend additionally requires both web and checkout flags, valid paired
+customer cookies, exact allowed Origin and, for profile PUT, session-bootstrap
+CSRF. Requests remain same-origin, credentialed, no-store and redirect-rejecting.
+No new credentials, numeric identity parameters or general account proxy exist.
+
+Four exact-host rewrites go to the same fixed Railway backend: `/api/account/profile`
+(GET/PUT), `/api/account/orders` (GET),
+`/api/account/orders/:opaqueId([A-Za-z0-9_-]{32})` (GET) and
+`/api/account/checkout` (GET). Backend enforces methods. The list defaults to page
+0; explicit pagination must be a single canonical `?page=n`, 0..10000, with no
+other query parameters. Vercel path regex cannot enforce query-value bounds;
+the strict client and backend both enforce them. Preview hosts remain excluded.
+
+Profiles retain explicit website defaults only; checkout snapshots are not
+implicitly rewritten. History is only the customer's eligible website orders,
+not WhatsApp/commercial/subscription history. Recovery is GET-only and memory-only:
+it is not authorization to re-POST checkout or invent a new idempotency key.
+Conflicts use the local safe `PROFILE_CONFLICT` message, never server-provided
+text. Ambiguous outcomes still require support reconciliation.
+
+Local API/routing, account UI/lifecycle and backend V52/account/security/settlement
+regressions passed. Next perform approved hosted cookie/CSRF/cache/ownership checks
+after deployment. Source tests do not execute Vercel's routing engine. No deployment
+or production/provider operation was performed during this implementation.
+
+**Paid-cart cleanup is deferred.** Do not clear a basket automatically on paid
+recovery or polling, including newer customer edits. Future cleanup must condition
+on the exact consumed cart version, advance its version, be webhook-idempotent
+and preserve settlement lock ordering. Existing payment settlement stays active
+during UI rollback; no payment or order is cancelled merely by disabling a gate.
+
+The new frontend uses automatic versioned basket load/save after explicit
+device/account reconciliation where needed. Review order flushes writes before a
+fresh quote; delivery review and Confirm & Pay remain explicit. Return/reload reads
+the latest owned attempt, then bounds visible/online PAYABLE/CREATING/UNKNOWN
+checks. PAID requires explicit Start new order, leaving the basket unchanged.
+The old manual Save/Load activation instructions below are historical, not this
+phase's customer flow. Validate profile conflicts, stale/in-flight cart writes,
+anonymous/account identity separation, privacy clearing and BFCache same-key
+ambiguity in the parent's local intercepted browser harness before rollout.
+
 ## Current activation decision (2026-10-26)
 
 User explicitly approved enabling the public frontend after reporting deployment.

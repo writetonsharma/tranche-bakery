@@ -106,7 +106,7 @@ test('payment URLs exact HTTPS hosts and nonempty safe paths only, no credential
   for (const url of ['http://rzp.io/i/a', 'https://rzp.io.evil/i/a', 'https://sub.razorpay.com/a',
     'https://x@rzp.io/a', 'https://rzp.io:443/a', 'https://rzp.io:8443/a', 'https://rzp.io/a#x',
     'https://rzp.io', 'https://rzp.io/', 'https://rzp.io/../a', 'https://rzp.io/%2f%2fevil',
-    'https://rzp.io/a?redirect=https://evil.test', 'https://rzp.io\\evil/a', ' https://rzp.io/a']) {
+    'https://rzp.io/a?redirect=https://evil.test', 'https://rzp.io\\evil/a', ' https://rzp.io/a', 'https://rzp.io/a\n']) {
     assert.throws(() => paymentUrl(url), url);
   }
 });
@@ -117,7 +117,7 @@ test('only owned PAYABLE can expose link; nonpayable, expired and unknown states
   }
   assert.equal(validateCheckout({ ...payable, expiresAt: '2026-10-25T00:00:00Z' }, id, now).paymentUrl, null);
   for (const value of [{ ...payable, id: 'b'.repeat(32) }, { ...payable, id: '../api/cart' },
-    { ...payable, status: 'SUCCESS' }, { ...payable, expiresAt: 'tomorrow' },
+    { ...payable, status: 'SUCCESS' }, { ...payable, id: id + '\n' }, { ...payable, expiresAt: 'tomorrow' },
     { ...payable, paymentUrl: 'https://evil.test/a' }]) assert.throws(() => validateCheckout(value, id, now));
 });
 test('problem mapping ignores arbitrary backend text and only uses bounded allowed codes', () => {
@@ -430,6 +430,17 @@ test('cart edit during prepare rejects a late success even if transport ignores 
   assert.equal(flow.state.busy, false);
 });
 
+test('concurrent clean account refresh cannot install an old prepared quote', async () => {
+  const { flow } = fixture(); await flow.load();
+  let release;
+  flow.api.request = () => new Promise(resolve => { release = resolve; });
+  const pending = flow.prepare(); await new Promise(resolve => setImmediate(resolve));
+  flow.state.cart = validateCart({ ...cart, version: 2 });
+  release(prepared); await pending;
+  assert.equal(flow.state.prepared, null);
+  assert.match(flow.state.message, /changed while reviewing/i);
+});
+
 test('status response for a different opaque ID never exposes a payment URL', async () => {
   const { flow } = fixture(); await flow.load(); await flow.prepare(); await flow.confirm(details);
   flow.api.request = async () => ({ ...payable, id: 'b'.repeat(32) });
@@ -447,7 +458,7 @@ test('all durable routes remain disallowed without independent client opt-in', a
   assert.equal(calls, 0);
 });
 
-test('mock DOM checkout is usable through save/prepare/review/confirm/payment/status and immediately hides on pause', async () => {
+test('mock DOM automatically resumes account basket/defaults, reviews immutable delivery and recovers owned details after pause', async () => {
   const originalDocument = globalThis.document;
   const originalNavigator = Object.getOwnPropertyDescriptor(globalThis, 'navigator');
   const nodes = [];
@@ -469,27 +480,54 @@ test('mock DOM checkout is usable through save/prepare/review/confirm/payment/st
       querySelector: selector => selector === '#sf-auth .sf-note' ? authHelp : selector === '#sf-disclaimer' ? disclaimer : null };
     Object.defineProperty(globalThis, 'navigator', { configurable: true, value: { onLine: true } });
     const calls = [];
+    let local = structuredClone(basket);
+    let accountBasket = structuredClone(cart);
+    let basketReplacements = 0;
+    const defaults = { version: 2, ...details, name: 'Saved customer', address: '456 Saved Street, Gurugram' };
+    const expiresAt = new Date(Date.now() + 3600000).toISOString();
+    const accountDetail = { ...payable, expiresAt, orderNumber: 'WEB-1027',
+      createdAt: '2026-10-26T08:00:00Z', orderStatus: 'CONFIRMED', fulfillment: structuredClone(details),
+      quote: { ...structuredClone(quote), discountLabel: null, batchDiscountLabel: null, giftLabel: null, itemCount: 2 } };
     const api = { session: async () => session, request: async (path, body, _signal, method) => {
-      calls.push({ path, body, method });
-      if (path === '/api/cart') return structuredClone(cart);
+      calls.push({ path, body: structuredClone(body), method });
+      if (path === '/api/account/checkout') return { checkout: null };
+      if (path === '/api/account/profile') return structuredClone(defaults);
+      if (path === '/api/cart' && method === undefined) return structuredClone(accountBasket);
       if (path === '/api/checkout/prepare') return { ...structuredClone(prepared), expiresAt: new Date(Date.now() + 600000).toISOString() };
-      return { ...payable, expiresAt: new Date(Date.now() + 3600000).toISOString() };
+      if (path === '/api/checkout' || path === `/api/checkout/${id}`) return { ...payable, expiresAt };
+      if (path === `/api/account/orders/${id}`) return structuredClone(accountDetail);
+      throw new Error(`Unexpected checkout request: ${method || 'GET'} ${path}`);
     } };
     checkout = attachCheckout({ api, ui: { auth: new Node('section'), dialog: { open: true } },
-      allowedIds: ids, getBasket: () => basket, onBasket: () => {} });
+      allowedIds: ids, getBasket: () => local, onBasket: value => { local = value; basketReplacements++; } });
     checkout.identity(7);
     assert.equal(calls.length, 0);
     assert.equal(select('sf-checkout').attributes['aria-labelledby'], 'sf-checkout-title');
     assert.equal(select('sf-confirm-pay').hidden, true);
-    await select('sf-cart-load').fire('click');
+    assert.equal(select('sf-prepare').disabled, true);
+    await checkout.resume();
+    assert.deepEqual(calls.map(call => call.path), ['/api/account/checkout', '/api/account/profile', '/api/cart']);
+    assert.equal(checkout.accountOwned, true);
+    assert.equal(checkout.canEdit, true);
+    assert.equal(basketReplacements, 0); // Identical local/account basket autoassociates without replacement.
+    assert.equal(select('sf-cart-load').hidden, true);
+    assert.equal(select('sf-cart-save').hidden, true);
     assert.equal(select('sf-prepare').disabled, false);
     await select('sf-prepare').fire('click');
     assert.equal(select('sf-delivery').hidden, false);
     assert.equal(select('sf-confirm-pay').hidden, true);
+    assert.equal(select('sf-delivery-name').value, defaults.name);
+    assert.equal(select('sf-delivery-address').value, defaults.address);
     select('sf-delivery-name').value = details.name;
     select('sf-delivery-address').value = details.address;
     select('sf-delivery-preference').value = details.deliveryPreference;
     select('sf-loaf-preference').value = details.loafPreference;
+    await select('sf-delivery-name').fire('input');
+    await select('sf-delivery-address').fire('input');
+    await checkout.resume(); // Background account refresh must not reapply saved suggestions.
+    assert.equal(select('sf-delivery-name').value, details.name);
+    assert.equal(select('sf-delivery-address').value, details.address);
+    assert.equal(calls.filter(call => call.path === '/api/account/profile').length, 1);
     await select('sf-delivery').fire('submit');
     assert.equal(select('sf-delivery').hidden, true);
     assert.equal(select('sf-confirm-pay').hidden, false);
@@ -499,15 +537,22 @@ test('mock DOM checkout is usable through save/prepare/review/confirm/payment/st
     assert.equal(select('sf-payment-link').href, payable.paymentUrl);
     assert.equal(select('sf-payment-link').target, '_blank');
     assert.equal(checkout.flow.state.result.status, 'PAYABLE');
+    assert.equal(checkout.canEdit, false); // Outer storefront owns disabling basket controls.
     await select('sf-checkout-refresh').fire('click');
     assert.equal(calls.at(-1).path, `/api/checkout/${id}`);
+    const posts = calls.filter(call => call.path === '/api/checkout').length;
+    // Direct invocation is still safe even though outer controls disallow edits.
     checkout.changed();
     assert.equal(select('sf-checkout-quote').children.length, 0);
     assert.equal(select('sf-payment-link').href, undefined);
+    assert.equal(checkout.flow.state.attempt.payload, null);
     await select('sf-checkout-refresh').fire('click');
+    assert.equal(calls.at(-1).path, `/api/account/orders/${id}`);
     assert.equal(select('sf-checkout-quote').children[0].textContent, 'Accepted checkout quote — original order');
     assert.match(select('sf-accepted-details').children[0].textContent, /Original checkout delivery/);
+    assert.deepEqual(checkout.flow.state.attempt.payload, details);
     assert.equal(checkout.flow.state.attempt.quote.totalAmount, 90);
+    assert.equal(calls.filter(call => call.path === '/api/checkout').length, posts);
     checkout.suspend('offline');
     assert.equal(select('sf-payment-link').hidden, true);
     assert.equal(select('sf-payment-link').href, undefined);
@@ -516,26 +561,28 @@ test('mock DOM checkout is usable through save/prepare/review/confirm/payment/st
     assert.equal(select('sf-delivery-name').value, '');
     checkout.identity(null);
     assert.equal(checkout.flow.state.attempt, null);
-    // A structurally valid but unrenderable account basket must not clear the
-    // local basket, enable Prepare, or hide the explicit replacement choice.
-    let loaded = 0;
-    checkout.flow.onBasket = () => loaded++;
-    api.request = async (path, body, _signal, method) => {
-      calls.push({ path, body, method });
-      return structuredClone(retiredCart);
-    };
+    // Automatic resume of unavailable bakes still leaves an explicit choice;
+    // it must not clear or merge the newer device basket, nor write it back.
+    local = structuredClone(basket);
+    accountBasket = structuredClone(retiredCart);
+    const replacementsBefore = basketReplacements;
     checkout.identity(7);
-    await select('sf-cart-load').fire('click');
-    assert.equal(loaded, 0);
+    await checkout.resume();
+    assert.equal(basketReplacements, replacementsBefore);
+    assert.deepEqual(local, basket);
+    assert.equal(select('sf-cart-save').hidden, false);
+    assert.equal(select('sf-cart-load').hidden, false);
     assert.equal(select('sf-cart-save').disabled, false);
     assert.equal(select('sf-cart-load').disabled, false);
     assert.equal(select('sf-prepare').disabled, true);
     assert.equal(select('sf-confirm-pay').hidden, true);
     assert.equal(select('sf-payment-link').href, undefined);
-    assert.match(select('sf-checkout-status').textContent, /unavailable.*not loaded/i);
-    assert.match(select('sf-checkout-status').textContent, /Choose Save this basket/i);
+    assert.match(checkout.flow.state.message, /Account checked/i);
+    assert.equal(checkout.flow.state.needsReload, true);
+    assert.equal(checkout.accountOwned, false);
     assert.equal(select('sf-checkout-quote').children.length, 1);
     assert.doesNotMatch(select('sf-checkout-quote').children[0].textContent, /private backend text/);
+    assert.equal(calls.some(call => call.method === 'PUT'), false);
   } finally {
     checkout?.suspend('test complete');
     if (originalDocument === undefined) delete globalThis.document; else globalThis.document = originalDocument;

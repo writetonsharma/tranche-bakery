@@ -6,10 +6,18 @@ import { attachCheckout } from './checkout-view.mjs';
 
 // Disabled means no fetch, storage access, DOM enhancement, or event listeners.
 if (window.TRANCHE_STOREFRONT?.enabled === true && typeof HTMLDialogElement !== 'undefined') {
-  start().catch(() => {
-    const note = element('p', 'Basket preview is unavailable. Please order on WhatsApp as usual.', 'sf-start-error');
-    document.querySelector('.products-intro-copy')?.append(note);
-  });
+  const launch = () => {
+    if (document.hidden || navigator.onLine === false) return;
+    document.removeEventListener('visibilitychange', launch);
+    window.removeEventListener('online', launch);
+    start().catch(() => {
+      const note = element('p', 'Basket preview is unavailable. Please order on WhatsApp as usual.', 'sf-start-error');
+      document.querySelector('.products-intro-copy')?.append(note);
+    });
+  };
+  document.addEventListener('visibilitychange', launch);
+  window.addEventListener('online', launch);
+  launch();
 }
 
 async function start() {
@@ -33,6 +41,7 @@ async function start() {
   let expires = 0;
   let resendAt = 0;
   let authEpoch = 0;
+  let authController;
   let quoteTimer;
   let expiryTimer;
   const latest = new LatestRequest();
@@ -41,6 +50,10 @@ async function start() {
     getBasket: () => ({ lines, date }),
     onActivity: () => invalidate('Checkout is checking the account basket. Preview totals cleared.'),
     onIdentityLost: () => identityUncertain(),
+    onAssociate: () => {
+      try { storage?.removeItem(STORAGE_KEY); } catch { /* Account basket is memory/server only. */ }
+      storageWarning = '';
+    },
     onBasket: basket => {
       lines = basket.lines; date = basket.date;
       // A readable stale account date is not silently changed to an offered date.
@@ -125,12 +138,16 @@ async function start() {
   }
 
   function persist() {
+    if (session?.authenticated || checkout?.hasIdentity || checkout?.accountOwned) return;
     storageWarning = saveBasket(storage, lines, allowedIds) ? '' : 'Device storage unavailable; this basket lasts only on this page.';
   }
 
   function change(id, delta) {
-    checkout?.changed();
+    if (checkout && !checkout.canEdit) {
+      ui.status.textContent = 'Resolve the current order first, or choose Start new order after payment. Your basket has not changed.'; return;
+    }
     lines = changeQuantity(lines, id, delta, allowedIds);
+    checkout?.changed();
     persist();
     invalidate('Basket updated. Getting a fresh server preview…');
     renderBasket();
@@ -151,11 +168,6 @@ async function start() {
   async function quote() {
     if (busy) return;
     invalidate();
-    if (checkout?.engaged) {
-      checkout.suspend('refresh requested');
-      ui.status.textContent = 'Use account basket and checkout controls below to refresh safely.';
-      return;
-    }
     if (document.hidden) return;
     if (!navigator.onLine) {
       ui.status.textContent = 'You appear offline. Basket kept on this device; no current totals.';
@@ -171,6 +183,12 @@ async function start() {
       const view = await api.request('/api/session', undefined, ticket.signal);
       if (!latest.current(ticket) || busy) return;
       applySession(view);
+      if (checkout && session?.authenticated) {
+        ui.totals.replaceChildren();
+        ui.status.textContent = 'Account basket saves automatically. Choose Review order below for a fresh quote; only Confirm & Pay places an order.';
+        await checkout.resume();
+        return;
+      }
       if (!input.lines.length) {
         ui.status.textContent = storageWarning || 'Add a bake to preview server prices.';
         return;
@@ -220,26 +238,29 @@ async function start() {
   }
 
   async function authAction(action) {
-    if (busy || !navigator.onLine) {
+    if (busy || document.hidden || !navigator.onLine) {
       if (!navigator.onLine) authStatus.textContent = 'Verification unavailable while offline.';
       return;
     }
     busy = true;
     checkout?.identity(null);
     const epoch = authEpoch;
+    const controller = new AbortController(); authController = controller;
+    const checkCurrent = () => {
+      if (epoch !== authEpoch || controller.signal.aborted || document.hidden || !navigator.onLine) throw new Error('Identity changed');
+    };
     invalidate('Login state is changing. Previous totals have been cleared.');
     authStatus.textContent = 'Please wait…';
     renderAuth();
     try {
       // Always get a current bootstrap. Unsafe operations are NEVER auto-retried.
-      const view = await api.request('/api/session');
-      if (epoch !== authEpoch) throw new Error('Identity changed');
+      const view = await api.request('/api/session', undefined, controller.signal);
+      checkCurrent();
       applySession(view);
-      await action(() => {
-        if (epoch !== authEpoch) throw new Error('Identity changed');
-      });
-      if (epoch !== authEpoch) throw new Error('Identity changed');
+      await action(checkCurrent, controller.signal);
+      checkCurrent();
     } catch {
+      if (epoch !== authEpoch || controller.signal.aborted) return;
       api.clearSession();
       session = null;
       checkout?.identity(null);
@@ -247,12 +268,20 @@ async function start() {
       ui.otp.value = '';
       authStatus.textContent = 'Verification unavailable or invalid. Please try again later.';
     } finally {
-      busy = false;
-      renderAuth();
-      if (challenge && ui.dialog.open) ui.otp.focus();
-      // On uncertainty do not expose even an old anonymous/personalised total.
-      invalidate('Previous totals cleared. Refresh the server preview to check current login state and totals.');
+      if (epoch === authEpoch) {
+        authController = undefined; busy = false;
+        renderAuth();
+        if (challenge && ui.dialog.open && !document.hidden) ui.otp.focus();
+        invalidate('Previous totals cleared. Refresh the server preview to check current login state and totals.');
+        if (session?.authenticated && !document.hidden && navigator.onLine) scheduleQuote();
+      }
     }
+  }
+
+  function pauseAuth() {
+    authEpoch += 1; authController?.abort(); authController = undefined; busy = false;
+    ui.phone.value = ''; ui.otp.value = '';
+    renderAuth();
   }
 
   ui.send.addEventListener('click', () => {
@@ -266,9 +295,10 @@ async function start() {
     resendAt = Date.now() + 60000; // Also throttle failures/uncertain delivery locally.
     challenge = undefined;
     ui.otp.value = '';
-    authAction(async checkCurrent => {
+    authAction(async (checkCurrent, signal) => {
       const sentAt = Date.now();
-      const result = await api.request('/api/auth/challenge', { phone });
+      checkCurrent();
+      const result = await api.request('/api/auth/challenge', { phone }, signal);
       checkCurrent();
       if (typeof result.challengeId !== 'string' || !result.challengeId || result.challengeId.length > 64 ||
           !Number.isInteger(result.expiresInSeconds) || result.expiresInSeconds < 1 || result.expiresInSeconds > 300) {
@@ -286,10 +316,11 @@ async function start() {
     if (ui.verify.disabled || busy || !challenge || Date.now() >= expires) return;
     const input = { challengeId: challenge, code: ui.otp.value };
     ui.otp.value = '';
-    authAction(async checkCurrent => {
+    authAction(async (checkCurrent, signal) => {
+      checkCurrent();
       channel?.postMessage('identity-changed');
       try {
-        const view = await api.request('/api/auth/verify', input);
+        const view = await api.request('/api/auth/verify', input, signal);
         checkCurrent();
         applySession(view); // Includes replacement CSRF, not a cookie read.
         challenge = undefined;
@@ -298,25 +329,29 @@ async function start() {
       } finally { channel?.postMessage('identity-changed'); }
     });
   });
-  ui.logout.addEventListener('click', () => authAction(async checkCurrent => {
+  ui.logout.addEventListener('click', () => authAction(async (checkCurrent, signal) => {
+    checkCurrent();
     channel?.postMessage('identity-changed');
     try {
-      const view = await api.request('/api/auth/logout');
+      const view = await api.request('/api/auth/logout', undefined, signal);
       checkCurrent();
       applySession(view);
       challenge = undefined;
       ui.phone.value = '';
       ui.otp.value = '';
-      authStatus.textContent = 'Logged out. Only product IDs and quantities remain on this device.';
+      authStatus.textContent = 'Logged out. Your account basket and private details have been removed from this page.';
     } finally { channel?.postMessage('identity-changed'); }
   }));
   ui.otp.addEventListener('input', renderAuth);
-  ui.date.addEventListener('change', () => { checkout?.changed(); date = ui.date.value; invalidate(); scheduleQuote(); });
+  ui.date.addEventListener('change', () => {
+    if (checkout && !checkout.canEdit) { ui.date.value = date; ui.status.textContent = 'Resolve the current checkout before editing its basket.'; return; }
+    date = ui.date.value; checkout?.changed(); invalidate(); scheduleQuote();
+  });
   ui.refresh.addEventListener('click', quote);
   ui.dialog.addEventListener('sf-open', () => { renderAuth(); quote(); });
   ui.dialog.addEventListener('close', () => {
     checkout?.suspend('drawer closed');
-    authEpoch += 1;
+    pauseAuth();
     challenge = undefined;
     invalidate('Preview closed. Reopen to get current server totals.');
     authStatus.textContent = '';
@@ -327,7 +362,7 @@ async function start() {
   function identityUncertain(retainAttempt = false) {
     if (retainAttempt) checkout?.suspend('offline');
     else checkout?.identity(null);
-    authEpoch += 1;
+    pauseAuth();
     api.clearSession();
     session = null;
     challenge = undefined;
@@ -338,26 +373,29 @@ async function start() {
   }
   if (channel) channel.onmessage = event => { if (event.data === 'identity-changed') identityUncertain(); };
   window.addEventListener('offline', () => { identityUncertain(true); invalidate('Offline. No current totals; please reconnect and refresh.'); });
-  window.addEventListener('online', () => invalidate('Connection restored. Refresh the server preview.'));
+  window.addEventListener('online', () => { invalidate('Connection restored. Rechecking your session…'); scheduleQuote(); });
   function returnedToPage() {
     // Keep an in-memory challenge when the user visits WhatsApp to read the code.
     // Re-bootstrap identity before the next quote without destroying that challenge.
     invalidate('Session needs rechecking. Refresh the server preview.');
     checkout?.suspend('session needs rechecking');
-    if (!busy && ui.dialog.open) scheduleQuote();
+    if (!busy && !document.hidden && navigator.onLine) scheduleQuote();
   }
   window.addEventListener('focus', returnedToPage);
   document.addEventListener('visibilitychange', () => {
-    if (document.hidden) { checkout?.suspend('page hidden'); invalidate('Preview paused. Refresh when you return.'); }
+    if (document.hidden) { pauseAuth(); checkout?.suspend('page hidden'); invalidate('Preview paused. Refresh when you return.'); }
     else returnedToPage();
   });
-  window.addEventListener('pageshow', event => { if (event.persisted) identityUncertain(); });
-  window.addEventListener('pagehide', () => { identityUncertain(); });
+  window.addEventListener('pageshow', event => { if (event.persisted) { identityUncertain(true); scheduleQuote(); } });
+  // BFCache retains the in-memory ambiguous payload/key. Only actual identity
+  // changes may discard it; a page return must never enable a fresh-key retry.
+  window.addEventListener('pagehide', () => { identityUncertain(true); });
   window.addEventListener('storage', event => {
     if (event.key !== STORAGE_KEY && event.key !== null) return;
-    checkout?.changed();
+    if (session?.authenticated || checkout?.hasIdentity || checkout?.accountOwned) return;
     const restored = readBasket(storage, allowedIds);
     lines = restored.lines;
+    checkout?.changed();
     storageWarning = restored.warning;
     invalidate('Device basket changed in another tab. Refresh the preview.');
     renderBasket();
@@ -374,4 +412,9 @@ async function start() {
   renderBasket();
   renderAuth();
   ui.status.textContent = storageWarning || 'Device-only basket. Open to get a server preview.';
+  if (session?.authenticated && !document.hidden && navigator.onLine) scheduleQuote();
+  if (window.location.hash === '#sf-auth' && !document.hidden) {
+    ui.opener.click();
+    if (ui.dialog.open && !session?.authenticated) ui.phone.focus();
+  }
 }

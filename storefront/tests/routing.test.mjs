@@ -10,7 +10,9 @@ const otherOrigins = ['http://www.tranchebakery.in', 'http://tranchebakery.in',
   'https://www.tranchebakery.in.attacker.example', 'https://other.tranchebakery.in', 'null'];
 const paths = ['/api/catalog', '/api/session', '/api/quote',
   '/api/auth/challenge', '/api/auth/verify', '/api/auth/logout',
-  '/api/cart', '/api/checkout/prepare', '/api/checkout', '/api/checkout/:opaqueId([A-Za-z0-9_-]{32})'];
+  '/api/cart', '/api/checkout/prepare', '/api/checkout', '/api/checkout/:opaqueId([A-Za-z0-9_-]{32})',
+  '/api/account/profile', '/api/account/orders', '/api/account/checkout',
+  '/api/account/orders/:opaqueId([A-Za-z0-9_-]{32})'];
 const backend = 'https://tranchewa-app-production.up.railway.app';
 const configCode = () => readFile(new URL('../config.js', import.meta.url), 'utf8');
 const routing = async () => JSON.parse(await readFile(new URL('../../vercel.json', import.meta.url), 'utf8'));
@@ -36,11 +38,11 @@ test('explicit pre-script rollback and local mock injections remain possible wit
   assert.doesNotMatch(code, /localStorage|sessionStorage|URLSearchParams|location\.(search|hash)/);
 });
 
-test('Vercel proxies only exact customer routes and tightly bounded checkout status to fixed HTTPS backend', async () => {
+test('Vercel proxies only exact customer/account routes and bounded opaque IDs to fixed HTTPS backend', async () => {
   const config = await routing();
   assert.deepEqual(config.rewrites.map(rule => rule.source).toSorted(), [...paths].toSorted());
   for (const rule of config.rewrites) {
-    assert.equal(rule.destination, backend + (rule.source.startsWith('/api/checkout/:') ? '/api/checkout/:opaqueId' : rule.source));
+    assert.equal(rule.destination, backend + rule.source.replace(':opaqueId([A-Za-z0-9_-]{32})', ':opaqueId'));
     assert.deepEqual(Object.keys(rule).toSorted(), ['destination', 'has', 'source']);
   }
   // No HTML routing, catch-all proxy, webhook, admin or provider endpoint.
@@ -97,4 +99,21 @@ test('status rewrite rejects arbitrary IDs, extra paths, encodings and query inj
   assert.equal(pattern.test('/api/checkout/' + 'a'.repeat(32)), true);
   for (const path of ['/api/checkout/x', '/api/checkout/../admin', '/api/checkout/' + 'a'.repeat(33),
     '/api/checkout/%2fadmin', '/api/checkout/' + 'a'.repeat(32) + '/extra']) assert.equal(pattern.test(path), false);
+});
+
+test('account rewrites have no subtree wildcard or query-based path matching', async () => {
+  const config = await routing();
+  const rules = config.rewrites.filter(rule => rule.source.startsWith('/api/account'));
+  assert.equal(rules.length, 4);
+  const detail = rules.find(rule => rule.source.includes('/:'));
+  assert.equal(detail.source, '/api/account/orders/:opaqueId([A-Za-z0-9_-]{32})');
+  const pattern = new RegExp('^' + detail.source.replace(':opaqueId', '') + '$(?![\\s\\S])');
+  for (const id of ['a'.repeat(32), '_-'.repeat(16)]) assert.equal(pattern.test('/api/account/orders/' + id), true);
+  for (const suffix of ['1', 'a'.repeat(31), 'a'.repeat(33), '../profile', '%2fadmin',
+    'a'.repeat(32) + '/extra', 'a'.repeat(32) + '?page=0', 'a'.repeat(32) + '\n']) {
+    assert.equal(pattern.test('/api/account/orders/' + suffix), false, suffix);
+  }
+  // Vercel matches the path, not the page value: client and backend bound queries.
+  assert.ok(rules.some(rule => rule.source === '/api/account/orders'));
+  for (const rule of rules) assert.doesNotMatch(rule.source, /\?|:path|\*/);
 });

@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="referrer" content="no-referrer">
+  <meta name="theme-color" content="#6e7750">
+  <title>Your account | TRANCHÉ Bakery</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="storefront/account.css">
+  <script src="storefront/config.js"></script>
+  <script type="module" src="storefront/account.mjs"></script>
+  <script src="scripts/site.js" defer></script>
+</head>
+<body class="account-page" id="top">
+  <a class="account-skip" href="#account-main">Skip to your account</a>
+  <header>
+    <a class="logo" href="index.html" aria-label="Go to home"><strong>TRANCHÉ</strong><span>Bakery</span></a>
+    <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="site-nav" data-menu-toggle>
+      <span class="menu-toggle-bar"></span><span class="menu-toggle-bar"></span><span class="menu-toggle-bar"></span><span class="menu-toggle-label">Menu</span>
+    </button>
+    <nav id="site-nav" class="site-nav" aria-label="Primary">
+      <a href="index.html">Home</a>
+      <a href="breads.html">Products</a>
+      <a href="breads.html#offers">Offers</a>
+      <a href="about.html">About</a>
+      <a href="faq.html">FAQ</a>
+      <a href="account.html" aria-current="page" class="nav-account">My account</a>
+      <a href="breads.html" class="nav-order">Browse bakes</a>
+    </nav>
+  </header>
+  <div class="nav-backdrop" data-nav-backdrop hidden></div>
+  <main id="account-main" class="account-shell">
+    <section class="account-hero" aria-labelledby="account-heading">
+      <div>
+        <p class="eyebrow">YOUR LITTLE CORNER OF TRANCHÉ</p>
+        <h1 id="account-heading">Good bread.<br>A familiar welcome.</h1>
+        <p>Your delivery defaults and the story of your website orders, all in one quiet place.</p>
+      </div>
+      <div class="account-seal" aria-hidden="true"><span>TRANCHÉ</span><span class="account-wheat">❧</span><span>MADE SLOWLY · SHARED OFTEN</span></div>
+    </section>
+    <section class="account-session" aria-label="Account access">
+      <p id="account-status" role="status" aria-live="polite">Sign in through the Products basket to see your account. Account access must be enabled on this site.</p>
+      <div class="account-actions">
+        <a id="account-signin" class="account-primary" href="breads.html#sf-auth">Sign in through Products</a>
+        <button id="account-recheck" type="button">Recheck session / reload account</button>
+        <button id="account-logout" type="button" hidden>Sign out</button>
+      </div>
+      <p class="account-note">On Products, open the basket and verify your WhatsApp number, then return here. For your privacy, leaving this page or going offline clears account details and unsaved edits. Returning rechecks your session.</p>
+    </section>
+    <noscript><p class="account-card">JavaScript is required for private account access. You can still browse our bakes and order on WhatsApp.</p></noscript>
+    <div id="account-private" class="account-grid" hidden></div>
+    <aside class="account-help">
+      <p class="eyebrow">A REAL PERSON, NOT JUST A PAGE</p>
+      <h2>Need a hand with an order?</h2>
+      <p>For payment uncertainty or anything that needs a little care, speak to the bakery before placing another order.</p>
+      <a href="https://wa.me/918796770308?text=Hi%2C%20I%20have%20a%20question." target="_blank" rel="noopener noreferrer">Chat with the bakery ↗</a>
+    </aside>
+  </main>
+  <footer class="account-footer"><span>TRANCHÉ · Small-batch bakery, Gurugram</span><a href="breads.html">Back to breads &amp; bakes →</a></footer>
+</body>
+</html>
