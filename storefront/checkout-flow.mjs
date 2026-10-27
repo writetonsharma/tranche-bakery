@@ -4,6 +4,7 @@ import { validateOrderDetail, validateProfile } from './account-model.mjs';
 
 const initial = () => ({ cart: null, prepared: null, review: null, attempt: null, result: null,
   busy: false, ambiguous: false, suspended: false, dirty: false, needsReload: false, message: '' });
+const resolved = status => ['PAID', 'CANCELLED', 'EXPIRED'].includes(status);
 const stateMessage = status => ({
   CREATING: 'Payment link is being created. Do not submit another order.',
   PAYABLE: 'Order awaiting payment. Open the secure payment link, then refresh verified status here.',
@@ -21,12 +22,19 @@ export class CheckoutFlow {
     Object.assign(this, { api, enabled: enabled === true, allowedIds, getBasket, onBasket, onChange, now, uuid, onIdentityLost, onActivity });
     Object.assign(this, { accountEnabled, isActive, beforePrepare, onDefaults });
     this.recoveryReady = !accountEnabled; this.defaultsRead = false; this.dismissedAttemptId = null;
+    this.resolvedAttemptId = null;
     this.state = initial(); this.latest = new LatestRequest(); this.identity = null; this.polls = 0;
+  }
+  get canEditBasket() {
+    // Keep only the verified terminal ID across privacy suspension. This permits
+    // basket edits, never preparation/confirmation while an attempt is retained.
+    return !this.state.attempt || Boolean(this.state.attempt.id && this.state.attempt.id === this.resolvedAttemptId);
   }
   emit() { this.onChange(this.state); }
   setIdentity(id) {
     const next = this.enabled && Number.isSafeInteger(id) && id > 0 ? id : null;
     if (this.identity !== next) {
+      this.resolvedAttemptId = null;
       this.latest.invalidate(); this.identity = next; this.state = initial(); this.polls = 0; this.emit();
       this.recoveryReady = !this.accountEnabled; this.defaultsRead = false; this.dismissedAttemptId = null;
     }
@@ -170,6 +178,7 @@ export class CheckoutFlow {
     }, { acceptance: true });
   }
   accept(result, attempt) {
+    this.resolvedAttemptId = resolved(result.status) ? result.id : null;
     this.state.attempt = immutable({ ...attempt, id: result.id });
     Object.assign(this.state, { result, suspended: false, ambiguous: false, message: stateMessage(result.status) });
   }
@@ -240,8 +249,9 @@ export class CheckoutFlow {
     }
   }
   startNewOrder() {
-    if (this.state.busy || !['PAID', 'CANCELLED', 'EXPIRED'].includes(this.state.result?.status)) return;
+    if (this.state.busy || !resolved(this.state.result?.status)) return;
     this.latest.invalidate(); this.dismissedAttemptId = this.state.attempt.id;
+    this.resolvedAttemptId = null;
     const cart = this.state.cart, dirty = this.state.dirty, needsReload = this.state.needsReload;
     this.state = { ...initial(), cart, dirty, needsReload,
       message: 'New order selected. Your existing basket is unchanged — remove any past-order bakes you do not want, then review a fresh quote.' };

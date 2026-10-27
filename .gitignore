@@ -1,6 +1,7 @@
 /whatsapp/bakery/target
 *.class
 .vscode/
+node_modules/
 
 # local deploy helpers - nver commit
 *bundle.txt

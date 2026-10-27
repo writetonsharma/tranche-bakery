@@ -234,3 +234,78 @@
 - Re-validation: editor diagnostics report no errors in all six implementation
   and test files. No tests/builds/terminal/provider/parked/push operations performed;
   runtime validation remains with the parent. No lifecycle tools were called.
+
+## Storefront product controls / historical attempt escalation — 2026-10-27
+
+- Rehydrated the actual controller, checkout view/flow, basket synchronizer and
+  existing tests. Execution extensions returned none. Website scope only; no
+  lifecycle tools, backend, parked work, production/provider API, push or bundles.
+- Added a test-only jsdom dependency and reproducible package manifest/lock; the
+  fixture parses the actual breads.html and imports the actual storefront.mjs.
+  Inline scripts/resources never execute; every API request is an in-memory
+  allowlisted fake, and timers are controlled. Native top-layer dialog methods
+  alone are shimmed, so this is DOM/bootstrap evidence, not browser layout proof.
+- Before the secondary edit-gate fix, with receiver-insensitive arrow timer fakes:
+  anonymous startup/reload and initially-hidden -> visible startup passed. All 20
+  controls rendered on visible signed-in startup, with no exception in that fixture.
+  PAID/CANCELLED/EXPIRED each failed `2 !== 3` on a real product + click; PAYABLE
+  failed because its blocked click left the drawer closed. No async TDZ was
+  established, and no bootstrap reorder/privacy guard change was made. These
+  fixtures did NOT establish native-browser timer safety: their arrow fakes hid
+  the receiver defect subsequently reproduced by the parent. Intentionally hidden
+  startup deferral is separate from the visible-page missing-controls failure.
+- PRIMARY root cause (parent's actual browser reproduction): assigning native
+  setTimeout/clearTimeout as BasketSync instance callbacks changed their receiver.
+  schedule -> this.cancel(this.timer) threw Illegal invocation on anonymous +,
+  freezing the counter; setIdentity -> pause threw during signed-in startup before
+  controls initialized. Parent fixed the defaults with globalThis arrow wrappers.
+  This is not a TDZ or a user-cookie problem.
+- SECONDARY root cause: checkout.canEdit used `!flow.state.attempt`, treating a
+  historical verified terminal checkout as an active lock. Its refusal message
+  was written only to status inside a closed drawer, appearing to do nothing.
+- Fix: retain only the verified resolved attempt ID across private-data suspension
+  to permit basket edits for PAID/CANCELLED/EXPIRED. Quantity edits still suspend
+  and clear private results; identity changes clear the remembered permission.
+  Attempt retention still fences prepare/confirm until explicit Start new order,
+  which preserves the current basket. Unresolved/ambiguous attempts remain locked;
+  blocked product/date edits open the recovery drawer and product clicks add an
+  inline live status as fallback when another site modal prevents opening.
+- Tests cover anonymous reload/persistence, initial hidden deferral/one startup,
+  signed-in terminal recovery +/-, actual account PUT saves, explicit new-order
+  gating/no checkout POST, PAYABLE/CREATING/UNKNOWN/REVIEW_REQUIRED visible blocks,
+  modal fallback, hidden private-DOM clearing/no work, logout basket/privacy clear,
+  synchronous identity notifications with differing baskets/no merge, and failed
+  recovery retaining prepare/confirm guards. Expanded bootstrap suite: 13/13 pass.
+- Files: storefront/storefront.mjs, checkout-flow.mjs, checkout-view.mjs,
+  tests/bootstrap.test.mjs and this log; repository package.json/package-lock.json
+  and .gitignore (node_modules excluded). Parent owns later bundling/deployment.
+- Final frontend validation: **145/145 tests pass**, zero failures/skips/
+  cancellations; all four changed module syntax checks and git diff --check pass.
+  Editor diagnostics report no errors in the changed implementation/test modules
+  or package manifest. No backend command or live browser/provider operation ran.
+
+## Native-browser timer receiver regression follow-up — 2026-10-27
+
+- Confirmed the parent's production default-timer wrappers are already present;
+  left them and the earlier canEdit fix unchanged. Enriched the existing account
+  execution reference before test edits. Atomic tests/docs scope; no scenario skill
+  root or Execution/Breakdown Hints files supplied; Execution extensions: none.
+- Added three regressions: default BasketSync anonymous change / identity pause /
+  debounce reschedule/cancel; actual anonymous bootstrap +/- with persistence;
+  actual signed-in bootstrap and debounced account PUT. Unit fakes explicitly reject
+  BasketSync receivers; no delay/cancel injection bypasses the tested defaults.
+- All bootstrap scenarios now use receiver-sensitive timer functions. Their
+  non-strict entry point normalizes unbound calls to globalThis like browser timers,
+  then strictly checks the receiver (including jsdom's own unbound storage timer).
+  An initial overly strict fake rejected legitimate unbound calls; corrected the
+  fixture, not production. Timer queues are cleared and global descriptors restored
+  in finally; new bootstrap tests assert zero queued timers and restored globals.
+- Final frontend self-check: **148/148 tests pass** (145 existing + 3 new), zero
+  failures/skips/cancellations; **19 JS/MJS syntax checks pass**; git diff --check
+  passes. Native-browser reproduction remains parent's evidence; this worker ran
+  jsdom/actual module bootstrap only, with allowlisted in-memory fake APIs. No local
+  browser-engine package was available and none was installed.
+- Corrected the earlier root-cause statements above: timer binding is PRIMARY for
+  both missing controls and frozen counters; historical terminal-order gating is
+  SECONDARY. No production/browser/provider API, backend, parked work, server,
+  deployment, push or bundle operation. Parent retains bundling ownership.

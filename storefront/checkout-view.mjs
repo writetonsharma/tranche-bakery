@@ -170,7 +170,7 @@ export function attachCheckout({ api, ui, allowedIds, getBasket, onBasket, onIde
       // after the first application or after the customer starts editing.
       if (!defaultsApplied && !fieldsTouched) flow.defaultsRead = false;
     },
-    get canEdit() { return !flow.state.attempt; },
+    get canEdit() { return flow.canEditBasket; },
     get hasIdentity() { return flow.identity !== null; },
     get accountOwned() { return sync.state.associated; },
     get engaged() { return Boolean(flow.state.cart || flow.state.attempt || flow.state.prepared); }

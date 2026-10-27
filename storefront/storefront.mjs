@@ -142,10 +142,28 @@ async function start() {
     storageWarning = saveBasket(storage, lines, allowedIds) ? '' : 'Device storage unavailable; this basket lasts only on this page.';
   }
 
-  function change(id, delta) {
-    if (checkout && !checkout.canEdit) {
-      ui.status.textContent = 'Resolve the current order first, or choose Start new order after payment. Your basket has not changed.'; return;
+  function canEditBasket(id) {
+    if (!checkout || checkout.canEdit) return true;
+    const message = 'Your basket has not changed. Check the current order in Basket preview, or contact the bakery before starting another order.';
+    // Product controls live outside the closed drawer: feedback there alone is
+    // invisible. Open recovery, and retain an inline live notice even if another
+    // site modal prevents the native drawer from opening.
+    ui.opener.click();
+    ui.status.textContent = message;
+    const wrapper = controls.find(control => control.id === id)?.root.parentElement;
+    if (wrapper) {
+      let note = wrapper.querySelector('.sf-edit-note');
+      if (!note) {
+        note = element('p', '', 'sf-note sf-edit-note'); note.setAttribute('role', 'status'); wrapper.append(note);
+      }
+      note.textContent = message;
     }
+    return false;
+  }
+
+  function change(id, delta) {
+    if (!canEditBasket(id)) return;
+    for (const control of controls) control.root.parentElement.querySelector('.sf-edit-note')?.remove();
     lines = changeQuantity(lines, id, delta, allowedIds);
     checkout?.changed();
     persist();
@@ -344,7 +362,7 @@ async function start() {
   }));
   ui.otp.addEventListener('input', renderAuth);
   ui.date.addEventListener('change', () => {
-    if (checkout && !checkout.canEdit) { ui.date.value = date; ui.status.textContent = 'Resolve the current checkout before editing its basket.'; return; }
+    if (!canEditBasket()) { ui.date.value = date; return; }
     date = ui.date.value; checkout?.changed(); invalidate(); scheduleQuote();
   });
   ui.refresh.addEventListener('click', quote);

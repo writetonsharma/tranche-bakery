@@ -9,7 +9,8 @@ export const sameBasket = (a, b) => (a.date || '') === (b.date || '') &&
 export class BasketSync {
   constructor({ api, allowedIds, getBasket, onBasket, onChange = () => {}, onAssociate = () => {},
     onIdentityLost = () => {}, isActive = () => true, now = Date.now,
-    delay = setTimeout, cancel = clearTimeout }) {
+    delay = (callback, milliseconds) => globalThis.setTimeout(callback, milliseconds),
+    cancel = timer => globalThis.clearTimeout(timer) }) {
     Object.assign(this, { api, allowedIds, getBasket, onBasket, onChange, onAssociate, onIdentityLost, isActive, now, delay, cancel });
     this.latest = new LatestRequest(); this.identity = null; this.revision = 0;
     this.state = this.empty();

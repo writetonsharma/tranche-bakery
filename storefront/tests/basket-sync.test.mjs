@@ -40,6 +40,53 @@ function fixture(local = basket, remote = accountCart()) {
   };
 }
 
+test('default timers retain global receiver through anonymous changes, identity pause, debounce and cancellation', async () => {
+  const keys = ['setTimeout', 'clearTimeout'];
+  const saved = keys.map(key => Object.getOwnPropertyDescriptor(globalThis, key));
+  const timers = new Map(), calls = [];
+  let timerId = 0, local = structuredClone(basket);
+  const replacements = {
+    setTimeout: function (callback, ms) {
+      assert.equal(this, globalThis, 'native setTimeout rejects a BasketSync receiver');
+      assert.equal(ms, 400);
+      const key = ++timerId; timers.set(key, callback); return key;
+    },
+    clearTimeout: function (key) {
+      assert.equal(this, globalThis, 'native clearTimeout rejects a BasketSync receiver');
+      calls.push(key); timers.delete(key);
+    }
+  };
+  for (const [key, value] of Object.entries(replacements)) {
+    Object.defineProperty(globalThis, key, { configurable: true, writable: true, value });
+  }
+  try {
+    // Deliberately omit delay/cancel: injected arrow fakes bypassed the defect.
+    const sync = new BasketSync({ allowedIds: new Set([1]), now: () => now,
+      getBasket: () => local, onBasket: value => { local = value; },
+      api: { session: async () => session, request: async () => accountCart() } });
+    assert.throws(() => globalThis.clearTimeout.call(sync, undefined), /native clearTimeout rejects/);
+    assert.throws(() => globalThis.setTimeout.call(sync, () => {}, 400), /native setTimeout rejects/);
+    sync.changed(); // Anonymous product click used to fail in schedule -> cancel.
+    assert.equal(timers.size, 0);
+    sync.setIdentity(7); // Signed-in startup used to fail in pause -> cancel.
+    assert.ok(calls.includes(undefined), 'uninitialized timer cancellation is safe');
+    await sync.refresh();
+    sync.changed(); assert.equal(timers.size, 1);
+    const first = sync.timer;
+    sync.schedule(); assert.equal(timers.size, 1);
+    assert.equal(timers.has(first), false, 'rescheduling cancels the previous debounce');
+    sync.pause(); assert.equal(timers.size, 0);
+    sync.schedule(); assert.equal(timers.size, 1);
+    sync.setIdentity(null); assert.equal(timers.size, 0);
+  } finally {
+    timers.clear();
+    keys.forEach((key, index) => {
+      if (saved[index]) Object.defineProperty(globalThis, key, saved[index]); else delete globalThis[key];
+    });
+  }
+  keys.forEach((key, index) => assert.deepEqual(Object.getOwnPropertyDescriptor(globalThis, key), saved[index]));
+});
+
 test('anonymous edits stay local; differing login baskets require a choice before any write', async () => {
   const device = { ...basket, lines: [{ itemId: 1, quantity: 5 }] };
   const f = fixture(device);

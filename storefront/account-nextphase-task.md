@@ -100,3 +100,26 @@ test execution, builds, push, deployment or provider access. Parent must execute
 Node tests, module syntax checks and isolated browser UX/security flows. Backend
 V52 migration and backend tests must precede rollout. Actual paid-cart cleanup
 is deferred; the retained basket is explained and never implicitly repurchased.
+
+## Native timer receiver regression — verified research, 2026-10-27
+
+- Parent reproduced native-browser Illegal invocation in BasketSync.schedule's
+	this.cancel(this.timer), and in setIdentity -> pause during signed-in boot.
+	Assigning bare native timers to instance properties changes their receiver.
+	Parent already replaced default delay/cancel with globalThis arrow wrappers;
+	production modules and the earlier terminal-attempt canEdit fix stay unchanged.
+- Verified bootstrap tests import the actual storefront using jsdom's real DOM,
+	but arrow-function timer fakes accept any receiver and masked this failure.
+	Add receiver-checking regular timer functions, a default-constructor regression,
+	and explicit anonymous-click/signed-in-boot tests with restored globals/queues.
+- Atomic test/documentation correction; no scenario skill root, assessment or
+	Execution/Breakdown Hints files supplied. Execution extensions returned none.
+	Discovered runtime harness is not available here; use the explicitly requested
+	Node suite, syntax and whitespace checks. No browser engine package is installed;
+	jsdom bootstrap is not native-browser evidence. No new dependency is needed.
+- Done when receiver-sensitive tests exercise default scheduling/cancellation,
+	real anonymous +/- persistence and signed-in startup/account saves; globals are
+	restored in finally and timer queues cleared; full frontend suite passes; notes
+	name native timer binding PRIMARY and terminal-order edit gating SECONDARY.
+	This dispatch permits frontend terminal validation only; no backend, production,
+	browser/provider API, parked work, push or bundle operations.
