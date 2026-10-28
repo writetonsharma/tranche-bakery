@@ -226,17 +226,23 @@ for (const [input, canonical] of [['9876543210', '919876543210'], ['+4412345678'
   });
 }
 
-test('real header sign-in entry opens the WhatsApp sign-in in place, then becomes an Account link', async () => {
+test('real header sign-in entry goes to the account page like every other page, then reads Account', async () => {
   const f = await fixture();
   try {
     const entry = f.node('[data-account-entry]');
     assert.equal(entry.getAttribute('href'), 'account.html');
     assert.equal(f.node('[data-account-label]').textContent, 'Sign in');
-    const click = new f.window.MouseEvent('click', { bubbles: true, cancelable: true, button: 0 });
-    entry.dispatchEvent(click); await settle();
-    assert.equal(click.defaultPrevented, true, 'signed-out visitors stay on the page');
-    assert.equal(f.node('#sf-drawer').open, true);
-    assert.equal(f.document.activeElement, f.node('#sf-phone'));
+    const clickEntry = async () => {
+      let prevented = null;
+      // Observe at the document, then stop jsdom from attempting navigation.
+      f.document.addEventListener('click', event => { prevented = event.defaultPrevented; event.preventDefault(); }, { once: true });
+      entry.dispatchEvent(new f.window.MouseEvent('click', { bubbles: true, cancelable: true, button: 0 }));
+      await settle();
+      return prevented;
+    };
+    assert.equal(await clickEntry(), false, 'signed-out visitors navigate to account.html');
+    assert.equal(f.node('#sf-drawer').open, false);
+    f.node('#sf-open').click(); await settle();
     f.node('#sf-phone').value = '9876543210';
     f.node('#sf-send').click(); await settle();
     f.node('#sf-code').value = '123456';
@@ -245,14 +251,47 @@ test('real header sign-in entry opens the WhatsApp sign-in in place, then become
     await settle(); await f.tick(200);
     assert.equal(f.node('[data-account-label]').textContent, 'Account');
     f.node('#sf-close').click(); await settle();
-    let prevented = null;
-    // Observe at the document, then stop jsdom from attempting navigation.
-    f.document.addEventListener('click', event => { prevented = event.defaultPrevented; event.preventDefault(); }, { once: true });
-    entry.dispatchEvent(new f.window.MouseEvent('click', { bubbles: true, cancelable: true, button: 0 }));
-    await settle();
-    assert.equal(prevented, false, 'signed-in customers navigate to account.html');
+    assert.equal(await clickEntry(), false, 'signed-in customers navigate to account.html');
     assert.equal(f.node('#sf-drawer').open, false);
+    assert.deepEqual(f.errors, []);
+  } finally { f.cleanup(); }
+});
+
+test('real drawer keeps the code challenge and basket after a mistyped code', async () => {
+  const f = await fixture();
+  try {
+    f.node('#sf-open').click(); await settle();
+    f.node('#sf-phone').value = '9876543210';
+    f.node('#sf-send').click(); await settle();
+    let reject = 400;
+    f.intercept(async path => {
+      if (path === '/api/auth/verify' && reject) { const status = reject; reject = 0; return { ok: false, status, json: async () => ({}) }; }
+    });
+    const submit = async code => {
+      f.node('#sf-code').value = code;
+      f.node('#sf-code').dispatchEvent(new f.window.Event('input'));
+      f.node('#sf-login').dispatchEvent(new f.window.Event('submit', { cancelable: true }));
+      await settle(); await f.tick(200);
+    };
+    await submit('111111');
+    assert.match(f.node('#sf-auth-status').textContent, /^That code did not work\. Use the latest code/);
+    assert.equal(f.node('#sf-code').disabled, false, 'the same code challenge can be retried');
+    assert.equal(f.node('#sf-refresh').hidden, true, 'a definite rejection does not discard availability');
+    await submit('123456');
+    assert.equal(f.node('#sf-identity').textContent, 'WhatsApp verified.');
     assert.equal(f.calls.filter(call => call.path === '/api/auth/challenge').length, 1);
+    assert.deepEqual(f.errors, []);
+  } finally { f.cleanup(); }
+});
+
+test('real drawer explains a code-send limit instead of a generic failure', async () => {
+  const f = await fixture();
+  try {
+    f.intercept(async path => path === '/api/auth/challenge' ? { ok: false, status: 429, json: async () => ({}) } : undefined);
+    f.node('#sf-open').click(); await settle();
+    f.node('#sf-phone').value = '9876543210';
+    f.node('#sf-send').click(); await settle();
+    assert.match(f.node('#sf-auth-status').textContent, /Too many codes requested\. Please wait 15 minutes/);
     assert.deepEqual(f.errors, []);
   } finally { f.cleanup(); }
 });

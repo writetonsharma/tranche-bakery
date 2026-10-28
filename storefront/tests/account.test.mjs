@@ -270,6 +270,76 @@ test('signed-out account page signs in with WhatsApp in place, then loads profil
   page.destroy();
 });
 
+test('account sign-in still verifies after leaving for WhatsApp, which rechecks the page and drops CSRF', async () => {
+  let authed = false, csrf;
+  const { api, calls } = fixture(path => {
+    if (path === '/api/session') return { authenticated: authed, customer: authed ? { id: 7 } : null };
+    if (path === '/api/auth/challenge') return { challengeId: 'fixture-challenge', expiresInSeconds: 300 };
+    if (path === '/api/auth/verify') { authed = true; return structuredClone(session); }
+    return undefined;
+  });
+  // Model the real client: clearing forgets CSRF and unsafe requests need it.
+  const request = api.request.bind(api);
+  Object.assign(api, {
+    clearSession() { csrf = undefined; },
+    useSession(value) { csrf = 'token'; return value; },
+    async request(path, body, signal, method) {
+      if (path.startsWith('/api/auth/') && !csrf) throw new Error('Session bootstrap required');
+      return request(path, body, signal, method);
+    }
+  });
+  const settle = async () => { for (let i = 0; i < 12; i++) await new Promise(resolve => setImmediate(resolve)); };
+  const page = fakePage(api);
+  await settle();
+  const [form] = page.nodes['account-signin'].children;
+  const [phoneLabel, send, codeLabel, , note] = form.children;
+  phoneLabel.children[0].value = '9876543210';
+  send.dispatchEvent(new Event('click')); await settle();
+  page.doc.hidden = true; page.doc.dispatchEvent(new Event('visibilitychange')); await settle();
+  page.doc.hidden = false; page.doc.dispatchEvent(new Event('visibilitychange')); await settle();
+  assert.equal(csrf, undefined, 'the signed-out recheck clears the session token');
+  codeLabel.children[0].value = '123456';
+  form.dispatchEvent(new Event('submit', { cancelable: true })); await settle();
+  assert.equal(calls.filter(call => call.path === '/api/auth/verify').length, 1);
+  assert.equal(note.textContent, '');
+  assert.deepEqual(page.controller.state.profile, profile);
+  page.destroy();
+});
+
+test('account sign-in explains a mistyped code and a send limit without dropping the code challenge', async () => {
+  let verifyStatus = 400, challengeStatus = 0;
+  const { api } = fixture(path => {
+    if (path === '/api/session') return { authenticated: false, customer: null };
+    if (path === '/api/auth/challenge') {
+      if (challengeStatus) throw Object.assign(new Error('limited'), { status: challengeStatus });
+      return { challengeId: 'fixture-challenge', expiresInSeconds: 300 };
+    }
+    if (path === '/api/auth/verify') throw Object.assign(new Error('rejected'), { status: verifyStatus });
+    return undefined;
+  });
+  const settle = async () => { for (let i = 0; i < 12; i++) await new Promise(resolve => setImmediate(resolve)); };
+  const page = fakePage(api);
+  await settle();
+  const [form] = page.nodes['account-signin'].children;
+  const [phoneLabel, send, codeLabel, verify, note] = form.children;
+  phoneLabel.children[0].value = '9876543210';
+  send.dispatchEvent(new Event('click')); await settle();
+  codeLabel.children[0].value = '111111';
+  form.dispatchEvent(new Event('submit', { cancelable: true })); await settle();
+  assert.match(note.textContent, /^That code did not work\. Use the latest code/);
+  assert.equal(verify.hidden, false, 'the same code can be retried');
+  page.destroy();
+
+  challengeStatus = 429;
+  const limited = fakePage(api);
+  await settle();
+  const [limitedForm] = limited.nodes['account-signin'].children;
+  limitedForm.children[0].children[0].value = '9876543210';
+  limitedForm.children[1].dispatchEvent(new Event('click')); await settle();
+  assert.match(limitedForm.children[4].textContent, /Too many codes requested\. Please wait 15 minutes/);
+  limited.destroy();
+});
+
 test('hidden, offline, cross-tab, pagehide and logout synchronously wipe DOM input values and model', async () => {
   for (const transition of ['hidden', 'offline', 'identity', 'pagehide', 'logout']) {
     const { api } = fixture(); const page = fakePage(api);

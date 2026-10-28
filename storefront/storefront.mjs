@@ -5,7 +5,7 @@ import { createDrawer, element, quantityControl, renderQuote } from './view.mjs'
 import { checkoutEnabled } from './checkout-model.mjs';
 import { attachCheckout } from './checkout-view.mjs';
 import { GuestIntent } from './guest-intent.mjs';
-import { normalizePhone } from './phone-model.mjs';
+import { normalizePhone, authFailureMessage } from './phone-model.mjs';
 
 // Disabled means no fetch, storage access, DOM enhancement, or event listeners.
 if (window.TRANCHE_STOREFRONT?.enabled === true && typeof HTMLDialogElement !== 'undefined') {
@@ -381,7 +381,7 @@ async function start() {
     ui.send.textContent = remaining ? `Resend available in ${remaining}s` : (challenge ? 'Resend WhatsApp code' : 'Send WhatsApp code');
   }
 
-  async function authAction(action) {
+  async function authAction(action, step) {
     if (busy || document.hidden || !navigator.onLine) {
       if (!navigator.onLine) authStatus.textContent = 'Verification unavailable while offline.';
       return;
@@ -407,15 +407,20 @@ async function start() {
       await applySession(view);
       await action(checkCurrent, controller.signal);
       checkCurrent();
-    } catch {
+    } catch (error) {
       if (epoch !== authEpoch || controller.signal.aborted) return;
+      if ([400, 429].includes(error?.status)) {
+        // A definite rejection changes no session: keep the basket, and the challenge for a mistyped code.
+        authStatus.textContent = authFailureMessage(error, step);
+        return;
+      }
       api.clearSession();
       session = null;
       checkout?.suspend('authentication uncertain');
       latest.invalidate(); shopping = null; prices = new Map(); snapshotUsable = false; renderBasket();
       challenge = undefined;
       ui.otp.value = '';
-      authStatus.textContent = 'Verification unavailable or invalid. Please try again later.';
+      authStatus.textContent = authFailureMessage(error, step);
     } finally {
       if (epoch === authEpoch) {
         authController = undefined; busy = false;
@@ -460,7 +465,7 @@ async function start() {
       expires = sentAt + result.expiresInSeconds * 1000;
       ui.phone.value = '';
       authStatus.textContent = 'If available, your WhatsApp code will arrive shortly.';
-    });
+    }, 'send');
   });
 
   ui.form.addEventListener('submit', event => {
@@ -479,7 +484,7 @@ async function start() {
         authStatus.textContent = 'WhatsApp verified.';
         ui.phone.value = '';
       } finally { channel?.postMessage('identity-changed'); }
-    });
+    }, 'verify');
   });
   ui.logout.addEventListener('click', () => authAction(async (checkCurrent, signal) => {
     checkCurrent();
@@ -493,7 +498,7 @@ async function start() {
       ui.otp.value = '';
       authStatus.textContent = 'Logged out.';
     } finally { channel?.postMessage('identity-changed'); }
-  }));
+  }, 'logout'));
   ui.otp.addEventListener('input', renderAuth);
   ui.date.addEventListener('change', () => {
     if (!canEditBasket()) { ui.date.value = date; return; }
@@ -595,14 +600,6 @@ async function start() {
     ui.dialog.addEventListener('sf-open', () => { done.abort(); focusPhone(); }, { signal: done.signal });
     ui.dialog.addEventListener('sf-abort', () => done.abort(), { signal: done.signal });
     ui.dialog.addEventListener('close', () => done.abort(), { signal: done.signal });
-  }
-  for (const entry of document.querySelectorAll('[data-account-entry]')) {
-    entry.addEventListener('click', event => {
-      // Signed-in customers go to their account; everyone else signs in here and keeps browsing.
-      if (session?.authenticated || event.defaultPrevented || event.button > 0 || event.metaKey || event.ctrlKey || event.shiftKey) return;
-      event.preventDefault();
-      openSignIn();
-    });
   }
   if (window.location.hash === '#sf-auth' && !document.hidden) openSignIn();
 }

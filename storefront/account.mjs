@@ -2,7 +2,7 @@ import { StorefrontApi } from './api.mjs';
 import { LatestRequest } from './model.mjs';
 import { checkoutEnabled, OPAQUE_ID } from './checkout-model.mjs';
 import { validateProfile, profileInput, validateHistory, validateOrderDetail, validateLocation } from './account-model.mjs';
-import { normalizePhone } from './phone-model.mjs';
+import { normalizePhone, authFailureMessage } from './phone-model.mjs';
 
 const SIGN_IN = 'Sign in with your WhatsApp number to see your account.';
 const empty = () => ({ authenticated: false, profile: null, history: null, detail: null,
@@ -354,7 +354,7 @@ export function attachAccount({ root, api, win = window, doc = document }) {
         challenge = result.challengeId; expires = sentAt + result.expiresInSeconds * 1000;
         phone.value = ''; code.value = '';
         note.textContent = 'If this number can receive it, your WhatsApp code will arrive shortly. Enter it below.';
-      } catch { note.textContent = 'Could not send a code right now. Please try again in a minute.'; }
+      } catch (error) { note.textContent = authFailureMessage(error, 'send'); }
       finally { busy = false; update(); if (challenge) code.focus?.(); }
     });
     form.addEventListener('submit', async event => {
@@ -366,10 +366,12 @@ export function attachAccount({ root, api, win = window, doc = document }) {
       busy = true; code.value = ''; note.textContent = 'Checking your code…'; update();
       try {
         channel?.postMessage('identity-changed');
+        // Returning from WhatsApp rechecks the account, which drops the CSRF token: always bootstrap first.
+        api.useSession(await api.request('/api/session'));
         const view = api.useSession(await api.request('/api/auth/verify', { challengeId: challenge, code: value }));
         if (!view.authenticated) throw new Error('Not verified');
         challenge = null; resendAt = 0; note.textContent = '';
-      } catch { note.textContent = 'That code did not work. Check it, or send a new code.'; }
+      } catch (error) { note.textContent = authFailureMessage(error, 'verify'); }
       finally { busy = false; update(); channel?.postMessage('identity-changed'); }
       if (!challenge && !note.textContent) await controller.refresh();
     });
