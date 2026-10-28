@@ -48,7 +48,7 @@ export function attachCheckout({ api, ui, allowedIds, getBasket, onBasket, onIde
   const payment = element('a', 'Pay with Razorpay ↗', 'sf-payment-link'); payment.id = 'sf-payment-link';
   payment.target = '_blank'; payment.rel = 'noopener noreferrer'; payment.referrerPolicy = 'no-referrer';
   const abort = button('Hide delivery details', () => {
-    flow.suspend('paused by you'); forgetDetails();
+    flow.cancelReview(); forgetDetails();
   }); abort.id = 'sf-checkout-abort';
   const support = element('p', 'Payment uncertain? Contact the bakery before ordering or paying again.', 'sf-note');
   recovery.append(retry, check, payment, newOrder, abort);
@@ -64,6 +64,7 @@ export function attachCheckout({ api, ui, allowedIds, getBasket, onBasket, onIde
   let reviewKey;
   let resuming;
   let resumeEpoch = 0;
+  let adoptedFor = null;
   const pageActive = () => navigator.onLine !== false && !document.hidden;
   const networkActive = () => pageActive() && !ui.opening && !ui.closing;
   const sync = new BasketSync({ api, allowedIds, getBasket, onBasket, onIdentityLost, onAssociate, getShopping, guestIntent,
@@ -110,7 +111,7 @@ export function attachCheckout({ api, ui, allowedIds, getBasket, onBasket, onIde
     // in-progress per-order form. Privacy transitions call clearFields explicitly.
     if (!networkActive() || !identity) forgetDetails();
     const message = !identity ? 'Sign in to checkout.' :
-      `${state.message || 'Checking your account…'}${privateVisible && state.result?.orderNumber ? ` Order ${state.result.orderNumber}.` : ''}`;
+      `${state.message || (flow.recoveryReady ? 'Review your basket when ready.' : 'Checking your account…')}${privateVisible && state.result?.orderNumber ? ` Order ${state.result.orderNumber}.` : ''}`;
     if (status.textContent !== message) status.textContent = message;
     const basketMessage = identity && !state.attempt ? [sync.state.message, getReadiness()].filter(Boolean).join(' ') : '';
     if (basketStatus.textContent !== basketMessage) basketStatus.textContent = basketMessage;
@@ -125,7 +126,7 @@ export function attachCheckout({ api, ui, allowedIds, getBasket, onBasket, onIde
     discardGuest.disabled = !active || state.busy || sync.state.busy;
     load.disabled = save.disabled = !active || state.busy || sync.state.busy || Boolean(state.attempt);
     prepare.hidden = !identity || !flow.recoveryReady || Boolean(state.attempt || state.prepared);
-    prepare.disabled = !active || state.busy || !flow.recoveryReady || !state.cart || sync.state.retry || Boolean(state.attempt) || Boolean(getReadiness()) || !sync.writable();
+    prepare.disabled = !active || (state.busy && !state.background) || !flow.recoveryReady || !state.cart || sync.state.retry || Boolean(state.attempt) || Boolean(getReadiness()) || !sync.writable();
     const nextQuoteKey = privateVisible && !state.attempt ? JSON.stringify([
       state.prepared?.quote, state.prepared?.expiresAt]) : '';
     if (quoteKey !== nextQuoteKey) {
@@ -153,7 +154,7 @@ export function attachCheckout({ api, ui, allowedIds, getBasket, onBasket, onIde
       }
     }
     confirm.hidden = !privateVisible || !state.review || Boolean(state.attempt);
-    confirm.disabled = state.busy;
+    confirm.disabled = state.busy && !state.background;
     retry.hidden = !active || !state.ambiguous || !state.attempt || Boolean(state.attempt.id);
     retry.disabled = state.busy;
     check.hidden = !active || (!state.attempt?.id && flow.recoveryReady) || ['PAID', 'CANCELLED', 'EXPIRED'].includes(state.result?.status);
@@ -171,6 +172,12 @@ export function attachCheckout({ api, ui, allowedIds, getBasket, onBasket, onIde
     }
     const deadline = state.prepared?.expiresAt || (state.result?.status === 'PAYABLE' && state.result.paymentUrl ? state.result.expiresAt : null);
     if (privateVisible && deadline) expirationTimer = setTimeout(() => flow.suspend('quote or payment deadline reached'), Math.min(2147483647, Math.max(1, Date.parse(deadline) - Date.now())));
+    // A paid order empties the account basket it was paid from; show that here too.
+    if (state.result?.status === 'PAID' && state.attempt?.id && adoptedFor !== state.attempt.id) {
+      const id = state.attempt.id;
+      adoptedFor = id;
+      sync.reload().then(ok => { if (!ok && adoptedFor === id) adoptedFor = null; });
+    }
   }
   render(flow.state);
   return {

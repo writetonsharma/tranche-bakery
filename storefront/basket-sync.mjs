@@ -104,6 +104,22 @@ export class BasketSync {
       this.emit(); this.schedule(); return true;
     });
   }
+  // After a paid order the server empties the basket that was paid for. Adopt it,
+  // but never over unsaved edits on this page.
+  async reload() {
+    if (!this.state.associated || this.state.dirty || this.state.retry || this.state.busy || this.state.migrationBlocked) return false;
+    const revision = this.revision;
+    return this.operation(async (signal, current) => {
+      const cart = validateCart(await this.api.request('/api/cart', undefined, signal));
+      if (!current() || this.held || revision !== this.revision || this.state.dirty) return false;
+      if (cart.version === this.state.cart?.version) return true;
+      this.state.cart = cart;
+      const remote = { lines: cart.lines.map(line => ({ ...line })), date: cart.date || '' };
+      if (!sameBasket(this.getBasket(), remote)) this.onBasket(remote);
+      this.state.message = '';
+      return true;
+    });
+  }
   async retry() {
     if (this.state.migrationBlocked) return false;
     this.state.retry = false;

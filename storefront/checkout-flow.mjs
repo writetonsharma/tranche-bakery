@@ -9,7 +9,7 @@ const stateMessage = status => ({
   CREATING: 'Payment link is being created. Do not submit another order.',
   PAYABLE: 'Order awaiting payment. Already paid? Refresh payment status; do not pay again.',
   UNKNOWN: 'Payment uncertain. Contact the bakery before ordering or paying again.',
-  PAID: 'Payment received. Thank you! Your basket has not been changed.',
+  PAID: 'Payment received. Thank you! Your order is confirmed.',
   REVIEW_REQUIRED: 'Payment needs manual review. Contact the bakery; do not pay again.',
   CANCELLED: 'Checkout cancelled. No payment link is available. Contact support if money was debited.',
   EXPIRED: 'Checkout expired. Do not pay an old link. Contact support if money was debited.'
@@ -53,6 +53,23 @@ export class CheckoutFlow {
       message: this.state.attempt ? 'Refresh payment status or contact the bakery before ordering or paying again.' : '' });
     this.emit();
   }
+  cancelReview() {
+    if (this.state.attempt) { this.suspend('paused by you'); return; }
+    this.latest.invalidate();
+    Object.assign(this.state, { prepared: null, review: null, busy: false, background: false,
+      message: 'Review your basket when ready.' });
+    this.emit();
+  }
+  // Customer clicks wait for a background check instead of being silently dropped.
+  async settled() {
+    while (this.state.busy && this.state.background) {
+      const running = this.running;
+      await running;
+      // An abandoned check (page hidden, identity lost) never clears busy itself.
+      if (this.running === running && this.state.busy) return false;
+    }
+    return !this.state.busy;
+  }
   changed() {
     if (resolved(this.state.result?.status)) {
       // A newer basket is independent of this receipt. Only explicit Continue
@@ -70,6 +87,8 @@ export class CheckoutFlow {
     let recoverRejected = false;
     const ticket = this.latest.begin();
     const current = () => this.latest.current(ticket) && this.identity === identity && this.isActive();
+    let finished;
+    this.running = new Promise(resolve => { finished = resolve; });
     this.state.busy = true; this.state.background = background;
     if (!background) { this.state.message = 'Checking your order…'; this.onActivity(); }
     this.emit();
@@ -101,6 +120,7 @@ export class CheckoutFlow {
       if (acceptance && sent && !this.state.ambiguous && !['CHECKOUT_IN_PROGRESS', 'IDEMPOTENCY_CONFLICT'].includes(error.code)) this.state.attempt = null;
     } finally {
       if (current()) { this.state.busy = false; this.state.background = false; this.emit(); }
+      finished();
     }
     if (recoverRejected && current() && !this.state.attempt) return this.resume();
   }
@@ -134,7 +154,9 @@ export class CheckoutFlow {
     });
   }
   async prepare() {
+    if (this.state.busy && !await this.settled()) return;
     if (!this.recoveryReady || !await this.beforePrepare()) return;
+    if (this.state.busy && !await this.settled()) return;
     if (!this.state.cart || this.state.dirty || this.state.needsReload || this.state.attempt) return;
     const cart = this.state.cart;
     this.state.prepared = null; this.state.review = null;
@@ -162,6 +184,7 @@ export class CheckoutFlow {
     this.emit();
   }
   async confirm(details = this.state.review) {
+    if (this.state.busy && !await this.settled()) return;
     if (this.state.attempt || !this.state.prepared || this.state.busy || this.state.suspended || !details) return;
     let snapshot;
     try { snapshot = fulfillment(details); } catch { return; }

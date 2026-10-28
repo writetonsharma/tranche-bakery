@@ -643,6 +643,64 @@ test('real current payment polls quietly, stops at PAID, and Continue preserves 
   } finally { f.cleanup(); }
 });
 
+test('real paid order shows the basket the server emptied, without a reload', async () => {
+  const f = await fixture({ authenticated: true });
+  try {
+    await f.tick(200); f.node('#sf-open').click(); await settle();
+    f.node('#sf-prepare').click(); await settle();
+    f.node('#sf-delivery').dispatchEvent(new f.window.Event('submit', { cancelable: true }));
+    f.node('#sf-confirm-pay').click(); await settle();
+    assert.equal(quantity(f), '2');
+    f.setCart({ version: f.cart.version + 1, lines: [], date: null, quote: null, problems: [] });
+    f.setStatus('PAID'); await f.tick(5000); await settle();
+    assert.match(f.node('#sf-checkout-status').textContent, /Payment received.*order is confirmed/);
+    assert.equal(quantity(f), '0', 'paid basket is emptied on this page');
+    f.node('#sf-new-order').click(); await settle();
+    plus(f).click(); await f.tick(400);
+    assert.equal(f.cart.version, 3, 'next save builds on the emptied basket version');
+    assert.equal(f.cart.lines[0].quantity, 1);
+    assert.deepEqual(f.errors, []);
+  } finally { f.cleanup(); }
+});
+
+test('real Hide delivery details leaves a ready status and Review order works again', async () => {
+  const f = await fixture({ authenticated: true });
+  try {
+    await f.tick(200); f.node('#sf-open').click(); await settle();
+    f.node('#sf-prepare').click(); await settle();
+    assert.equal(f.node('#sf-delivery').hidden, false);
+    f.node('#sf-checkout-abort').click(); await settle();
+    assert.equal(f.node('#sf-delivery').hidden, true);
+    assert.equal(f.node('#sf-delivery-name').value, '');
+    assert.equal(f.node('#sf-checkout-status').textContent, 'Review your basket when ready.');
+    assert.equal(f.node('#sf-prepare').hidden, false);
+    assert.equal(f.node('#sf-prepare').disabled, false);
+    f.node('#sf-prepare').click(); await settle();
+    assert.equal(f.node('#sf-delivery').hidden, false);
+    assert.deepEqual(f.errors, []);
+  } finally { f.cleanup(); }
+});
+
+test('real Review order click during a background focus check waits for it instead of being dropped', async () => {
+  const f = await fixture({ authenticated: true });
+  try {
+    await f.tick(200); f.node('#sf-open').click(); await settle();
+    let release, started;
+    const began = new Promise(resolve => { started = resolve; });
+    const delayed = new Promise(resolve => { release = resolve; });
+    f.intercept(async path => { if (path === '/api/account/checkout') { started(); await delayed; } });
+    f.window.dispatchEvent(new f.window.Event('focus'));
+    const refreshing = f.tick(200); await began;
+    assert.equal(f.node('#sf-prepare').disabled, false, 'a quiet background check keeps Review order clickable');
+    f.node('#sf-prepare').click(); await settle();
+    assert.equal(f.calls.filter(call => call.path === '/api/checkout/prepare').length, 0);
+    release(); await refreshing; await settle();
+    assert.equal(f.calls.filter(call => call.path === '/api/checkout/prepare').length, 1);
+    assert.equal(f.node('#sf-delivery').hidden, false);
+    assert.deepEqual(f.errors, []);
+  } finally { f.cleanup(); }
+});
+
 test('real pending recovery has compact GET-only controls, ten polls, and synchronous privacy clearing', async () => {
   const f = await fixture({ authenticated: true, status: 'PAYABLE' });
   try {

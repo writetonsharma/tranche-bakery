@@ -8,7 +8,7 @@
 .account-page .eyebrow { color: #596442; font-size: .72rem; letter-spacing: .15em; font-weight: 500; }
 .account-seal { flex: 0 0 224px; height: 224px; border: 1px solid #b6bea3; border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; color: #67714e; outline: 1px solid #d7dbc9; outline-offset: 10px; transform: rotate(-9deg); }
 .account-seal span:first-child { font-family: 'Playfair Display', Georgia, serif; font-size: 1.4rem; letter-spacing: .15em; }
-.account-seal span:last-child { font-size: .5rem; letter-spacing: .13em; }
+.account-seal span:last-child { font-size: .5rem; letter-spacing: .13em; line-height: 1.7; text-align: center; }
 .account-seal .account-wheat { font-size: 4.4rem; line-height: 1; }
 .account-session { background: #e7eadb; border: 1px solid #d5dac3; padding: 24px 28px; border-radius: 16px; margin-bottom: 30px; }
 .account-session > p:first-child { margin: 0 0 18px; line-height: 1.7; font-weight: 500; }
@@ -50,7 +50,7 @@
 .account-footer { border-top: 1px solid #d9ddcb; padding: 24px 28px; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 16px; color: #616855; font-size: .8rem; }
 .account-skip { position: absolute; left: 16px; top: -100px; z-index: 10000; padding: 12px; background: #fffdf7; color: #30382c; }
 .account-skip:focus { top: 12px; }
-@media (max-width: 900px) { .account-grid { grid-template-columns: 1fr; } .account-seal { flex-basis: 170px; height: 170px; } }
+@media (max-width: 900px) { .account-grid { grid-template-columns: 1fr; } .account-seal { flex-basis: 170px; height: 170px; gap: 6px; } .account-seal span:first-child { font-size: 1.1rem; } .account-seal .account-wheat { font-size: 3.2rem; } }
 @media (max-width: 600px) {
   .account-shell { padding: 24px 18px; } .account-hero { padding: 16px 0 28px; } .account-seal { display: none; }
   .account-card, .account-session { padding: 22px 18px; } .account-choices { grid-template-columns: 1fr; gap: 0; }
