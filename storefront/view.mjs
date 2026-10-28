@@ -107,11 +107,7 @@ export function createDrawer() {
   logout.id = 'sf-logout';
   form.append(phoneLabel, send, otpLabel, timer, verify);
   auth.append(authTitle, identity, form, logout);
-  const fallback = element('a', 'Continue ordering on WhatsApp ↗', 'sf-fallback');
-  fallback.href = 'https://wa.me/918800206057?text=hi';
-  fallback.target = '_blank';
-  fallback.rel = 'noopener';
-  panel.append(eyebrow, heading, disclaimer, status, items, dateLabel, dateHint, totals, refresh, auth, fallback);
+  panel.append(eyebrow, heading, disclaimer, status, items, dateLabel, dateHint, totals, refresh, auth);
   dialog.append(panel);
   document.body.append(opener, dialog);
   let restoreFocus;
@@ -188,6 +184,11 @@ export function renderQuote(root, quote, mode = 'preview') {
   for (const line of quote.lines) {
     root.append(element('p', `${line.name} · ${line.quantity} × ${money.format(line.unitPrice)} · ${money.format(line.lineTotal)}`, 'sf-note'));
   }
+  if (typeof quote.giftLabel === 'string' && quote.giftLabel) {
+    const gift = element('p', undefined, 'sf-total-row sf-gift');
+    gift.append(element('span', `Free gift: ${quote.giftLabel}`), element('strong', 'Free'));
+    root.append(gift);
+  }
   for (const [label, key] of [['List subtotal', 'listSubtotal'], ['Discount', 'discountAmount'],
     ['Batch discount', 'batchDiscountAmount'], ['Delivery', 'deliveryCharge'],
     ['Credit applied', 'creditApplied'], [mode === 'preview' ? 'Estimated total' : 'Checkout total', 'totalAmount']]) {
@@ -195,7 +196,7 @@ export function renderQuote(root, quote, mode = 'preview') {
     row.append(element('span', label), element('strong', money.format(quote[key])));
     root.append(row);
   }
-  for (const key of ['discountLabel', 'batchDiscountLabel', 'giftLabel']) {
+  for (const key of ['discountLabel', 'batchDiscountLabel']) {
     if (typeof quote[key] === 'string' && quote[key]) root.append(element('p', quote[key], 'sf-note'));
   }
   root.append(element('p', `Delivery date: ${quote.date || 'not selected'}`, 'sf-note'));

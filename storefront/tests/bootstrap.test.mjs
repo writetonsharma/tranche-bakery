@@ -187,11 +187,10 @@ test('real drawer uses concise accessible copy and qualifies card prices and sub
     const text = f.node('#sf-drawer').textContent + f.node('.sf-card-action').textContent;
     assert.doesNotMatch(text, /basket preview|browsing and preparing|verify WhatsApp for your account basket|personalised preview|estimated unit price|final server quote|\b(?:backend|token|version|opaque|dispatch|identity|CAS|CSRF|GET|POST)\b/i);
     assert.equal(f.node('.sf-card-label').textContent, 'Add to basket');
-    const chat = [...f.document.querySelectorAll('.product .details a.btn[href^="https://wa.me/"]')];
-    assert.ok(chat.length > 0);
-    assert.ok(chat.every(link => link.textContent === 'Questions? Chat on WhatsApp' && link.classList.contains('btn-secondary') &&
-      link.getAttribute('href') === f.node('.nav-contact').getAttribute('href')));
-    assert.doesNotMatch(f.document.body.textContent, /Order on WhatsApp|start your order on WhatsApp/);
+    assert.equal(f.document.querySelectorAll('.product a[href^="https://wa.me/"]').length, 0, 'cards order through the basket only');
+    assert.equal(f.document.querySelectorAll('#sf-drawer a[href^="https://wa.me/"]').length, 0);
+    assert.doesNotMatch(f.document.body.textContent, /Order on WhatsApp|start your order on WhatsApp|Subscribe on WhatsApp|ordering on WhatsApp/);
+    assert.equal(f.node('.cta a.btn-secondary').getAttribute('href'), f.node('.nav-contact').getAttribute('href'));
     const ctaOpen = f.node('.cta .hero-actions button.btn');
     assert.equal(ctaOpen.textContent, 'Open basket');
     f.node('#sf-close').click(); await settle();
@@ -536,6 +535,33 @@ test(`real review keeps quote, delivery nodes, focus and scroll through unchange
   } finally { f.cleanup(); }
 });
 }
+
+test('real date change never strands a checking status; saved delivery details return after closing; gift shows in review', async () => {
+  const f = await fixture({ authenticated: true });
+  try {
+    await f.tick(200); f.node('#sf-open').click(); await settle();
+    f.node('#sf-prepare').click(); await settle();
+    assert.equal(f.node('#sf-delivery').hidden, false);
+    assert.equal(f.node('#sf-delivery-name').value, details.name);
+    f.node('#sf-close').click(); await settle();
+    assert.equal(f.node('#sf-delivery-name').value, '', 'closing clears private fields');
+    f.node('#sf-open').click(); await settle();
+    const next = [...f.node('#sf-date').options].find(option => option.value && option.value !== f.node('#sf-date').value);
+    f.node('#sf-date').value = next.value;
+    f.node('#sf-date').dispatchEvent(new f.window.Event('change')); await settle();
+    await f.tick(200); await f.tick(400);
+    assert.doesNotMatch(f.node('#sf-status').textContent, /Checking/);
+    f.setCart({ ...f.cart, quote: { ...f.cart.quote, giftLabel: 'Complimentary roll of the day' } });
+    f.node('#sf-prepare').click(); await settle();
+    assert.doesNotMatch(f.node('#sf-status').textContent, /Checking/);
+    assert.equal(f.node('#sf-delivery').hidden, false);
+    assert.equal(f.node('#sf-delivery-name').value, details.name, 'saved details are suggested again');
+    assert.equal(f.node('#sf-delivery-address').value, details.address);
+    assert.equal(f.node('#sf-delivery-preference').value, details.deliveryPreference);
+    assert.equal(f.node('#sf-checkout-quote .sf-gift').textContent, 'Free gift: Complimentary roll of the dayFree');
+    assert.deepEqual(f.errors, []);
+  } finally { f.cleanup(); }
+});
 
 test('real still-visible drawer recovers another window pending checkout after initial null on coalesced focus', async () => {
   const f = await fixture({ authenticated: true });

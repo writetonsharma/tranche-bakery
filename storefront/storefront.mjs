@@ -85,7 +85,8 @@ async function start() {
     getBasket: () => ({ lines, date }),
     getShopping: () => shopping,
     getReadiness: () => shoppingPending ? 'Checking availability…' : basketReadiness(snapshotUsable ? shopping : null, { lines, date }),
-    onActivity: () => invalidate('Checking your order…'),
+    // Checkout shows its own progress; never leave a stale drawer status behind.
+    onActivity: () => invalidate(),
     onIdentityLost: () => identityUncertain(),
     onAssociate: () => {
       storageWarning = '';
@@ -122,12 +123,12 @@ async function start() {
     controls.push({ id: item.id, ...control, price, publicPrice, availability });
   }
   // The basket is now the way to order; static WhatsApp ordering links remain only
-  // as the no-JS/disabled fallback. Turn them into a secondary "questions" link.
+  // as the no-JS/disabled fallback. The page's inline script normally removes them first.
   const contact = document.querySelector('.nav-contact[href^="https://wa.me/"]')?.getAttribute('href');
-  for (const link of document.querySelectorAll('.product .details a.btn[href^="https://wa.me/"]')) {
-    link.textContent = 'Questions? Chat on WhatsApp';
-    link.classList.add('btn-secondary');
-    if (contact) link.setAttribute('href', contact);
+  for (const link of document.querySelectorAll('.product a.btn[href^="https://wa.me/"]')) {
+    const quick = link.closest('.product-quick-action');
+    link.remove();
+    if (quick && !quick.children.length) quick.remove();
   }
   const ctaLink = document.querySelector('.cta > a.btn[href^="https://wa.me/"]');
   if (ctaLink) {
@@ -581,11 +582,19 @@ async function start() {
   ui.status.textContent = storageWarning || basketReadiness(shopping, { lines, date }) || '';
   if (session?.authenticated && !document.hidden && navigator.onLine) scheduleResume();
   function openSignIn() {
+    const wasOpen = ui.dialog.open;
     ui.opener.click();
-    if (ui.dialog.open && !session?.authenticated) {
-      ui.auth.scrollIntoView?.({ block: 'start' });
-      ui.phone.focus();
-    }
+    if (!ui.dialog.open || session?.authenticated) return;
+    // Position the panel on sign-in while it is still off-screen, then focus only
+    // after the slide finishes. Focusing/scrolling mid-slide made the drawer jump.
+    const panel = ui.auth.closest('.sf-panel');
+    if (panel) panel.scrollTop = Math.max(0, ui.auth.offsetTop - 12);
+    const focusPhone = () => { if (ui.dialog.open && !session?.authenticated && !ui.phone.disabled) ui.phone.focus({ preventScroll: true }); };
+    if (wasOpen || !ui.opening) { focusPhone(); return; }
+    const done = new AbortController();
+    ui.dialog.addEventListener('sf-open', () => { done.abort(); focusPhone(); }, { signal: done.signal });
+    ui.dialog.addEventListener('sf-abort', () => done.abort(), { signal: done.signal });
+    ui.dialog.addEventListener('close', () => done.abort(), { signal: done.signal });
   }
   for (const entry of document.querySelectorAll('[data-account-entry]')) {
     entry.addEventListener('click', event => {

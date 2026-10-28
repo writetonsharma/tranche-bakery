@@ -48,8 +48,7 @@ export function attachCheckout({ api, ui, allowedIds, getBasket, onBasket, onIde
   const payment = element('a', 'Pay with Razorpay ↗', 'sf-payment-link'); payment.id = 'sf-payment-link';
   payment.target = '_blank'; payment.rel = 'noopener noreferrer'; payment.referrerPolicy = 'no-referrer';
   const abort = button('Hide delivery details', () => {
-    flow.suspend('paused by you'); clearFields(); pendingDefaults = null;
-    if (!defaultsApplied && !fieldsTouched) flow.defaultsRead = false;
+    flow.suspend('paused by you'); forgetDetails();
   }); abort.id = 'sf-checkout-abort';
   const support = element('p', 'Payment uncertain? Contact the bakery before ordering or paying again.', 'sf-note');
   recovery.append(retry, check, payment, newOrder, abort);
@@ -89,6 +88,12 @@ export function attachCheckout({ api, ui, allowedIds, getBasket, onBasket, onIde
       pendingDefaults = profile;
     }, onChange: render });
   const clearFields = () => { name.value = ''; address.value = ''; delivery.value = ''; loaf.value = ''; };
+  // Privacy clears remove what was typed or suggested. Once the fields are empty,
+  // nothing is overwritten by suggesting the saved details again on the next view.
+  const forgetDetails = () => {
+    clearFields(); pendingDefaults = null; fieldsTouched = false; defaultsApplied = false;
+    flow.defaultsRead = false;
+  };
   for (const input of [name, address, delivery, loaf]) input.addEventListener('input', () => {
     fieldsTouched = true; flow.state.review = null;
   });
@@ -103,7 +108,7 @@ export function attachCheckout({ api, ui, allowedIds, getBasket, onBasket, onIde
     const privateVisible = active && !state.suspended;
     // A background version refresh invalidates the quote, not the customer's
     // in-progress per-order form. Privacy transitions call clearFields explicitly.
-    if (!networkActive() || !identity) clearFields();
+    if (!networkActive() || !identity) forgetDetails();
     const message = !identity ? 'Sign in to checkout.' :
       `${state.message || 'Checking your account…'}${privateVisible && state.result?.orderNumber ? ` Order ${state.result.orderNumber}.` : ''}`;
     if (status.textContent !== message) status.textContent = message;
@@ -202,10 +207,7 @@ export function attachCheckout({ api, ui, allowedIds, getBasket, onBasket, onIde
       if (['drawer opening', 'drawer closing'].includes(reason)) sync.hold();
       else if (reason === 'drawer closed') sync.release();
       else sync.pause();
-      flow.suspend(reason); clearFields(); pendingDefaults = null;
-      // Suggestions cleared for privacy may be fetched again, but never applied
-      // after the first application or after the customer starts editing.
-      if (!defaultsApplied && !fieldsTouched) flow.defaultsRead = false;
+      flow.suspend(reason); forgetDetails();
     },
     get canEdit() { return flow.canEditBasket; },
     get hasIdentity() { return flow.identity !== null; },

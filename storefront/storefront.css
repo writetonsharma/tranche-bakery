@@ -1,6 +1,6 @@
 /* Isolated enhancement: never override public nav, galleries or detail modal. */
 .sf-dialog, .sf-dialog *, .sf-card-action *, .sf-launcher { box-sizing: border-box; }
-.sf-dialog { --sf-olive: #434c2b; --sf-cream: #faf8f1; position: fixed; inset: 0; width: 100%; max-width: none; height: 100%; max-height: none; margin: 0; padding: 0; border: 0; background: transparent; overflow: hidden; color: #303623; font-family: Inter, sans-serif; }
+.sf-dialog { --sf-olive: #434c2b; --sf-cream: #faf8f1; position: fixed; inset: 0; width: 100%; max-width: none; height: 100%; max-height: none; margin: 0; padding: 0; border: 0; background: transparent; overflow: hidden; overflow: clip; color: #303623; font-family: Inter, sans-serif; }
 .sf-dialog::backdrop { background: rgb(25 31 15 / 0.48); backdrop-filter: blur(4px); animation: sf-dim 220ms ease-out; }
 @keyframes sf-dim { from { background: rgb(25 31 15 / 0); backdrop-filter: blur(0); } to { background: rgb(25 31 15 / 0.48); backdrop-filter: blur(4px); } }
 .sf-panel { position: absolute; inset: 0 0 0 auto; width: min(100%, 490px); padding: 30px clamp(20px, 5vw, 36px); overflow-y: auto; overscroll-behavior: contain; contain: layout paint; will-change: transform; background: var(--sf-cream); box-shadow: -12px 0 60px #20261033; transform: translateX(100%); transition: transform 220ms cubic-bezier(.2,.8,.2,1); }
@@ -33,7 +33,8 @@ body.nav-open .sf-launcher, body.modal-open .sf-launcher { visibility: hidden; }
 .sf-total { border-top: 1px solid #bbc5a6; padding-top: 15px; font-size: 18px; }
 .sf-auth { border-top: 1px solid #dce0cf; margin-top: 26px; padding-top: 26px; }
 .sf-auth [hidden] { display: none; }
-.sf-fallback { display: block; padding: 18px 0 max(18px, env(safe-area-inset-bottom)); margin-top: 18px; color: #434c2b; font-size: 14px; text-decoration: underline; text-underline-offset: 4px; }
+.sf-panel { padding-bottom: max(30px, env(safe-area-inset-bottom)); }
+.sf-gift { margin: 8px 0 12px; padding: 8px 12px; border-radius: 10px; background: #fffef9; color: #434c2b; font-weight: 500; }
 .sf-start-error { color: #434c2b; font-size: 14px; }
 .sf-checkout { border-top: 1px solid #cbd2ba; margin-top: 26px; padding-top: 26px; overflow-wrap: anywhere; }
 .sf-checkout h3 { font-family: 'Playfair Display', serif; color: var(--sf-olive); font-size: 24px; }

@@ -8,7 +8,7 @@
   <!-- Reuse same fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
 	<link rel="stylesheet" href="styles.css?v=20261028-1">
-	<link rel="stylesheet" href="storefront/storefront.css?v=20261026-1">
+	<link rel="stylesheet" href="storefront/storefront.css?v=20261029-1">
 	<script src="storefront/config.js"></script>
 	<script type="module" src="storefront/storefront.mjs"></script>
   <!-- Privacy-friendly analytics by Plausible -->
@@ -34,7 +34,7 @@
 	</button>
 	<nav id="site-nav" class="site-nav" aria-label="Primary">
 		<a href="index.html">Home</a>
-		<a href="breads.html" aria-current="page">Products</a>
+		<a href="breads.html" aria-current="page">Breads &amp; Bakes</a>
 		<a href="breads.html#offers">Offers</a>
 		<a href="about.html">About</a>
 		<a href="faq.html">FAQ</a>
@@ -1004,10 +1004,9 @@
           <p>Spend &#8377;450 or more and we&rsquo;ll add one complimentary sweet or savory roll of the day to your bake, baker&rsquo;s choice.</p>
         </div>
         <div class="offer-card">
-          <p class="offer-kicker">New &middot; Weekly Subscription</p>
-          <h3>Fresh bakes weekly &mdash; your 5th week free</h3>
-          <p>Subscribe to a weekly bundle &mdash; a half loaf with rolls, a sweet roll, or two half loaves &mdash; delivered on your chosen day. Pay for 4 weeks and your 5th week&rsquo;s bread is free, so it works out to about <strong>&#8377;192 a week</strong> &mdash; less than ordering the same each week, even with the launch discount.</p>
-          <p><a href="https://wa.me/918800206057?text=subscribe" class="btn" target="_blank" rel="noopener">Subscribe on WhatsApp</a></p>
+          <p class="offer-kicker">Weekly subscription</p>
+          <h3>Your 5th week is on us</h3>
+          <p>Fresh bakes every week on your chosen day. Pay for 4 weeks and the 5th is free.</p>
         </div>
       </div>
 
@@ -1035,7 +1034,7 @@
 	  </div>
 	  <div class="footer-links">
 		<a href="index.html">Home</a>
-		<a href="breads.html">Products</a>
+		<a href="breads.html">Breads &amp; Bakes</a>
 		<a href="about.html">About</a>
 		<a href="faq.html">FAQ</a>
 	  </div>
@@ -1174,6 +1173,11 @@
 		  const actionLink = details ? details.querySelector('a.btn') : null;
 
 		  if (!textBlock || !toggleButton || !actionLink) {
+			return;
+		  }
+		  // With the online basket live, ordering happens on the card itself.
+		  if (window.TRANCHE_STOREFRONT && window.TRANCHE_STOREFRONT.enabled === true) {
+			actionLink.remove();
 			return;
 		  }
 
