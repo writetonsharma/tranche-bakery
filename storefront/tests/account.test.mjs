@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { validateProfile, profileInput, validateHistory, validateOrderDetail } from '../account-model.mjs';
+import { validateProfile, profileInput, validateHistory, validateOrderDetail, validateLocation } from '../account-model.mjs';
 import { AccountController, attachAccount } from '../account.mjs';
 
 const now = Date.parse('2026-10-27T08:00:00Z');
@@ -27,6 +27,7 @@ function fixture(handler = () => undefined) {
       if (override !== undefined) return override;
       if (path === '/api/session') return structuredClone(session);
       if (path === '/api/account/profile') return structuredClone(profile);
+      if (path === '/api/account/location') return { latitude: null, longitude: null };
       if (path.startsWith('/api/account/orders?page=')) return { ...structuredClone(history), page: Number(path.split('=')[1]) };
       if (path === `/api/account/orders/${id}`) return structuredClone(detail);
       throw new Error('Unexpected route');
@@ -67,6 +68,9 @@ test('normalized or omitted legacy suggestions bootstrap history and remain expl
     const { controller, calls } = fixture(path => path === '/api/account/profile' ? structuredClone(projected) : undefined);
     await controller.refresh();
     assert.deepEqual(controller.state.profile, projected);
+    assert.equal(controller.state.history, null);
+    assert.equal(calls.some(call => call.path.includes('/orders')), false);
+    await controller.page(0);
     assert.deepEqual(controller.state.history, history);
     assert.equal(calls.every(call => call.body === undefined && call.method === undefined), true);
     const edited = profileInput({ ...controller.state.profile,
@@ -239,7 +243,9 @@ test('409 DOM preserves unsaved edits; explicit reload replaces them; visible/fo
   const input = root.querySelectorAll('input')[0]; input.value = 'Unsaved private edit';
   await page.controller.save({ ...detail.fulfillment, name: input.value });
   assert.equal(input.value, 'Unsaved private edit');
-  assert.ok(root.querySelectorAll('button').find(button => button.textContent === 'Save website defaults').disabled);
+  assert.match(page.nodes['account-status'].textContent, /Saved details changed elsewhere.*edits are kept.*Reload to discard edits/);
+  assert.doesNotMatch(page.nodes['account-status'].textContent, /version|CAS|server|backend/);
+  assert.ok(root.querySelectorAll('button').find(button => button.textContent === 'Save details').disabled);
   await page.controller.reloadProfile(); assert.equal(input.value, profile.name);
   const before = calls.filter(call => call.path === '/api/session').length;
   page.win.dispatchEvent(new Event('focus')); assert.equal(root.textContent, '');
@@ -257,4 +263,142 @@ test('late historical detail cannot repopulate cleared model', async () => {
   assert.ok(calls.find(call => call.path === `/api/account/orders/${id}`).signal.aborted);
   pending.resolve(detail); await loading;
   assert.equal(controller.state.detail, null); assert.equal(controller.state.profile, null);
+});
+
+test('account uses customer language while preserving uncertain-payment guidance and read-only history', async () => {
+  const { api, calls } = fixture(path => path === `/api/account/orders/${id}` ? { ...detail, status: 'UNKNOWN' } : undefined);
+  const page = fakePage(api);
+  try {
+    await page.controller.refresh();
+    await page.controller.page(0);
+    await page.controller.detail(id);
+    const text = page.nodes['account-private'].textContent;
+    assert.match(text, /Save details/);
+    assert.ok(page.nodes['account-private'].querySelectorAll('button')
+      .find(button => button.textContent === 'Discard changes and load saved details').hidden);
+    assert.match(text, /Confirmed/);
+    assert.match(text, /Payment outcome uncertain/);
+    assert.match(text, /before ordering or paying again/);
+    assert.match(text, /Returning from payment does not confirm it/);
+    assert.doesNotMatch(text, /server|backend|quote|snapshot|version|CSRF|CAS|PENDING|CONFIRMED|IN_PERSON/);
+    assert.equal(calls.some(call => call.method === 'PUT' || call.path.startsWith('/api/checkout')), false);
+  } finally { page.destroy(); }
+});
+
+test('profile stays visible through HTTP and typed history failures; history loads only on click', async () => {
+  for (const failure of [() => { throw Object.assign(new Error('private history'), { status: 500 }); },
+    () => ({ ...history, orders: [{ ...summary, createdAt: 1793000000.123 }] }),
+    () => ({ ...history, orders: [{ ...summary, totalAmount: '250' }] })]) {
+    const { api, controller, calls } = fixture(path => path.includes('/orders?page=') ? failure() : undefined);
+    const page = fakePage(api);
+    try {
+      await page.controller.refresh();
+      const input = page.nodes['account-private'].querySelectorAll('input')[0];
+      input.value = 'Unsaved name';
+      assert.equal(calls.some(call => call.path.includes('/orders')), false);
+      const load = page.nodes['account-private'].querySelectorAll('button').find(button => button.textContent === 'Load website orders');
+      assert.ok(load);
+      await page.controller.page(0);
+      assert.deepEqual(page.controller.state.profile, profile);
+      assert.equal(page.controller.state.history, null);
+      assert.match(page.controller.state.historyMessage, /orders unavailable/);
+      assert.equal(input.value, 'Unsaved name');
+      assert.equal(page.nodes['account-private'].hidden, false);
+      assert.doesNotMatch(page.nodes['account-private'].textContent, /private history/);
+    } finally { page.destroy(); controller.clear(); }
+  }
+});
+
+test('optional location failure cannot hide profile, but auth failures on any read clear private data', async () => {
+  for (const value of [null, { latitude: '28.4', longitude: 77 }, { latitude: 91, longitude: 77 }]) {
+    const { controller } = fixture(path => path === '/api/account/location' ? Promise.resolve(value) : undefined);
+    await controller.refresh();
+    assert.deepEqual(controller.state.profile, profile);
+    assert.equal(controller.state.location, null);
+    assert.match(controller.state.locationMessage, /unavailable/);
+  }
+  const unavailable = fixture(path => {
+    if (path === '/api/account/location') throw Object.assign(new Error('private'), { status: 404 });
+  });
+  await unavailable.controller.refresh();
+  assert.deepEqual(unavailable.controller.state.profile, profile, 'new frontend tolerates backend without location route');
+  for (const path of ['/api/account/profile', '/api/account/location', '/api/account/orders?page=0']) {
+    for (const status of [401, 403]) {
+      const { controller } = fixture(route => {
+        if (route === path) throw Object.assign(new Error('private'), { status });
+      });
+      await controller.refresh();
+      if (path.includes('/orders')) await controller.page(0);
+      assert.equal(controller.state.authenticated, false);
+      assert.equal(controller.state.profile, null);
+      assert.equal(controller.state.location, null);
+    }
+  }
+});
+
+test('profile read failure leaves history independently readable', async () => {
+  const { controller } = fixture(path => {
+    if (path === '/api/account/profile') throw Object.assign(new Error('private'), { status: 500 });
+  });
+  await controller.refresh();
+  assert.equal(controller.state.profile, null);
+  await controller.page(0);
+  assert.deepEqual(controller.state.history, history);
+});
+
+test('saved pin is strictly numeric, bounded, optional and exposed only as a user-clicked safe link', async () => {
+  assert.equal(validateLocation({ latitude: null, longitude: null }), null);
+  for (const value of [null, {}, { latitude: null, longitude: 77 }, { latitude: '28', longitude: 77 },
+    { latitude: NaN, longitude: 77 }, { latitude: 28, longitude: Infinity }, { latitude: 90.01, longitude: 77 },
+    { latitude: 28, longitude: -180.01 }, { latitude: 28, longitude: 77, url: 'https://evil.test' }]) {
+    assert.throws(() => validateLocation(value));
+  }
+  for (const pin of [{ latitude: 28.45, longitude: 77.02 }, { latitude: 0, longitude: 0 }, { latitude: -90, longitude: 180 }]) {
+    assert.deepEqual(validateLocation(pin), pin);
+    assert.ok(Object.isFrozen(validateLocation(pin)));
+    const { api, calls } = fixture(path => path === '/api/account/location' ? pin : undefined);
+    const page = fakePage(api);
+    await page.controller.refresh();
+    const link = page.nodes['account-private'].querySelectorAll('a').find(link => link.textContent.includes('Maps'));
+    assert.equal(link.href, `https://www.google.com/maps?q=${pin.latitude},${pin.longitude}`);
+    assert.equal(link.referrerPolicy, 'no-referrer');
+    assert.equal(link.rel, 'noopener noreferrer');
+    assert.ok(calls.every(call => call.path.startsWith('/api/')));
+    page.controller.clear();
+    assert.equal(page.controller.state.location, null);
+    assert.equal(link.textContent, '');
+    assert.equal(link.attributes.href, undefined);
+    page.destroy();
+  }
+});
+
+test('concurrent visible/focus refreshes coalesce without aborting profile or resurrecting cleared data', async () => {
+  const pending = deferred();
+  const { api, calls } = fixture(path => path === '/api/account/profile' ? pending.promise : undefined);
+  const page = fakePage(api);
+  const loaded = page.controller.refresh();
+  page.win.dispatchEvent(new Event('focus'));
+  page.doc.dispatchEvent(new Event('visibilitychange'));
+  await Promise.resolve(); await Promise.resolve();
+  assert.equal(calls.filter(call => call.path === '/api/session').length, 1);
+  assert.equal(calls.filter(call => call.path === '/api/account/profile').length, 1);
+  assert.equal(calls.find(call => call.path === '/api/account/profile').signal.aborted, false);
+  page.doc.hidden = true; page.doc.dispatchEvent(new Event('visibilitychange'));
+  pending.resolve(profile); await loaded;
+  assert.equal(page.controller.state.profile, null);
+  assert.equal(page.nodes['account-private'].hidden, true);
+  page.destroy();
+});
+
+test('late optional pin cannot restore coordinates after privacy clear even when abort is ignored', async () => {
+  const pending = deferred();
+  const { controller, calls } = fixture(path => path === '/api/account/location' ? pending.promise : undefined);
+  const loading = controller.refresh();
+  for (let turn = 0; turn < 5; turn++) await Promise.resolve();
+  assert.deepEqual(controller.state.profile, profile);
+  controller.clear();
+  assert.equal(calls.find(call => call.path === '/api/account/location').signal.aborted, true);
+  pending.resolve({ latitude: 28.45, longitude: 77.02 }); await loading;
+  assert.equal(controller.state.location, null);
+  assert.equal(controller.state.profile, null);
 });

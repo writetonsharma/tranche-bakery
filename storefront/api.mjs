@@ -51,7 +51,7 @@ export class StorefrontApi {
   async request(path, body, signal, requestedMethod) {
     let method = ROUTES.get(path);
     const accountRoute = this.#checkout && typeof path === 'string' &&
-      (path === '/api/account/profile' || path === '/api/account/checkout' ||
+      (path === '/api/account/profile' || path === '/api/account/checkout' || path === '/api/account/location' ||
         ACCOUNT_ORDERS.test(path) || ACCOUNT_DETAIL.test(path));
     if (accountRoute) {
       method = path === '/api/account/profile' ?

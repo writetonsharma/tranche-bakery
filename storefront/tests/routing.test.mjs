@@ -11,7 +11,7 @@ const otherOrigins = ['http://www.tranchebakery.in', 'http://tranchebakery.in',
 const paths = ['/api/catalog', '/api/session', '/api/quote', '/api/shopping',
   '/api/auth/challenge', '/api/auth/verify', '/api/auth/logout',
   '/api/cart', '/api/checkout/prepare', '/api/checkout', '/api/checkout/:opaqueId([A-Za-z0-9_-]{32})',
-  '/api/account/profile', '/api/account/orders', '/api/account/checkout',
+  '/api/account/profile', '/api/account/location', '/api/account/orders', '/api/account/checkout',
   '/api/account/orders/:opaqueId([A-Za-z0-9_-]{32})'];
 const backend = 'https://tranchewa-app-production.up.railway.app';
 const configCode = () => readFile(new URL('../config.js', import.meta.url), 'utf8');
@@ -104,7 +104,7 @@ test('status rewrite rejects arbitrary IDs, extra paths, encodings and query inj
 test('account rewrites have no subtree wildcard or query-based path matching', async () => {
   const config = await routing();
   const rules = config.rewrites.filter(rule => rule.source.startsWith('/api/account'));
-  assert.equal(rules.length, 4);
+  assert.equal(rules.length, 5);
   const detail = rules.find(rule => rule.source.includes('/:'));
   assert.equal(detail.source, '/api/account/orders/:opaqueId([A-Za-z0-9_-]{32})');
   const pattern = new RegExp('^' + detail.source.replace(':opaqueId', '') + '$(?![\\s\\S])');

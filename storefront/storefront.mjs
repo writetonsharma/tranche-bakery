@@ -5,6 +5,7 @@ import { createDrawer, element, quantityControl, renderQuote } from './view.mjs'
 import { checkoutEnabled } from './checkout-model.mjs';
 import { attachCheckout } from './checkout-view.mjs';
 import { GuestIntent } from './guest-intent.mjs';
+import { normalizePhone } from './phone-model.mjs';
 
 // Disabled means no fetch, storage access, DOM enhancement, or event listeners.
 if (window.TRANCHE_STOREFRONT?.enabled === true && typeof HTMLDialogElement !== 'undefined') {
@@ -19,7 +20,7 @@ if (window.TRANCHE_STOREFRONT?.enabled === true && typeof HTMLDialogElement !== 
         launch();
       }
     }).catch(() => {
-      const note = element('p', 'Basket preview is unavailable. Please order on WhatsApp as usual.', 'sf-start-error');
+      const note = element('p', 'Basket unavailable. Please order on WhatsApp.', 'sf-start-error');
       document.querySelector('.products-intro-copy')?.append(note);
     });
   };
@@ -57,6 +58,8 @@ async function start() {
   let offlineInvalid = false;
   let shoppingPending = false;
   let shoppingFailed = false;
+  document.querySelector('.products-intro-copy')?.append(
+    element('p', 'Estimated prices. Final total shown before payment.', 'sf-note sf-price-note'));
   const cards = [...document.querySelectorAll('.product .text > h3')];
   const bindings = catalogBindings(catalog, cards.map(h3 => h3.textContent.trim()));
   const allowedIds = new Set([...bindings.values()].map(item => item.id));
@@ -81,15 +84,15 @@ async function start() {
   const checkout = checkoutOn ? attachCheckout({ api, ui, allowedIds, guestIntent,
     getBasket: () => ({ lines, date }),
     getShopping: () => shopping,
-    getReadiness: () => shoppingPending ? 'Checking availability for this date. Your basket is kept.' : basketReadiness(snapshotUsable ? shopping : null, { lines, date }),
-    onActivity: () => invalidate('Checking the final server quote. Nothing has been ordered.'),
+    getReadiness: () => shoppingPending ? 'Checking availability…' : basketReadiness(snapshotUsable ? shopping : null, { lines, date }),
+    onActivity: () => invalidate('Checking your order…'),
     onIdentityLost: () => identityUncertain(),
     onAssociate: () => {
       storageWarning = '';
     },
     onBasket: basket => {
       lines = basket.lines; date = basket.date;
-      invalidate('Account basket merged. Your bakes are kept in full.'); renderBasket();
+      invalidate('Basket updated.'); renderBasket();
     }
   }) : null;
   const controls = [];
@@ -106,7 +109,7 @@ async function start() {
     if (!item) continue; // Unknown, duplicate or absent/retired: never orderable.
     const wrapper = element('div', undefined, 'sf-card-action');
     wrapper.dataset.sfItem = String(item.id);
-    const label = element('span', 'Add to basket preview', 'sf-card-label');
+    const label = element('span', 'Add to basket', 'sf-card-label');
     const control = quantityControl(item, change);
     wrapper.append(label, control.root);
     h3.parentElement.append(wrapper);
@@ -119,7 +122,7 @@ async function start() {
     controls.push({ id: item.id, ...control, price, publicPrice, availability });
   }
 
-  function invalidate(message = 'Estimated prices only. Review order for the final server quote.') {
+  function invalidate(message = '') {
     ui.status.textContent = message;
   }
 
@@ -140,8 +143,8 @@ async function start() {
 
   function renderEstimate() {
     const paise = snapshotUsable ? estimatePaise(lines, prices) : null;
-    const text = paise === null ? 'Estimated product subtotal unavailable. Refresh availability; your basket is kept.' :
-      `Estimated product subtotal: ${new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(paise / 100)}`;
+    const text = paise === null ? 'Estimated subtotal unavailable. Refresh availability.' :
+      `Estimated subtotal: ${new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(paise / 100)}`;
     if (ui.totals.dataset.estimate === text) return;
     ui.totals.dataset.estimate = text;
     ui.totals.replaceChildren(element('h3', text), element('p', ESTIMATE_WARNING, 'sf-note'));
@@ -154,7 +157,7 @@ async function start() {
       const priceKey = item ? JSON.stringify([item.unitPrice, item.priceLabel]) : 'public';
       if (control.price.dataset.shoppingPrice !== priceKey) {
         control.price.dataset.shoppingPrice = priceKey;
-        if (item) control.price.textContent = `${new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(item.unitPrice)}${item.priceLabel ? ` · ${item.priceLabel}` : ''} · estimated unit price`;
+        if (item) control.price.textContent = `${new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(item.unitPrice)}${item.priceLabel ? ` · ${item.priceLabel}` : ''}`;
         else control.price.replaceChildren(...control.publicPrice.map(node => node.cloneNode(true)));
       }
       control.availability.textContent = !snapshotUsable ? 'Availability needs rechecking. Basket kept.' :
@@ -163,8 +166,8 @@ async function start() {
           'Unavailable for this date or basket. Choose another date or contact the bakery.' : '';
     }
     const count = lines.reduce((sum, line) => sum + line.quantity, 0); // Quantity only, never money.
-    ui.opener.textContent = `Basket preview · ${count}`;
-    ui.opener.setAttribute('aria-label', `Open basket preview, ${count} items`);
+    ui.opener.textContent = `Basket · ${count}`;
+    ui.opener.setAttribute('aria-label', `Open basket, ${count} items`);
     for (const [id, row] of drawerRows) {
       if (!lines.some(line => line.itemId === id)) {
         if (row.root.contains(document.activeElement)) ui.refresh.focus();
@@ -197,15 +200,15 @@ async function start() {
   function persist() {
     if (session?.authenticated || checkout?.hasIdentity || checkout?.accountOwned) return;
     if (guestIntent.retaining || guestIntent.uncertain()) {
-      storageWarning = 'An earlier device-basket save may have succeeded. Original device additions remain stored; current edits last only on this page. Sign in and check the saved basket before discarding retained additions.';
+      storageWarning = 'An earlier save may have succeeded. Original device additions remain stored. Current edits last only on this page; reloading loses them. Sign in and check your basket before discarding stored additions.';
       return;
     }
-    storageWarning = saveBasket(storage, lines, allowedIds) ? '' : 'Device storage unavailable; this basket lasts only on this page.';
+    storageWarning = saveBasket(storage, lines, allowedIds) ? '' : 'Basket not saved on this device. Reloading will lose it.';
   }
 
   function canEditBasket(id) {
     if (!checkout || checkout.canEdit) return true;
-    const message = 'Your basket has not changed. Check the current order in Basket preview, or contact the bakery before starting another order.';
+    const message = 'Your basket has not changed. Check your current order in Basket before ordering or paying again.';
     // Product controls live outside the closed drawer: feedback there alone is
     // invisible. Open recovery, and retain an inline live notice even if another
     // site modal prevents the native drawer from opening.
@@ -243,7 +246,7 @@ async function start() {
     lines = next.filter(line => line.quantity > 0);
     checkout?.changed();
     persist();
-    invalidate(storageWarning || 'Basket updated locally. Final price at Review order.');
+    invalidate(storageWarning || '');
     renderBasket();
   }
 
@@ -276,7 +279,7 @@ async function start() {
       if (!requestedDate) prices = new Map();
       for (const item of result.items) if (allowedIds.has(item.id)) prices.set(item.id, item);
       snapshotUsable = true; offlineInvalid = false; shoppingPending = false; shoppingFailed = false;
-      invalidate(storageWarning || 'Availability updated. Estimates only; final price at Review order.');
+      invalidate(storageWarning || '');
       renderBasket();
       if (session?.authenticated) scheduleResume();
     } catch (error) {
@@ -323,8 +326,8 @@ async function start() {
 
   function renderAuth() {
     const loggedIn = session?.authenticated === true;
-    ui.identity.textContent = loggedIn ? 'WhatsApp verified. Personalised preview enabled.' :
-      (session ? 'You are browsing anonymously.' : 'Login state needs rechecking. Refresh the preview.');
+    ui.identity.textContent = loggedIn ? 'WhatsApp verified.' :
+      (session ? '' : 'Please refresh to check your sign-in.');
     ui.form.hidden = loggedIn;
     ui.logout.hidden = !loggedIn;
     ui.auth.setAttribute('aria-busy', String(busy));
@@ -355,7 +358,7 @@ async function start() {
     const checkCurrent = () => {
       if (epoch !== authEpoch || controller.signal.aborted || document.hidden || !navigator.onLine) throw new Error('Identity changed');
     };
-    invalidate('Login state is changing. Previous totals have been cleared.');
+    invalidate('Checking your sign-in…');
     authStatus.textContent = 'Please wait…';
     renderAuth();
     try {
@@ -381,7 +384,7 @@ async function start() {
         renderBasket();
         renderAuth();
         if (challenge && ui.dialog.open && !document.hidden) ui.otp.focus();
-        invalidate('Estimates only. Review order for the final server quote.');
+        invalidate();
         if (session?.authenticated && !document.hidden && navigator.onLine) scheduleResume();
       }
     }
@@ -396,9 +399,9 @@ async function start() {
 
   ui.send.addEventListener('click', () => {
     if (ui.send.disabled) return;
-    const phone = ui.phone.value.trim();
-    if (!/^\+?[1-9]\d{7,14}$/.test(phone)) {
-      authStatus.textContent = 'Enter a WhatsApp phone number with country code, using digits and an optional leading +.';
+    const phone = normalizePhone(ui.phone.value);
+    if (!phone) {
+      authStatus.textContent = 'Enter a 10-digit mobile number, or an international number with country code.';
       ui.phone.focus();
       return;
     }
@@ -417,7 +420,7 @@ async function start() {
       challenge = result.challengeId;
       expires = sentAt + result.expiresInSeconds * 1000;
       ui.phone.value = '';
-      authStatus.textContent = 'If the number can receive WhatsApp verification, a code will arrive shortly.';
+      authStatus.textContent = 'If available, your WhatsApp code will arrive shortly.';
     });
   });
 
@@ -434,7 +437,7 @@ async function start() {
         checkCurrent();
         await applySession(view); // Includes replacement CSRF, not a cookie read.
         challenge = undefined;
-        authStatus.textContent = 'WhatsApp verified. Refresh the preview for current totals.';
+        authStatus.textContent = 'WhatsApp verified.';
         ui.phone.value = '';
       } finally { channel?.postMessage('identity-changed'); }
     });
@@ -449,7 +452,7 @@ async function start() {
       challenge = undefined;
       ui.phone.value = '';
       ui.otp.value = '';
-      authStatus.textContent = 'Logged out. Your account basket and private details have been removed from this page.';
+      authStatus.textContent = 'Logged out.';
     } finally { channel?.postMessage('identity-changed'); }
   }));
   ui.otp.addEventListener('input', renderAuth);
@@ -477,7 +480,7 @@ async function start() {
     checkout?.suspend('drawer closed');
     pauseAuth();
     challenge = undefined;
-    invalidate('Basket kept. Estimates only; final server quote at Review order.');
+    invalidate();
     authStatus.textContent = '';
     renderAuth();
   });
@@ -495,12 +498,12 @@ async function start() {
     ui.phone.value = '';
     ui.otp.value = '';
     renderBasket();
-    invalidate('Session may have changed. Your basket is kept; recheck securely.');
+    invalidate('Please refresh to check your sign-in. Basket kept.');
     renderAuth();
   }
   if (channel) channel.onmessage = event => { if (event.data === 'identity-changed') { identityUncertain(); scheduleResume(); } };
   window.addEventListener('offline', () => { offlineInvalid = true; identityUncertain(true); invalidate('Offline. Basket kept; reconnect and refresh availability.'); });
-  window.addEventListener('online', () => { invalidate('Connection restored. Rechecking your session…'); scheduleResume(); });
+  window.addEventListener('online', () => { invalidate('Back online. Checking your sign-in…'); scheduleResume(); });
   function returnedToPage() {
     // Keep an in-memory challenge when the user visits WhatsApp to read the code.
     // Same identity may revalidate session/payment recovery, not cart/shopping.
@@ -508,7 +511,7 @@ async function start() {
   }
   window.addEventListener('focus', returnedToPage);
   document.addEventListener('visibilitychange', () => {
-    if (document.hidden) { pauseAuth(); latest.invalidate(); snapshotUsable = false; shoppingPending = false; checkout?.suspend('page hidden'); renderBasket(); invalidate('Preview paused. Your basket is kept.'); }
+    if (document.hidden) { pauseAuth(); latest.invalidate(); snapshotUsable = false; shoppingPending = false; checkout?.suspend('page hidden'); renderBasket(); invalidate('Basket kept.'); }
     else returnedToPage();
   });
   window.addEventListener('pageshow', event => { if (event.persisted) { identityUncertain(true); scheduleResume(); } });
@@ -522,7 +525,7 @@ async function start() {
     lines = restored.lines;
     checkout?.changed();
     storageWarning = restored.warning;
-    invalidate('Device basket changed in another tab. Refresh the preview.');
+    invalidate('Basket changed in another tab. Please refresh.');
     renderBasket();
   });
   setInterval(() => {
@@ -537,7 +540,7 @@ async function start() {
   checkout?.identity(session?.authenticated ? session.customer.id : null);
   renderBasket();
   renderAuth();
-  ui.status.textContent = storageWarning || basketReadiness(shopping, { lines, date }) || 'Estimated prices only. Review order for the final server quote.';
+  ui.status.textContent = storageWarning || basketReadiness(shopping, { lines, date }) || '';
   if (session?.authenticated && !document.hidden && navigator.onLine) scheduleResume();
   if (window.location.hash === '#sf-auth' && !document.hidden) {
     ui.opener.click();

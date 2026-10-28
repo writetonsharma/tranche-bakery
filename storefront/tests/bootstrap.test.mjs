@@ -164,6 +164,87 @@ const quantity = f => f.node('.sf-card-action .sf-quantity span').textContent;
 const plus = f => f.node('.sf-card-action .sf-quantity button:last-child');
 const minus = f => f.node('.sf-card-action .sf-quantity button:first-child');
 
+test('real drawer uses concise accessible copy and qualifies card prices and subtotal as estimates', async () => {
+  const f = await fixture();
+  try {
+    assertStarted(f);
+    f.node('#sf-open').click(); await settle();
+    assert.equal(f.node('#sf-open').textContent, 'Basket · 0');
+    assert.equal(f.node('#sf-open').getAttribute('aria-label'), 'Open basket, 0 items');
+    assert.equal(f.node('#sf-close').getAttribute('aria-label'), 'Close basket');
+    assert.equal(f.node('#sf-disclaimer').textContent, '');
+    assert.equal(f.node('#sf-disclaimer').hidden, true);
+    assert.equal(f.node('#sf-drawer').hasAttribute('aria-describedby'), false);
+    assert.equal(f.node('#sf-phone').closest('label').firstChild.textContent, 'WhatsApp number');
+    assert.equal(f.node('#sf-phone').placeholder, '10-digit mobile number');
+    assert.equal(f.node('.sf-price-note').textContent, 'Estimated prices. Final total shown before payment.');
+    assert.match(f.node('#sf-totals h3').textContent, /^Estimated subtotal:/);
+    assert.equal(f.node('#sf-totals .sf-note').textContent, 'Final total shown before payment.');
+    const text = f.node('#sf-drawer').textContent + f.node('.sf-card-action').textContent;
+    assert.doesNotMatch(text, /basket preview|browsing and preparing|verify WhatsApp for your account basket|personalised preview|estimated unit price|final server quote|\b(?:backend|token|version|opaque|dispatch|identity|CAS|CSRF|GET|POST)\b/i);
+    assert.equal(f.node('.sf-card-label').textContent, 'Add to basket');
+    assert.doesNotMatch(f.node('.product-price-group').textContent, /estimated unit price/);
+    assert.deepEqual(f.errors, []);
+  } finally { f.cleanup(); }
+});
+
+for (const [input, canonical] of [['9876543210', '919876543210'], ['+4412345678', '+4412345678']]) {
+  test(`real WhatsApp login sends canonical challenge phone for ${input} and verifies successfully`, async () => {
+    const f = await fixture();
+    try {
+      f.node('#sf-open').click(); await settle();
+      f.node('#sf-phone').value = input;
+      f.node('#sf-send').click(); await settle();
+      const challenges = f.calls.filter(call => call.path === '/api/auth/challenge');
+      assert.equal(challenges.length, 1);
+      assert.deepEqual(challenges[0].body, { phone: canonical });
+      f.node('#sf-code').value = '123456';
+      f.node('#sf-code').dispatchEvent(new f.window.Event('input'));
+      assert.equal(f.node('#sf-verify').disabled, false);
+      f.node('#sf-login').dispatchEvent(new f.window.Event('submit', { cancelable: true }));
+      await settle(); await f.tick(200);
+      assert.deepEqual(f.calls.find(call => call.path === '/api/auth/verify').body,
+        { challengeId: 'fixture-challenge', code: '123456' });
+      assert.equal(f.node('#sf-logout').hidden, false);
+      assert.equal(f.node('#sf-identity').textContent, 'WhatsApp verified.');
+      assert.match(f.node('.product-price-group').textContent, /Fixture special rate/);
+      assert.deepEqual(f.errors, []);
+    } finally { f.cleanup(); }
+  });
+}
+
+test('real login rejects malformed numbers without sending a challenge', async () => {
+  const f = await fixture();
+  try {
+    f.node('#sf-open').click(); await settle();
+    for (const phone of ['98765-43210', '0123456789', '+1234567', '1234567890123456']) {
+      f.node('#sf-phone').value = phone;
+      f.node('#sf-send').click(); await settle();
+      assert.match(f.node('#sf-auth-status').textContent, /10-digit mobile number/);
+      assert.equal(f.document.activeElement, f.node('#sf-phone'));
+    }
+    assert.equal(f.calls.some(call => call.path === '/api/auth/challenge'), false);
+    assert.deepEqual(f.errors, []);
+  } finally { f.cleanup(); }
+});
+
+for (const status of ['PAYABLE', 'CREATING', 'UNKNOWN', 'REVIEW_REQUIRED']) {
+  test(`real ${status} copy retains explicit no-duplicate-order/payment guidance`, async () => {
+    const f = await fixture({ authenticated: true, status });
+    try {
+      await f.tick(200); f.node('#sf-open').click(); await settle();
+      assert.equal(f.node('#sf-new-order').hidden, true);
+      assert.equal(f.node('#sf-prepare').hidden, true);
+      assert.equal(f.node('.sf-checkout > p:last-child').hidden, false);
+      assert.match(f.node('.sf-checkout > p:last-child').textContent, /before ordering or paying again/);
+      assert.match(f.node('#sf-checkout-status').textContent, /do not.*(?:pay|submit)|before ordering or paying again/i);
+      assert.doesNotMatch(f.node('#sf-checkout-status').textContent, /server|quote|token|version|GET|POST/);
+      assert.equal(f.calls.some(call => call.path === '/api/checkout'), false);
+      assert.deepEqual(f.errors, []);
+    } finally { f.cleanup(); }
+  });
+}
+
 for (const authenticated of [false, true]) {
   test(`receiver-sensitive default timers: real ${authenticated ? 'signed-in boot and save' : 'anonymous boot and +/-'}; globals restored`, async () => {
     const keys = ['setTimeout', 'clearTimeout', 'setInterval', 'clearInterval'];
@@ -820,8 +901,8 @@ test('real card prices personalize on login, local integer-paise estimate update
     await f.loginElsewhere(); await f.tick(200);
     assert.match(price.textContent, /15\.00.*Fixture special rate/);
     assert.match(f.node('#sf-totals').textContent, /45\.00/);
-    assert.match(f.node('#sf-totals').textContent, /before batch, delivery, basket promotions and credit/);
-    assert.match(f.node('#sf-totals').textContent, /may not jointly win for a mixed basket/);
+    assert.match(f.node('#sf-totals').textContent, /Estimated subtotal:/);
+    assert.match(f.node('#sf-totals').textContent, /Final total shown before payment\./);
     assert.doesNotMatch(f.node('#sf-totals').textContent, /Checkout total|Credit applied|Delivery charge|Savings/);
     f.node('#sf-open').click(); await settle();
     f.node('#sf-logout').click(); await settle();
@@ -1093,6 +1174,7 @@ test('real failed save keeps edits and offers retry only; exact authoritative qu
     assert.equal(quantity(f), '3');
     assert.equal(f.node('#sf-cart-save').hidden, false);
     assert.match(f.node('#sf-cart-save').textContent, /Retry saving/);
+    assert.match(f.node('.sf-checkout').textContent, /not confirmed.*reloading may lose.*retry/i);
     assert.equal(f.node('#sf-cart-load').hidden, true);
     assert.equal(f.node('#sf-prepare').disabled, true);
     const calls = f.calls.length; await f.tick(400); assert.equal(f.calls.length, calls);

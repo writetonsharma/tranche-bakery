@@ -1,5 +1,27 @@
 # Customer account next phase — execution reference
 
+## Concise customer language and Indian phone input — research, 2026-10-27
+
+- Verified scope: view/storefront, shopping-model estimate notice, checkout-view,
+	checkout-flow, checkout-model problem messages, BasketSync, account controller
+	and account access copy; static marketing stays untouched. Existing IDs/routes,
+	payment fences, save/retry logic and validation must remain unchanged.
+- Current phone submission trims then accepts optional + and 8–15 digits starting
+	nonzero. Add a pure helper retaining that validation; only bare ten-digit inputs
+	gain 91. Explicit + international inputs remain unchanged. Challenge body uses it.
+- Remove empty disclaimer from aria-describedby; keep its DOM ID hidden for
+	compatibility. Remove optional auth help rather than overwriting status text.
+	Keep Estimated subtotal plus Final total shown before payment, and clear pending
+	payment, availability/five-item/bulk, unsaved/reload-loss and recovery warnings.
+- Atomic verdict: one bounded customer-language/input correction with regressions.
+	No scenario skill root, assessment or Execution/Breakdown Hints forwarded.
+	Skill lookup found none; Execution extensions returned none. No terminal/test
+	commands permitted: editor diagnostics only; parent runs full Node 23+ suite,
+	syntax/whitespace and browser checks after the backend worker finishes.
+- Done when actual-module tests cover ten-digit challenge canonicalization and
+	verification, preserved international/invalid formats, concise accessible copy,
+	retained estimated qualification and no-double-payment warnings. Append progress.
+
 ## Approved website UX cleanup — verified research, 2026-10-27
 
 - Baseline verified clean at 166a54b. Read actual storefront, checkout flow/view,

@@ -434,7 +434,5 @@ test('estimates use integer paise and unitPrice only, never multiplying single-i
   assert.equal(estimatePaise([line(999)], prices), null, 'missing price is unavailable, not zero or a partial sum');
   assert.equal(estimatePaise([line(1), line(999)], prices), null);
   assert.equal(estimatePaise([line(1, 2)], new Map([[1, { unitPrice: Number.MAX_SAFE_INTEGER / 100 }]])), null);
-  assert.equal(ESTIMATE_WARNING,
-    'Estimated product subtotal — before batch, delivery, basket promotions and credit; final price at checkout. ' +
-    'Single-item public offers and special rates may not jointly win for a mixed basket.');
+  assert.equal(ESTIMATE_WARNING, 'Final total shown before payment.');
 });

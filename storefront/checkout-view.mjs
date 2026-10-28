@@ -8,25 +8,25 @@ export function attachCheckout({ api, ui, allowedIds, getBasket, onBasket, onIde
   const root = element('section', undefined, 'sf-checkout');
   root.id = 'sf-checkout'; root.setAttribute('aria-labelledby', 'sf-checkout-title');
   const title = element('h3', 'Delivery checkout'); title.id = 'sf-checkout-title';
-  const help = element('p', 'Choose your bakes and date, review delivery details, then Confirm & Pay. Nothing is ordered until you confirm.', 'sf-note');
+  const help = element('p', 'Review your total before Confirm & Pay.', 'sf-note');
   const status = element('p', '', 'sf-status'); status.id = 'sf-checkout-status'; status.setAttribute('role', 'status');
   const choices = element('div', undefined, 'sf-checkout-actions');
   const basketStatus = element('p', '', 'sf-note'); basketStatus.setAttribute('role', 'status');
-  const load = button('Retry loading basket (keep current edits)', () => sync.retry()); load.id = 'sf-cart-load';
+  const load = button('Retry loading basket', () => sync.retry()); load.id = 'sf-cart-load';
   const save = button('Retry saving basket', () => sync.retry()); save.id = 'sf-cart-save';
-  const discardGuest = button('I checked the saved basket: discard retained device additions', () => sync.discardRetainedGuest());
+  const discardGuest = button('Basket checked — discard stored additions', () => sync.discardRetainedGuest());
   discardGuest.id = 'sf-guest-discard';
   const prepare = button('Review order', () => flow.prepare()); prepare.id = 'sf-prepare';
   choices.append(load, save, discardGuest, prepare);
-  const accountLink = element('a', 'My account · delivery defaults & order history', 'sf-account-link'); accountLink.href = 'account.html';
+  const accountLink = element('a', 'My account', 'sf-account-link'); accountLink.href = 'account.html';
   const quoteRoot = element('div', undefined, 'sf-totals'); quoteRoot.id = 'sf-checkout-quote';
   const form = element('form'); form.id = 'sf-delivery'; form.autocomplete = 'off';
   const field = (label, id, tag = 'input') => {
     const wrapper = element('label', label, 'sf-field'); const input = element(tag); input.id = id;
     wrapper.htmlFor = id; wrapper.append(input); form.append(wrapper); return input;
   };
-  const name = field('Delivery name (1–100 characters)', 'sf-delivery-name'); name.maxLength = 100; name.required = true;
-  const address = field('Full delivery address, one line (10–2000 characters)', 'sf-delivery-address');
+  const name = field('Delivery name', 'sf-delivery-name'); name.maxLength = 100; name.required = true;
+  const address = field('Full delivery address (one line)', 'sf-delivery-address');
   address.maxLength = 2000; address.minLength = 10; address.required = true;
   const delivery = field('Delivery preference', 'sf-delivery-preference', 'select');
   const loaf = field('Loaf preference', 'sf-loaf-preference', 'select');
@@ -39,24 +39,22 @@ export function attachCheckout({ api, ui, allowedIds, getBasket, onBasket, onIde
   const accepted = element('div', undefined, 'sf-checkout-review'); accepted.id = 'sf-accepted-details';
   const confirm = button('Confirm & Pay', () => flow.confirm()); confirm.id = 'sf-confirm-pay';
   const recovery = element('div', undefined, 'sf-checkout-actions');
-  const retry = button('Recover this payment request', () => flow.retry()); retry.id = 'sf-checkout-retry';
+  const retry = button('Recover this order', () => flow.retry()); retry.id = 'sf-checkout-retry';
   const check = button('Refresh payment status', () => flow.state.attempt?.id ? flow.check() : flow.resume()); check.id = 'sf-checkout-refresh';
   const newOrder = button('Continue shopping', async () => {
     flow.startNewOrder();
     if (!flow.state.attempt) await flow.resume();
   }); newOrder.id = 'sf-new-order';
-  const payment = element('a', 'Open secure Razorpay payment link ↗', 'sf-payment-link'); payment.id = 'sf-payment-link';
+  const payment = element('a', 'Pay with Razorpay ↗', 'sf-payment-link'); payment.id = 'sf-payment-link';
   payment.target = '_blank'; payment.rel = 'noopener noreferrer'; payment.referrerPolicy = 'no-referrer';
   const abort = button('Hide delivery details', () => {
     flow.suspend('paused by you'); clearFields(); pendingDefaults = null;
     if (!defaultsApplied && !fieldsTouched) flow.defaultsRead = false;
   }); abort.id = 'sf-checkout-abort';
-  const support = element('p', 'If payment is uncertain or needs review, contact the bakery on WhatsApp below before ordering or paying again. You can also view this order in My account.', 'sf-note');
+  const support = element('p', 'Payment uncertain? Contact the bakery before ordering or paying again.', 'sf-note');
   recovery.append(retry, check, payment, newOrder, abort);
   root.append(title, accountLink, help, status, basketStatus, choices, quoteRoot, form, accepted, confirm, recovery, support);
   ui.auth.after(root);
-  document.querySelector('#sf-auth .sf-note').textContent = 'Verify WhatsApp for your account basket, saved defaults and website orders. Device additions and your saved basket merge once on login; edits save automatically. Nothing is silently removed.';
-  document.querySelector('#sf-disclaimer').textContent = 'Browsing and preparing reserve nothing. Optional checkout below creates a real order only when you explicitly Confirm & Pay. WhatsApp ordering remains available.';
   let identity = null;
   let pollTimer;
   let expirationTimer;
@@ -106,7 +104,7 @@ export function attachCheckout({ api, ui, allowedIds, getBasket, onBasket, onIde
     // A background version refresh invalidates the quote, not the customer's
     // in-progress per-order form. Privacy transitions call clearFields explicitly.
     if (!networkActive() || !identity) clearFields();
-    const message = !identity ? 'Sign in to use your account basket and checkout.' :
+    const message = !identity ? 'Sign in to checkout.' :
       `${state.message || 'Checking your account…'}${privateVisible && state.result?.orderNumber ? ` Order ${state.result.orderNumber}.` : ''}`;
     if (status.textContent !== message) status.textContent = message;
     const basketMessage = identity && !state.attempt ? [sync.state.message, getReadiness()].filter(Boolean).join(' ') : '';
@@ -143,7 +141,8 @@ export function attachCheckout({ api, ui, allowedIds, getBasket, onBasket, onIde
       if (privateVisible && !state.attempt && state.review) {
         accepted.append(element('h4', 'Your delivery details'));
         for (const [label, value] of [['Name', state.review.name], ['Address', state.review.address],
-          ['Delivery', state.review.deliveryPreference], ['Loaf', state.review.loafPreference]]) {
+          ['Delivery', { GATE: 'Leave at gate', DOOR: 'Leave at door', IN_PERSON: 'Hand to me' }[state.review.deliveryPreference]],
+          ['Loaf', { SLICED: 'Sliced', WHOLE: 'Whole' }[state.review.loafPreference]]]) {
           accepted.append(element('p', `${label}: ${value}`, 'sf-note'));
         }
         accepted.append(button('Edit delivery details', () => { state.review = null; flow.emit(); }));

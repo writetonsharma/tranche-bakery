@@ -504,3 +504,85 @@
 - No live OTP, account writes, order, payment or provider activity. Hosted
   personalized-login/payment acceptance and device motion remain user checks
   after deployment. Backend must be deployed before this website update.
+
+## Concise customer language and Indian phone input — 2026-10-27
+
+- Researched actual website modules/tests and enriched account-nextphase-task.md
+  before source edits. Atomic bounded copy/phone correction; no scenario skill
+  root, assessment, Execution stage or Breakdown Hints forwarded. Skill discovery
+  returned no match and Execution extensions returned none. No lifecycle tools.
+- Updated view.mjs/storefront.mjs: Basket labels and accessible names; removed
+  optional auth help; hidden empty disclaimer retains its ID without a dangling
+  aria-describedby. Short verified identity/status text and clean card prices;
+  one global Estimated prices notice and Estimated subtotal / Final total shown
+  before payment retain honest single-item estimate qualification.
+- Added phone-model.mjs normalizePhone, preserving strict prior validation and
+  explicit + international formats; bare ten-digit input gains 91 in the challenge
+  body. WhatsApp number label / 10-digit mobile number placeholder. Backend remains
+  authoritative. No auth, checkout, payment, cart or API behavior otherwise changed.
+- Updated checkout-flow/view/model, shopping-model and basket-sync copy: natural
+  order/status/save/retry wording, readable delivery choices, brief Saved. Explicit
+  pending/uncertain/no-repeat-payment warnings, five-item/bulk availability blocks,
+  retained-addition uncertainty and unsaved/reload-loss warnings remain functional.
+- Updated account.html/account.mjs access/save/history copy and readable enum
+  labels. Explicit reload/discard, privacy/unsaved-edit and payment safety remain.
+- Added tests/phone.test.mjs and actual storefront bootstrap regressions for bare
+  ten-digit and explicit international challenge bodies, successful verification,
+  malformed-input no-send, accessible concise copy, estimates and all pending
+  payment warnings. Added account safety/read-only/copy regression and failed-save
+  reload-loss assertion. Updated only changed copy expectations in shopping,
+  checkout, recovery, account and bootstrap tests; existing logic checks retained.
+- Updated README and this append-only progress log. Editor diagnostics reported
+  no errors in all changed source/test/HTML files. NO terminal commands, tests,
+  syntax runs, builds, dependency installs, backend/parked/live API, push, bundles
+  or deployment. Previous 322 tests / 23 syntax checks are baseline only.
+- Parent must run full Node 23+ suite, syntax checks for all JS/MJS including both
+  new files, whitespace checks and browser/accessibility acceptance after the
+  backend worker releases the terminal. Runtime validation is pending, not passed.
+
+## Account failure escalation — local proof and fix, 2026-10-28
+
+- Preserved all existing uncommitted phone/copy changes; no reset, parked source,
+  live auth/account/OTP/provider access, push, bundle or data migration. Execution
+  extensions returned none. No workflow/task lifecycle state was changed.
+- Proven failure mechanism: old account refresh Promise.all made a valid profile
+  disappear whenever unrelated history failed. Added a random-port real backend
+  HTTP test using local PostgreSQL, actual cart/prepare/acceptance and settlement
+  binding with mocked providers. Valid PAYABLE/PAID detail/history JSON passes the
+  actual frontend validators, including microsecond UTC createdAt, UTC expiresAt,
+  date strings and numeric totals. No timestamp mapper defect reproduced.
+- Deliberately corrupted only a synthetic historical quote to obtain history 500
+  alongside same-cookie profile 200. Before patch, account-wire.test.mjs failed
+  with profile null. It now passes. This proves coupling, not that hosted history
+  is corrupt; hosted initiating fault and cookie/proxy behavior remain unknown.
+- account.mjs now loads profile alone, optional location separately, and history
+  only on explicit click. History HTTP/typed errors retain profile/form edits;
+  profile failure leaves history usable. Focus/visibility bursts coalesce and
+  all private states/DOM/links still wipe on suspension/identity/logout, rejecting
+  late abort-ignoring replies including optional coordinates. No PII persistence.
+- account-model/api/vercel: separate exact gated GET /api/account/location with
+  strict numeric/null pair validation; bounded own saved pin becomes only a
+  user-clicked no-referrer Maps link, no automatic external requests/geolocation.
+  Optional 404/malformed/errors do not hide profile; auth errors still clear all.
+  Backend retains exact five-field profile schema/strict PUT and checkout prefill,
+  suggests safe own prior-order preferences only absent dedicated defaults, and
+  never writes shared WhatsApp defaults or pins. Backend-first stays compatible.
+- account.html removes the top recheck button and instruction paragraph, shortens
+  access link to Sign in, and shows only logout while authenticated. Reload/discard
+  is hidden normally and remains explicit only for conflict/failure recovery.
+- Frontend files changed by this correction: account.html, storefront/account.mjs,
+  account-model.mjs, api.mjs, tests/account.test.mjs, tests/account-api.test.mjs,
+  tests/account-wire.test.mjs, tests/routing.test.mjs, tests/checkout.test.mjs,
+  vercel.json, README.md and this log. Existing phone/copy files were preserved.
+  The checkout test's old support|paused regex alone was stale; it now asserts the
+  exact concise payment warning while retaining one-POST/ten-GET/no-retry checks.
+- Final full validation: **340/340 frontend tests**, no failures/skips/cancellations;
+  **26/26** source/test JS/MJS syntax checks; **447 backend tests / 49 suites**, no
+  failures/errors/skips after clean Java-17 system Maven test. Both whitespace
+  checks and scoped editor diagnostics pass. Backend wire output was fresh and
+  the cross-repo test did not skip. No dependencies or migrations added.
+- No native browser run or hosted acceptance in this correction. No cookie,
+  production timestamp, OTP, real payment or hosted underlying-fault fix is claimed.
+  No user decision needed beyond existing backend-first deployment/manual hosted
+  acceptance. Root-cause evidence and complete backend scope are recorded in the
+  backend docs/storefront/account-progress-details.md and account-contract.md.

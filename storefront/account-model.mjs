@@ -49,6 +49,15 @@ export function validateProfile(value, { saving = false } = {}) {
 }
 export function profileInput(value) { return validateProfile(value, { saving: true }); }
 
+export function validateLocation(value) {
+  exact(value, 'latitude,longitude');
+  if (value.latitude === null && value.longitude === null) return null;
+  if (typeof value.latitude !== 'number' || typeof value.longitude !== 'number' ||
+      !Number.isFinite(value.latitude) || !Number.isFinite(value.longitude) ||
+      Math.abs(value.latitude) > 90 || Math.abs(value.longitude) > 180) throw new Error('Invalid saved location');
+  return immutable({ latitude: value.latitude, longitude: value.longitude });
+}
+
 function historicalQuote(value) {
   exact(value, 'batchDiscountAmount,batchDiscountLabel,creditApplied,date,deliveryCharge,discountAmount,discountLabel,giftLabel,itemCount,lines,listSubtotal,problems,totalAmount,valid');
   if (!Array.isArray(value.lines) || !value.lines.length || !validDate(value.date) ||

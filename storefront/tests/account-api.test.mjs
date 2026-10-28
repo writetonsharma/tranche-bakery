@@ -7,7 +7,7 @@ const profile = () => ({ version: 0, name: 'Customer', address: 'A complete deli
   deliveryPreference: 'DOOR', loafPreference: 'WHOLE' });
 const session = token => ({ authenticated: true, customer: { id: 1 },
   csrfHeaderName: 'X-XSRF-TOKEN', csrfToken: token });
-const routes = ['/api/account/profile', '/api/account/orders', '/api/account/orders?page=0',
+const routes = ['/api/account/profile', '/api/account/location', '/api/account/orders', '/api/account/orders?page=0',
   '/api/account/orders?page=10000', `/api/account/orders/${id}`, '/api/account/checkout'];
 function fixture(options = { checkoutEnabled: true }, response = { ok: true }) {
   const calls = [];
@@ -65,6 +65,7 @@ test('history accepts only omitted page or a single canonical integer within 0..
 test('account paths reject origin, identity, encoding, traversal, trailing slash and query injection', async () => {
   const { api, calls } = fixture();
   const denied = ['/api/account', '/api/account/', '/api/account/anything', '/api/account/profile/',
+    '/api/account/location?customerId=1', '/api/account/location/', '/api/account/location#x',
     '/api/account/profile?customerId=1', '/api/account/profile#x', '/api/account/checkout/',
     '/api/account/checkout?orderId=1', '/api/account/orders/', '/api/account/orders/1',
     '/api/account/orders/' + 'a'.repeat(31), '/api/account/orders/' + 'a'.repeat(33),

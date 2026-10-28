@@ -372,7 +372,7 @@ test('owned UNKNOWN never retries acceptance; polling is bounded and status cann
   assert.equal(calls.filter(c => c.path === `/api/checkout/${id}`).length, 10);
   flow.suspend('hidden'); await flow.poll();
   assert.equal(calls.filter(c => c.path === `/api/checkout/${id}`).length, 10);
-  assert.match(flow.state.message, /support|paused/i);
+  assert.equal(flow.state.message, 'Refresh payment status or contact the bakery before ordering or paying again.');
 });
 test('checkout API routes require enabled client, exact methods, opaque IDs, bootstrap and safe codes', async () => {
   const calls = [];
@@ -594,7 +594,7 @@ test('mock DOM automatically resumes account basket/defaults, reviews immutable 
     assert.equal(select('sf-prepare').disabled, true);
     assert.equal(select('sf-confirm-pay').hidden, true);
     assert.equal(select('sf-payment-link').href, undefined);
-    assert.match(checkout.flow.state.message, /Account checked/i);
+    assert.match(checkout.flow.state.message, /Review your basket/i);
     assert.equal(checkout.flow.state.needsReload, false);
     assert.equal(checkout.accountOwned, true);
     assert.equal(select('sf-checkout-quote').children.length, 0, 'advisory saved quote never renders');

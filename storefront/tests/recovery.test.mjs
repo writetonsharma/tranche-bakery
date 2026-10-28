@@ -402,7 +402,7 @@ test('locally expired PAYABLE recovery keeps the pending fence until verified se
   assert.equal(f.flow.state.attempt.id, id);
   assert.equal(f.flow.state.result.status, 'PAYABLE', 'local deadline is not server termination');
   assert.equal(f.flow.state.result.paymentUrl, null);
-  assert.match(f.flow.state.message, /link expired.*verified status/);
+  assert.match(f.flow.state.message, /link expired.*payment status/);
   assert.equal(f.flow.canEditBasket, false);
   assert.equal(f.flow.resolvedAttemptId, null);
   const count = f.requests().length;

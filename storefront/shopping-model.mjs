@@ -1,7 +1,7 @@
 import { validDate } from './model.mjs';
 
 export const RETAIL_LIMIT = 5;
-export const ESTIMATE_WARNING = 'Estimated product subtotal — before batch, delivery, basket promotions and credit; final price at checkout. Single-item public offers and special rates may not jointly win for a mixed basket.';
+export const ESTIMATE_WARNING = 'Final total shown before payment.';
 export const totalItems = lines => lines.reduce((sum, line) => sum + line.quantity, 0);
 const amount = value => typeof value === 'number' && Number.isFinite(value) && value >= 0 &&
   Number.isSafeInteger(Math.round(value * 100)) && Math.abs(value * 100 - Math.round(value * 100)) < 0.00001;
@@ -48,8 +48,8 @@ export function basketReadiness(snapshot, basket) {
   if (!basket.lines.length) return 'Add a bake to your basket.';
   if (totalItems(basket.lines) > RETAIL_LIMIT) return 'Your basket is kept in full. Reduce it to five items or contact the bakery for a bulk order.';
   if (!snapshot) return 'Availability needs rechecking. Your basket has not changed.';
-  if (!basket.date) return 'Choose a delivery date that fits your whole basket. If none fit, reduce the basket or contact the bakery for a bulk order.';
-  if (!fitsDate(snapshot, basket.date, basket.lines)) return 'This date is unavailable for your whole basket. Keep your bakes and choose another date, reduce the basket or contact the bakery for a bulk order.';
+  if (!basket.date) return 'Choose a delivery date for your whole basket. No date fits? Reduce items or contact the bakery for a bulk order.';
+  if (!fitsDate(snapshot, basket.date, basket.lines)) return 'Date unavailable for your whole basket. Choose another date, reduce items or contact the bakery for a bulk order.';
   return '';
 }
 
@@ -60,7 +60,7 @@ export function additionProblem(snapshot, basket, itemId) {
   const line = lines.find(line => line.itemId === itemId);
   if (line) line.quantity++; else lines.push({ itemId, quantity: 1 });
   if (basket.date ? !fitsDate(snapshot, basket.date, lines) : !snapshot.dates.some(day => fitsDate(snapshot, day.date, lines))) {
-    return 'Basket unchanged. This bake or quantity is unavailable for your selected date or whole basket. Choose another date, reduce your basket or contact the bakery for a bulk order.';
+    return 'Basket unchanged. This bake is unavailable for your selected date or whole basket. Choose another date, reduce items or contact the bakery for a bulk order.';
   }
   return '';
 }

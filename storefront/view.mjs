@@ -15,7 +15,7 @@ export function button(text, action, label = text) {
 export function quantityControl(item, change) {
   const root = element('div', undefined, 'sf-quantity');
   root.setAttribute('role', 'group');
-  root.setAttribute('aria-label', `${item.name} preview quantity`);
+  root.setAttribute('aria-label', `${item.name} quantity`);
   const minus = button('−', () => change(item.id, -1), `Remove one ${item.name}`);
   const count = element('span', '0');
   count.setAttribute('role', 'status');
@@ -32,7 +32,7 @@ export function quantityControl(item, change) {
 }
 
 export function createDrawer() {
-  const opener = button('Basket preview · 0', open, 'Open basket preview');
+  const opener = button('Basket · 0', open, 'Open basket');
   opener.id = 'sf-open';
   opener.className = 'sf-launcher';
   opener.setAttribute('aria-haspopup', 'dialog');
@@ -40,25 +40,25 @@ export function createDrawer() {
   const dialog = element('dialog', undefined, 'sf-dialog');
   dialog.id = 'sf-drawer';
   dialog.setAttribute('aria-labelledby', 'sf-title');
-  dialog.setAttribute('aria-describedby', 'sf-disclaimer');
   const panel = element('div', undefined, 'sf-panel');
   const heading = element('div', undefined, 'sf-heading');
   const title = element('h2', 'Your next slow morning');
   title.id = 'sf-title';
-  const close = button('×', shut, 'Close basket preview');
+  const close = button('×', shut, 'Close basket');
   close.id = 'sf-close';
   close.autofocus = true;
   heading.append(title, close);
-  const eyebrow = element('p', 'TRANCHÉ / BASKET PREVIEW', 'sf-eyebrow');
-  const disclaimer = element('p', 'A little planning, not an order. This preview does not reserve bakes or delivery. Order on WhatsApp as usual.', 'sf-note');
+  const eyebrow = element('p', 'TRANCHÉ / BASKET', 'sf-eyebrow');
+  const disclaimer = element('p', '', 'sf-note');
   disclaimer.id = 'sf-disclaimer';
+  disclaimer.hidden = true;
   const status = element('p', '', 'sf-status');
   status.id = 'sf-status';
   status.setAttribute('role', 'status');
   status.setAttribute('aria-live', 'polite');
   const items = element('div', undefined, 'sf-items');
   items.id = 'sf-items';
-  const dateLabel = element('label', 'Preview delivery date', 'sf-field');
+  const dateLabel = element('label', 'Delivery date', 'sf-field');
   const date = element('select');
   date.id = 'sf-date';
   dateLabel.htmlFor = date.id;
@@ -70,19 +70,18 @@ export function createDrawer() {
   const auth = element('section', undefined, 'sf-auth');
   auth.id = 'sf-auth';
   const authTitle = element('h3', 'WhatsApp login');
-  const authHelp = element('p', 'Optional: verify your WhatsApp number for a personalised preview. No checkout is available here.', 'sf-note');
   const identity = element('p');
   identity.id = 'sf-identity';
   const form = element('form');
   form.id = 'sf-login';
   form.autocomplete = 'off';
-  const phoneLabel = element('label', 'WhatsApp phone (include country code)', 'sf-field');
+  const phoneLabel = element('label', 'WhatsApp number', 'sf-field');
   const phone = element('input');
   phone.id = 'sf-phone';
   phone.type = 'tel';
   phone.inputMode = 'tel';
   phone.maxLength = 16;
-  phone.placeholder = '+91…';
+  phone.placeholder = '10-digit mobile number';
   phoneLabel.htmlFor = phone.id;
   phoneLabel.append(phone);
   const send = button('Send WhatsApp code', () => {});
@@ -105,7 +104,7 @@ export function createDrawer() {
   const logout = button('Log out', () => {});
   logout.id = 'sf-logout';
   form.append(phoneLabel, send, otpLabel, timer, verify);
-  auth.append(authTitle, authHelp, identity, form, logout);
+  auth.append(authTitle, identity, form, logout);
   const fallback = element('a', 'Continue ordering on WhatsApp ↗', 'sf-fallback');
   fallback.href = 'https://wa.me/918800206057?text=hi';
   fallback.target = '_blank';
@@ -189,7 +188,7 @@ export function renderQuote(root, quote, mode = 'preview') {
   }
   for (const [label, key] of [['List subtotal', 'listSubtotal'], ['Discount', 'discountAmount'],
     ['Batch discount', 'batchDiscountAmount'], ['Delivery', 'deliveryCharge'],
-    ['Credit applied', 'creditApplied'], [mode === 'preview' ? 'Preview total' : 'Checkout total', 'totalAmount']]) {
+    ['Credit applied', 'creditApplied'], [mode === 'preview' ? 'Estimated total' : 'Checkout total', 'totalAmount']]) {
     const row = element('p', undefined, key === 'totalAmount' ? 'sf-total' : 'sf-total-row');
     row.append(element('span', label), element('strong', money.format(quote[key])));
     root.append(row);
@@ -200,7 +199,7 @@ export function renderQuote(root, quote, mode = 'preview') {
   root.append(element('p', `Delivery date: ${quote.date || 'not selected'}`, 'sf-note'));
   for (const problem of quote.problems) root.append(element('p', problem.message, 'sf-note'));
   root.append(element('p', mode === 'accepted' ?
-    'This fixed quote belongs to this original checkout attempt, not any later basket edits. Payment is confirmed only by verified server status.' :
+    'Total for this order only. Check payment status here before paying again.' :
     mode === 'prepared' ? 'Check your delivery details and total. Nothing is ordered until Confirm & Pay.' :
-    'Preview only. Nothing has been ordered, reserved or charged.', 'sf-note'));
+    'Estimated total. Final total shown before payment.', 'sf-note'));
 }

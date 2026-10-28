@@ -7,10 +7,10 @@ const initial = () => ({ cart: null, prepared: null, review: null, attempt: null
 const resolved = status => ['PAID', 'CANCELLED', 'EXPIRED'].includes(status);
 const stateMessage = status => ({
   CREATING: 'Payment link is being created. Do not submit another order.',
-  PAYABLE: 'Order awaiting payment. Open the secure payment link, then refresh verified status here.',
-  UNKNOWN: 'Payment creation is uncertain. Contact bakery support before any new order or payment. Status checks do not create another link.',
+  PAYABLE: 'Order awaiting payment. Already paid? Refresh payment status; do not pay again.',
+  UNKNOWN: 'Payment uncertain. Contact the bakery before ordering or paying again.',
   PAID: 'Payment received. Thank you! Your basket has not been changed.',
-  REVIEW_REQUIRED: 'Payment/order needs manual review. Contact bakery support; do not pay again.',
+  REVIEW_REQUIRED: 'Payment needs manual review. Contact the bakery; do not pay again.',
   CANCELLED: 'Checkout cancelled. No payment link is available. Contact support if money was debited.',
   EXPIRED: 'Checkout expired. Do not pay an old link. Contact support if money was debited.'
 }[status]);
@@ -50,7 +50,7 @@ export class CheckoutFlow {
     // Preserve ONLY an already accepted/possibly sent attempt for same-identity explicit recovery.
     Object.assign(this.state, { prepared: null, review: null, result: null, busy: false, background: false,
       suspended: true, ambiguous: this.state.ambiguous || Boolean(this.state.attempt && !this.state.attempt.id),
-      message: this.state.attempt ? 'Payment details hidden. Recheck securely or contact support before ordering or paying again.' : 'Review your basket when you are ready.' });
+      message: this.state.attempt ? 'Refresh payment status or contact the bakery before ordering or paying again.' : '' });
     this.emit();
   }
   changed() {
@@ -71,7 +71,7 @@ export class CheckoutFlow {
     const ticket = this.latest.begin();
     const current = () => this.latest.current(ticket) && this.identity === identity && this.isActive();
     this.state.busy = true; this.state.background = background;
-    if (!background) { this.state.message = 'Checking securely with the bakery…'; this.onActivity(); }
+    if (!background) { this.state.message = 'Checking your order…'; this.onActivity(); }
     this.emit();
     let sent = false;
     try {
@@ -97,7 +97,7 @@ export class CheckoutFlow {
         recoverRejected = true;
       }
       this.state.message = this.state.ambiguous ?
-        'The response was lost or uncertain. Do not create a new order. Explicitly retry this SAME attempt to recover its status, or contact support.' : problemMessage(error.code);
+        'Order status uncertain. Use Recover this order or contact the bakery. Do not order or pay again.' : problemMessage(error.code);
       if (acceptance && sent && !this.state.ambiguous && !['CHECKOUT_IN_PROGRESS', 'IDEMPOTENCY_CONFLICT'].includes(error.code)) this.state.attempt = null;
     } finally {
       if (current()) { this.state.busy = false; this.state.background = false; this.emit(); }
@@ -112,8 +112,8 @@ export class CheckoutFlow {
       const unavailable = value.lines.some(line => !this.allowedIds.has(line.itemId));
       Object.assign(this.state, { cart: value, prepared: null, review: null, result: null, needsReload: false, suspended: false, dirty: unavailable,
         message: unavailable ?
-          'Account basket contains bakes unavailable in this catalogue and was not loaded. Your entire local basket is unchanged; nothing was removed or merged. Choose Save this basket to explicitly replace the account basket with your current local basket, or contact the bakery.' :
-          'Account basket loaded by your choice. Edits are not saved until you choose Save.' });
+          'Saved bakes are unavailable and were not loaded. Your entire local basket is unchanged. Choose Save to replace the saved basket, or contact the bakery.' :
+          'Basket loaded. Choose Save to keep edits.' });
       if (!unavailable) this.onBasket({ lines: value.lines.map(l => ({ ...l })), date: value.date || '' });
     });
   }
@@ -130,7 +130,7 @@ export class CheckoutFlow {
       if (!current()) return;
       if (value.version !== input.version + 1 || JSON.stringify(value.lines) !== JSON.stringify(input.lines) || value.date !== input.date) throw new Error('Invalid saved basket');
       Object.assign(this.state, { cart: value, prepared: null, review: null, result: null, suspended: false, dirty: false,
-        message: 'Your chosen basket replaced the account basket. Prepare a fresh quote to review checkout.' });
+        message: 'Basket saved. Review your order.' });
     });
   }
   async prepare() {
@@ -142,14 +142,14 @@ export class CheckoutFlow {
       const value = validatePrepared(await this.api.request('/api/checkout/prepare', { cartVersion: cart.version }, signal), cart, this.now());
       if (!current()) return;
       if (this.state.cart?.version !== cart.version || this.state.dirty || this.state.needsReload) {
-        this.state.message = 'Account basket changed while reviewing. Choose Review order again for its current quote.';
+        this.state.message = 'Basket changed while reviewing. Choose Review order again.';
         return;
       }
       if (value.quote.creditApplied > 0 || value.quote.totalAmount <= 0) {
         this.state.message = problemMessage(value.quote.creditApplied > 0 ? 'CREDIT_SUPPORT_REQUIRED' : 'ZERO_PAYABLE_SUPPORT_REQUIRED'); return;
       }
       this.state.prepared = value; this.state.suspended = false;
-      this.state.message = 'Check your total and delivery details. Nothing is ordered until you Confirm & Pay.';
+      this.state.message = 'Check your total and delivery details.';
     });
   }
   review(details) {
@@ -157,8 +157,8 @@ export class CheckoutFlow {
     try {
       if (Date.parse(this.state.prepared.expiresAt) <= this.now()) throw new Error('Expired');
       this.state.review = fulfillment(details);
-      this.state.message = 'Check your delivery details and total below. Confirm & Pay places your order and requests a secure payment link.';
-    } catch { this.state.message = 'Enter a name (1–100 characters), single-line address (10–2000 characters) and both preferences, or refresh an expired quote.'; }
+      this.state.message = 'Confirm & Pay places your order.';
+    } catch { this.state.message = 'Check your name, one-line address (10–2000 characters) and both preferences. If needed, review your order again.'; }
     this.emit();
   }
   async confirm(details = this.state.review) {
@@ -194,7 +194,7 @@ export class CheckoutFlow {
     this.state.attempt = immutable({ ...attempt, id: result.id });
     Object.assign(this.state, { result, prepared: null, review: null, suspended: false, ambiguous: false,
       message: result.status === 'PAYABLE' && Date.parse(result.expiresAt) <= this.now() ?
-        'Payment link expired. Do not pay an old link. Refresh verified status or contact support before placing another order.' : stateMessage(result.status) });
+        'Payment link expired. Do not use it. Refresh payment status or contact support before ordering again.' : stateMessage(result.status) });
   }
   async retry() {
     if (!this.state.attempt || this.state.attempt.id || !this.state.ambiguous || this.state.busy) return;
@@ -252,7 +252,7 @@ export class CheckoutFlow {
         this.accept(detail, attempt, value.checkout.status);
       } else if (recovering) {
         this.state.suspended = false;
-        this.state.message = 'Account checked. Review your basket before placing a new order.';
+        this.state.message = 'Review your basket when ready.';
       }
       await this.readDefaults(signal, current);
     }, { background: !recovering });
@@ -268,7 +268,7 @@ export class CheckoutFlow {
       if ([401, 403].includes(error.status)) { this.setIdentity(null); this.onIdentityLost(); }
       // Optional suggestions must never erase a validated payment result or
       // imply that an accepted order failed. A later visible return may retry GET.
-      else if (!this.state.result) this.state.message = 'Saved defaults are unavailable. Enter delivery details for this order; nothing was saved to your profile.';
+      else if (!this.state.result) this.state.message = 'Saved details unavailable. Enter delivery details for this order.';
     }
   }
   startNewOrder() {

@@ -30,7 +30,7 @@ export class BasketSync {
     this.cancel(this.timer); this.latest.invalidate();
     if (this.state.busy && this.writing) {
       this.state.retry = true;
-      this.state.message = 'Basket save interrupted. Your edits are kept. Retry saving when connected.';
+      this.state.message = 'Save not confirmed. Retry saving; reloading may lose edits.';
     }
     this.state.busy = false; this.writing = false; this.emit();
   }
@@ -38,7 +38,7 @@ export class BasketSync {
   release() { this.held = false; this.schedule(); }
   changed() {
     this.revision++; this.state.dirty = true;
-    this.state.message = 'Basket changes waiting to save…';
+    this.state.message = 'Saving…';
     this.emit(); this.schedule();
   }
   writable() {
@@ -49,7 +49,7 @@ export class BasketSync {
     this.cancel(this.timer);
     if (!this.held && this.identity && this.isActive() && this.state.associated && this.state.dirty && !this.state.retry) {
       if (!this.writable()) {
-        this.state.message = this.state.migrationBlocked ? this.migrationMessage() : 'Your merged basket is unsaved and lasts only on this page. Original device additions remain stored, not the merged account basket. Reduce to five available items or contact the bakery before saving or checkout; reloading loses page-only edits.';
+        this.state.message = this.state.migrationBlocked ? this.migrationMessage() : 'Merged basket unsaved; edits last only on this page. Reloading loses them. Original device additions remain stored. Reduce to five available items or contact the bakery for a bulk order.';
         this.emit(); return;
       }
       this.timer = this.delay(() => this.save(), 400);
@@ -73,7 +73,7 @@ export class BasketSync {
       if (!current()) return false;
       if ([401, 403].includes(error.status)) { this.setIdentity(null); this.onIdentityLost(); return false; }
       this.state.retry = true;
-      this.state.message = 'Basket could not be saved or loaded. Your edits are kept. Retry saving when ready; nothing was replaced.';
+      this.state.message = 'Basket save or load not confirmed. Edits kept on this page; reloading may lose them. Please retry.';
       return false;
     } finally {
       if (current()) {
@@ -100,7 +100,7 @@ export class BasketSync {
       this.associationAcknowledged = false;
       if (!this.state.dirty && !this.state.migrationBlocked) this.acknowledgeAssociation();
       if (!sameBasket(local, merged)) this.onBasket(merged);
-      this.state.message = this.state.migrationBlocked ? this.migrationMessage() : this.state.dirty ? 'Device additions and saved basket merged. Nothing was removed. Changes save automatically.' : 'Account basket loaded. Changes save automatically.';
+      this.state.message = this.state.migrationBlocked ? this.migrationMessage() : this.state.dirty ? 'Baskets merged. Saving…' : '';
       this.emit(); this.schedule(); return true;
     });
   }
@@ -137,7 +137,7 @@ export class BasketSync {
         this.state.cart = cart;
         this.acknowledgeAssociation();
         this.state.dirty = revision !== this.revision;
-        this.state.message = this.state.migrationBlocked ? this.migrationMessage() : this.state.dirty ? 'Saving your newer basket edits…' : 'Account basket saved automatically.';
+        this.state.message = this.state.migrationBlocked ? this.migrationMessage() : this.state.dirty ? 'Saving…' : 'Saved';
         return true;
       }
       return false;
@@ -164,19 +164,19 @@ export class BasketSync {
     this.associationAcknowledged = true; this.onAssociate();
   }
   migrationMessage() {
-    return 'Device additions remain stored separately: an earlier save may have succeeded. They were NOT added again. Check the saved basket above before explicitly discarding retained device additions, or contact the bakery. Saving and checkout are paused.';
+    return 'An earlier save may have succeeded. Stored additions were NOT added again. Check your basket before discarding them, or contact the bakery. Saving and checkout are paused.';
   }
   discardRetainedGuest() {
     if (!this.state.migrationBlocked || this.state.busy || !this.identity || !this.isActive()) return false;
     if (this.guestIntent?.accepted() === false) return false;
     this.state.migrationBlocked = false; this.acknowledgeAssociation();
-    this.state.message = 'Retained device additions discarded by your choice. Current basket unchanged.';
+    this.state.message = 'Stored additions discarded. Basket unchanged.';
     this.emit(); this.schedule(); return true;
   }
   conflict() {
     this.cancel(this.timer);
     this.state.dirty = true; this.state.retry = true;
-    this.state.message = 'The saved basket version changed. Your current basket is kept. Explicitly retry saving before reviewing again.';
+    this.state.message = 'Saved basket changed. Your edits are kept on this page; reloading may lose them. Retry saving before reviewing.';
     this.emit();
   }
 }

@@ -12,6 +12,11 @@
       "destination": "https://tranchewa-app-production.up.railway.app/api/account/profile"
     },
     {
+      "source": "/api/account/location",
+      "has": [{ "type": "host", "value": "^(?:www\\.)?tranchebakery\\.in$" }],
+      "destination": "https://tranchewa-app-production.up.railway.app/api/account/location"
+    },
+    {
       "source": "/api/account/orders",
       "has": [{ "type": "host", "value": "^(?:www\\.)?tranchebakery\\.in$" }],
       "destination": "https://tranchewa-app-production.up.railway.app/api/account/orders"
