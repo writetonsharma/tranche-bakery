@@ -156,6 +156,7 @@ export function attachAccount({ root, api, win = window, doc = document }) {
   const status = doc.getElementById('account-status');
   const signin = doc.getElementById('account-signin');
   const logout = doc.getElementById('account-logout');
+  const shop = doc.getElementById('account-shop');
   let form, fields, save, reload, locationRoot, historyRoot, detailRoot, previousProfile;
   let linkTimer;
   let channel;
@@ -268,6 +269,7 @@ export function attachAccount({ root, api, win = window, doc = document }) {
     status.textContent = state.message; signin.hidden = state.authenticated;
     for (const label of doc.querySelectorAll?.('[data-account-label]') || []) label.textContent = state.authenticated ? 'Account' : 'Sign in';
     logout.hidden = !state.authenticated; logout.disabled = state.busy;
+    if (shop) shop.hidden = !state.authenticated;
     root.setAttribute('aria-busy', String(state.busy));
     if (!state.authenticated) { erase(); return; }
     root.hidden = false;

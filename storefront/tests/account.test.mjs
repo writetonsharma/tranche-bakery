@@ -221,7 +221,7 @@ class FakeNode extends EventTarget {
   }
 }
 function fakePage(api) {
-  const nodes = Object.fromEntries(['account-private', 'account-status', 'account-signin', 'account-recheck', 'account-logout'].map(key => [key, new FakeNode()]));
+  const nodes = Object.fromEntries(['account-private', 'account-status', 'account-signin', 'account-recheck', 'account-logout', 'account-shop'].map(key => [key, new FakeNode()]));
   const doc = new EventTarget(); doc.hidden = false;
   doc.createElement = tag => new FakeNode(tag); doc.getElementById = key => nodes[key];
   const win = new EventTarget(); win.navigator = { onLine: true };
@@ -247,6 +247,7 @@ test('signed-out account page signs in with WhatsApp in place, then loads profil
   assert.equal(page.controller.state.profile, null);
   const signin = page.nodes['account-signin'];
   assert.equal(signin.hidden, false);
+  assert.equal(page.nodes['account-shop'].hidden, true);
   const [form] = signin.children;
   const [phoneLabel, send, codeLabel, verify, note] = form.children;
   const [phone] = phoneLabel.children, [code] = codeLabel.children;
@@ -265,6 +266,7 @@ test('signed-out account page signs in with WhatsApp in place, then loads profil
   assert.deepEqual(calls.find(call => call.path === '/api/auth/verify').body, { challengeId: 'fixture-challenge', code: '123456' });
   assert.equal(note.textContent, '');
   assert.equal(signin.hidden, true);
+  assert.equal(page.nodes['account-shop'].hidden, false, 'signed-in customers get a way back to the menu');
   assert.deepEqual(page.controller.state.profile, profile);
   assert.deepEqual(page.controller.state.history, history);
   page.destroy();
