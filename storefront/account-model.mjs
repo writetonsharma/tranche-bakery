@@ -7,6 +7,7 @@ const orderStatuses = new Set(['INVOICED', 'PENDING_CONFIRMATION', 'PENDING_PAYM
   'PAYMENT_SCREENSHOT_RECEIVED', 'PAYMENT_SCREENSHOT_VERIFIED', 'PAYMENT_REVIEW_REQUIRED',
   'CONFIRMED', 'IN_BAKING', 'OUT_FOR_DELIVERY', 'CANCELLED', 'COMPLETED']);
 const controls = /[\u0000-\u001f\u007f-\u009f\u2028\u2029]/;
+const summaryKeys = 'createdAt,deliveryDate,id,orderNumber,orderStatus,status,totalAmount';
 function exact(value, keys) {
   if (!value || typeof value !== 'object' || Array.isArray(value) ||
       Object.keys(value).sort().join(',') !== keys) throw new Error('Invalid account response');
@@ -104,11 +105,21 @@ export function validateHistory(value, expectedPage) {
   }
   const seen = new Set();
   const orders = value.orders.map(row => {
-    exact(row, 'createdAt,deliveryDate,id,orderNumber,orderStatus,status,totalAmount');
+    // Older backends omit channel; every such row is a website order.
+    const legacy = row && typeof row === 'object' && !Array.isArray(row) && !('channel' in row);
+    exact(row, legacy ? summaryKeys : `channel,${summaryKeys}`);
+    if (row.channel === 'WHATSAPP') {
+      if (row.id !== null || row.status !== null || !orderStatuses.has(row.orderStatus) ||
+          (row.deliveryDate !== null && !validDate(row.deliveryDate)) ||
+          (row.totalAmount !== null && !amount(row.totalAmount))) throw new Error('Invalid order summary');
+      return { channel: 'WHATSAPP', id: null, status: null, orderNumber: text(row.orderNumber, 1, 100),
+        createdAt: instant(row.createdAt), orderStatus: row.orderStatus, deliveryDate: row.deliveryDate, totalAmount: row.totalAmount };
+    }
+    if (!legacy && row.channel !== 'WEB') throw new Error('Invalid order summary');
     const summary = metadata(row);
     if (seen.has(row.id) || !validDate(row.deliveryDate) || !amount(row.totalAmount)) throw new Error('Invalid order summary');
     seen.add(row.id);
-    return { ...summary, deliveryDate: row.deliveryDate, totalAmount: row.totalAmount };
+    return { ...summary, channel: 'WEB', deliveryDate: row.deliveryDate, totalAmount: row.totalAmount };
   });
   return immutable({ orders, page: value.page, hasMore: value.hasMore });
 }

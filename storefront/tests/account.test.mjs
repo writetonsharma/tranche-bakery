@@ -12,7 +12,7 @@ const quote = { lines: [{ itemId: 99, name: 'Retired bread', quantity: 2, unitPr
 const detail = { id, orderNumber: 'WEB-123', createdAt: '2026-09-30T08:00:00Z', orderStatus: 'CONFIRMED',
   status: 'PAID', paymentUrl: null, expiresAt: '2026-09-30T08:10:00Z',
   fulfillment: { name: profile.name, address: profile.address, deliveryPreference: 'GATE', loafPreference: 'WHOLE' }, quote };
-const summary = { id, orderNumber: detail.orderNumber, createdAt: detail.createdAt,
+const summary = { id, channel: 'WEB', orderNumber: detail.orderNumber, createdAt: detail.createdAt,
   deliveryDate: quote.date, orderStatus: detail.orderStatus, status: detail.status, totalAmount: quote.totalAmount };
 const history = { orders: [summary], page: 0, hasMore: false };
 const session = { authenticated: true, customer: { id: 7 } };
@@ -96,6 +96,26 @@ test('history is ten-per-page exact, private-field free, opaque and immutable', 
     assert.throws(() => validateHistory({ ...history, orders: [{ ...summary, ...patch }] }));
   }
   assert.throws(() => validateHistory(history, 1));
+});
+
+const whatsapp = { id: null, channel: 'WHATSAPP', orderNumber: 'TR-2610-0042', createdAt: '2026-10-26T04:30:00Z',
+  deliveryDate: '2026-10-27', orderStatus: 'COMPLETED', status: null, totalAmount: 345 };
+
+test('history accepts summary-only WhatsApp rows and legacy channel-less website rows', () => {
+  const value = validateHistory({ ...history, orders: [summary, whatsapp] }, 0);
+  assert.deepEqual(value.orders[1], whatsapp);
+  assert.equal(validateHistory({ ...history, orders: [{ ...whatsapp, deliveryDate: null, totalAmount: null }] }).orders[0].totalAmount, null);
+  const legacy = { ...summary }; delete legacy.channel;
+  assert.equal(validateHistory({ ...history, orders: [legacy] }).orders[0].channel, 'WEB');
+  for (const patch of [{ id }, { status: 'PAID' }, { orderStatus: 'DRAFT' }, { deliveryDate: '2026-02-30' },
+    { totalAmount: '345' }, { orderNumber: '' }, { createdAt: 'yesterday' }, { channel: 'SMS' }, { address: profile.address }]) {
+    assert.throws(() => validateHistory({ ...history, orders: [{ ...whatsapp, ...patch }] }));
+  }
+  for (const patch of [{ channel: null }, { channel: 'SMS' }, { id: null }]) {
+    assert.throws(() => validateHistory({ ...history, orders: [{ ...summary, ...patch }] }));
+  }
+  const noChannel = { ...whatsapp }; delete noChannel.channel;
+  assert.throws(() => validateHistory({ ...history, orders: [noChannel] }));
 });
 
 test('detail retains immutable original fulfillment, retired quote and validated checkout', () => {
@@ -339,6 +359,27 @@ test('account uses customer language while preserving uncertain-payment guidance
   } finally { page.destroy(); }
 });
 
+test('WhatsApp history rows render as summaries without a detail action', async () => {
+  const { api } = fixture(path => path.startsWith('/api/account/orders?page=')
+    ? { ...structuredClone(history), orders: [summary, whatsapp, { ...whatsapp, orderNumber: 'TR-NO-TOTAL', deliveryDate: null, totalAmount: null }] }
+    : undefined);
+  const page = fakePage(api);
+  try {
+    await page.controller.refresh();
+    const rows = page.nodes['account-private'].querySelectorAll('article');
+    const [web, wa, bare] = rows;
+    assert.equal(rows.length, 3);
+    assert.ok(web.querySelectorAll('button').some(button => button.textContent === 'View original order'));
+    assert.equal(wa.querySelectorAll('button').length, 0);
+    assert.match(wa.textContent, /Order TR-2610-0042/);
+    assert.match(wa.textContent, /Placed 2026-10-26 · Delivery 2026-10-27/);
+    assert.match(wa.textContent, /Ordered on WhatsApp · Completed/);
+    assert.match(wa.textContent, /345/);
+    assert.doesNotMatch(bare.textContent, /Delivery|₹|null|undefined/);
+    assert.match(page.nodes['account-private'].textContent, /Website and WhatsApp orders/);
+  } finally { page.destroy(); }
+});
+
 test('profile stays visible through HTTP and typed history failures; history loads with the account', async () => {
   for (const failure of [() => { throw Object.assign(new Error('private history'), { status: 500 }); },
     () => ({ ...history, orders: [{ ...summary, createdAt: 1793000000.123 }] }),
@@ -350,12 +391,12 @@ test('profile stays visible through HTTP and typed history failures; history loa
       const input = page.nodes['account-private'].querySelectorAll('input')[0];
       input.value = 'Unsaved name';
       assert.ok(calls.some(call => call.path.includes('/orders')));
-      const load = page.nodes['account-private'].querySelectorAll('button').find(button => button.textContent === 'Load website orders');
+      const load = page.nodes['account-private'].querySelectorAll('button').find(button => button.textContent === 'Load your orders');
       assert.ok(load, 'retry stays available after a failed history load');
       await page.controller.page(0);
       assert.deepEqual(page.controller.state.profile, profile);
       assert.equal(page.controller.state.history, null);
-      assert.match(page.controller.state.historyMessage, /orders unavailable/);
+      assert.match(page.controller.state.historyMessage, /Orders unavailable/);
       assert.equal(input.value, 'Unsaved name');
       assert.equal(page.nodes['account-private'].hidden, false);
       assert.doesNotMatch(page.nodes['account-private'].textContent, /private history/);

@@ -45,7 +45,7 @@ export class AccountController {
       if ([401, 403].includes(error.status)) this.clear('Please sign in again.');
       else if (quiet) { /* A failed background recheck keeps what is already shown. */ }
       else if (history) this.#set({ history: null, detail: null,
-        historyMessage: 'Website orders unavailable. Try loading orders again.' });
+        historyMessage: 'Orders unavailable. Try loading orders again.' });
       else if (saving && error.status === 409) this.#set({ conflict: true,
         message: 'Saved details changed elsewhere. Your edits are kept here. Reload to discard edits and see saved details.' });
       else this.#set({ message: saving ? 'Save not confirmed. Your edits are kept here. Reload saved details before saving again; this discards edits.' :
@@ -199,7 +199,7 @@ export function attachAccount({ root, api, win = window, doc = document }) {
     locationRoot = node('div');
     card.append(heading, help, form, locationRoot); root.append(card);
     const orders = node('section', undefined, 'account-card'); orders.append(node('h2', 'From our oven to your table'));
-    orders.append(node('p', 'Website orders only, at their original prices. WhatsApp and subscription orders are not listed.', 'account-note'));
+    orders.append(node('p', 'Website and WhatsApp orders. Website orders open to their original details; subscription orders are not listed.', 'account-note'));
     historyRoot = node('div'); orders.append(historyRoot); root.append(orders);
     detailRoot = node('section', undefined, 'account-card account-order-detail'); detailRoot.setAttribute('aria-label', 'Original order details');
     root.append(detailRoot);
@@ -210,17 +210,22 @@ export function attachAccount({ root, api, win = window, doc = document }) {
       const notice = node('p', message); notice.setAttribute('role', 'status'); historyRoot.append(notice);
     }
     if (!history) {
-      const load = action('Load website orders', () => controller.page(0)); load.disabled = busy;
+      const load = action('Load your orders', () => controller.page(0)); load.disabled = busy;
       historyRoot.append(load); return;
     }
-    if (!history.orders.length) historyRoot.append(node('p', 'No website orders on this page. Your next slow morning starts with the menu.', 'account-empty'));
+    if (!history.orders.length) historyRoot.append(node('p', 'No orders on this page. Your next slow morning starts with the menu.', 'account-empty'));
     for (const order of history.orders) {
       const row = node('article', undefined, 'account-order');
-      const info = node('div'); info.append(node('h3', `Order ${order.orderNumber}`),
-        node('p', `Placed ${order.createdAt.slice(0, 10)} · Delivery ${order.deliveryDate}`),
-        node('p', `${labels[order.status]} · ${orderLabels[order.orderStatus]}`, 'account-note'));
-      const open = action('View original order', () => controller.detail(order.id)); open.disabled = busy;
-      row.append(info, node('strong', money.format(order.totalAmount)), open); historyRoot.append(row);
+      const whatsapp = order.channel === 'WHATSAPP';
+      const placed = `Placed ${order.createdAt.slice(0, 10)}${order.deliveryDate ? ` · Delivery ${order.deliveryDate}` : ''}`;
+      const info = node('div'); info.append(node('h3', `Order ${order.orderNumber}`), node('p', placed),
+        node('p', `${whatsapp ? 'Ordered on WhatsApp' : labels[order.status]} · ${orderLabels[order.orderStatus]}`, 'account-note'));
+      row.append(info);
+      if (order.totalAmount !== null) row.append(node('strong', money.format(order.totalAmount)));
+      if (!whatsapp) {
+        const open = action('View original order', () => controller.detail(order.id)); open.disabled = busy; row.append(open);
+      }
+      historyRoot.append(row);
     }
     const paging = node('div', undefined, 'account-paging');
     const previous = action('Previous', () => controller.page(history.page - 1)); previous.disabled = busy || history.page === 0;
