@@ -68,8 +68,7 @@ test('normalized or omitted legacy suggestions bootstrap history and remain expl
     const { controller, calls } = fixture(path => path === '/api/account/profile' ? structuredClone(projected) : undefined);
     await controller.refresh();
     assert.deepEqual(controller.state.profile, projected);
-    assert.equal(controller.state.history, null);
-    assert.equal(calls.some(call => call.path.includes('/orders')), false);
+    assert.deepEqual(controller.state.history, history, 'first history page loads with the account');
     await controller.page(0);
     assert.deepEqual(controller.state.history, history);
     assert.equal(calls.every(call => call.body === undefined && call.method === undefined), true);
@@ -214,6 +213,43 @@ function fakePage(api) {
   return { ...view, win, doc, nodes, channel: Channel.current };
 }
 
+test('signed-out account page signs in with WhatsApp in place, then loads profile and history', async () => {
+  let authed = false;
+  const { api, calls } = fixture(path => {
+    if (path === '/api/session') return { authenticated: authed, customer: authed ? { id: 7 } : null };
+    if (path === '/api/auth/challenge') return { challengeId: 'fixture-challenge', expiresInSeconds: 300 };
+    if (path === '/api/auth/verify') { authed = true; return structuredClone(session); }
+    return undefined;
+  });
+  const settle = async () => { for (let i = 0; i < 12; i++) await new Promise(resolve => setImmediate(resolve)); };
+  const page = fakePage(api);
+  await page.controller.refresh();
+  assert.equal(page.controller.state.profile, null);
+  const signin = page.nodes['account-signin'];
+  assert.equal(signin.hidden, false);
+  const [form] = signin.children;
+  const [phoneLabel, send, codeLabel, verify, note] = form.children;
+  const [phone] = phoneLabel.children, [code] = codeLabel.children;
+  assert.equal(codeLabel.hidden, true);
+  phone.value = '12345';
+  send.dispatchEvent(new Event('click')); await settle();
+  assert.equal(calls.some(call => call.path === '/api/auth/challenge'), false, 'invalid numbers never request a code');
+  phone.value = '9876543210';
+  send.dispatchEvent(new Event('click')); await settle();
+  assert.deepEqual(calls.find(call => call.path === '/api/auth/challenge').body, { phone: '919876543210' });
+  assert.equal(phone.value, '');
+  assert.equal(codeLabel.hidden, false); assert.equal(verify.hidden, false);
+  assert.equal(send.disabled, true, 'resend is throttled');
+  code.value = '123456';
+  form.dispatchEvent(new Event('submit', { cancelable: true })); await settle();
+  assert.deepEqual(calls.find(call => call.path === '/api/auth/verify').body, { challengeId: 'fixture-challenge', code: '123456' });
+  assert.equal(note.textContent, '');
+  assert.equal(signin.hidden, true);
+  assert.deepEqual(page.controller.state.profile, profile);
+  assert.deepEqual(page.controller.state.history, history);
+  page.destroy();
+});
+
 test('hidden, offline, cross-tab, pagehide and logout synchronously wipe DOM input values and model', async () => {
   for (const transition of ['hidden', 'offline', 'identity', 'pagehide', 'logout']) {
     const { api } = fixture(); const page = fakePage(api);
@@ -248,10 +284,28 @@ test('409 DOM preserves unsaved edits; explicit reload replaces them; visible/fo
   assert.ok(root.querySelectorAll('button').find(button => button.textContent === 'Save details').disabled);
   await page.controller.reloadProfile(); assert.equal(input.value, profile.name);
   const before = calls.filter(call => call.path === '/api/session').length;
-  page.win.dispatchEvent(new Event('focus')); assert.equal(root.textContent, '');
+  const loaded = root.textContent;
+  page.win.dispatchEvent(new Event('focus')); assert.equal(root.textContent, loaded, 'same-identity focus keeps loaded data');
   await Promise.resolve(); await Promise.resolve();
   assert.ok(calls.filter(call => call.path === '/api/session').length > before);
+  await Promise.resolve(); await Promise.resolve();
+  assert.equal(page.controller.state.history.orders.length, 1);
+  assert.match(root.textContent, /WEB-123/);
   page.destroy();
+});
+
+test('focus recheck clears everything when the signed-in identity changed or signed out', async () => {
+  for (const next of [{ authenticated: true, customer: { id: 8 } }, { authenticated: false }]) {
+    let current = session;
+    const { api } = fixture(path => path === '/api/session' ? structuredClone(current) : undefined);
+    const page = fakePage(api); await page.controller.refresh();
+    assert.ok(page.controller.state.history);
+    current = next;
+    await page.controller.refresh();
+    assert.equal(page.controller.state.profile, null); assert.equal(page.controller.state.history, null);
+    assert.equal(page.nodes['account-private'].textContent, '');
+    page.destroy();
+  }
 });
 
 test('late historical detail cannot repopulate cleared model', async () => {
@@ -285,7 +339,7 @@ test('account uses customer language while preserving uncertain-payment guidance
   } finally { page.destroy(); }
 });
 
-test('profile stays visible through HTTP and typed history failures; history loads only on click', async () => {
+test('profile stays visible through HTTP and typed history failures; history loads with the account', async () => {
   for (const failure of [() => { throw Object.assign(new Error('private history'), { status: 500 }); },
     () => ({ ...history, orders: [{ ...summary, createdAt: 1793000000.123 }] }),
     () => ({ ...history, orders: [{ ...summary, totalAmount: '250' }] })]) {
@@ -295,9 +349,9 @@ test('profile stays visible through HTTP and typed history failures; history loa
       await page.controller.refresh();
       const input = page.nodes['account-private'].querySelectorAll('input')[0];
       input.value = 'Unsaved name';
-      assert.equal(calls.some(call => call.path.includes('/orders')), false);
+      assert.ok(calls.some(call => call.path.includes('/orders')));
       const load = page.nodes['account-private'].querySelectorAll('button').find(button => button.textContent === 'Load website orders');
-      assert.ok(load);
+      assert.ok(load, 'retry stays available after a failed history load');
       await page.controller.page(0);
       assert.deepEqual(page.controller.state.profile, profile);
       assert.equal(page.controller.state.history, null);

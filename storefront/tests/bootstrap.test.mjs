@@ -179,10 +179,24 @@ test('real drawer uses concise accessible copy and qualifies card prices and sub
     assert.equal(f.node('#sf-phone').placeholder, '10-digit mobile number');
     assert.equal(f.node('.sf-price-note').textContent, 'Estimated prices. Final total shown before payment.');
     assert.match(f.node('#sf-totals h3').textContent, /^Estimated subtotal:/);
-    assert.equal(f.node('#sf-totals .sf-note').textContent, 'Final total shown before payment.');
+    assert.equal(f.node('#sf-totals .sf-delivery-note').textContent, 'Plus ₹65 delivery, unless an offer makes it free.');
+    assert.equal(f.node('#sf-totals .sf-note:last-child').textContent, 'Final total shown before payment.');
+    assert.match(f.node('.sf-date-hint').textContent, /except Wednesday/);
+    assert.equal(f.node('#sf-refresh').hidden, true, 'manual recheck appears only when availability needs it');
+    assert.match([...f.node('#sf-date').options][1].textContent, /^(Mon|Tue|Wed|Thu|Fri|Sat|Sun) \d{1,2} [A-Z][a-z]{2}$/);
     const text = f.node('#sf-drawer').textContent + f.node('.sf-card-action').textContent;
     assert.doesNotMatch(text, /basket preview|browsing and preparing|verify WhatsApp for your account basket|personalised preview|estimated unit price|final server quote|\b(?:backend|token|version|opaque|dispatch|identity|CAS|CSRF|GET|POST)\b/i);
     assert.equal(f.node('.sf-card-label').textContent, 'Add to basket');
+    const chat = [...f.document.querySelectorAll('.product .details a.btn[href^="https://wa.me/"]')];
+    assert.ok(chat.length > 0);
+    assert.ok(chat.every(link => link.textContent === 'Questions? Chat on WhatsApp' && link.classList.contains('btn-secondary') &&
+      link.getAttribute('href') === f.node('.nav-contact').getAttribute('href')));
+    assert.doesNotMatch(f.document.body.textContent, /Order on WhatsApp|start your order on WhatsApp/);
+    const ctaOpen = f.node('.cta .hero-actions button.btn');
+    assert.equal(ctaOpen.textContent, 'Open basket');
+    f.node('#sf-close').click(); await settle();
+    ctaOpen.click(); await settle();
+    assert.equal(f.node('#sf-drawer').open, true);
     assert.doesNotMatch(f.node('.product-price-group').textContent, /estimated unit price/);
     assert.deepEqual(f.errors, []);
   } finally { f.cleanup(); }
@@ -212,6 +226,48 @@ for (const [input, canonical] of [['9876543210', '919876543210'], ['+4412345678'
     } finally { f.cleanup(); }
   });
 }
+
+test('real header sign-in entry opens the WhatsApp sign-in in place, then becomes an Account link', async () => {
+  const f = await fixture();
+  try {
+    const entry = f.node('[data-account-entry]');
+    assert.equal(entry.getAttribute('href'), 'account.html');
+    assert.equal(f.node('[data-account-label]').textContent, 'Sign in');
+    const click = new f.window.MouseEvent('click', { bubbles: true, cancelable: true, button: 0 });
+    entry.dispatchEvent(click); await settle();
+    assert.equal(click.defaultPrevented, true, 'signed-out visitors stay on the page');
+    assert.equal(f.node('#sf-drawer').open, true);
+    assert.equal(f.document.activeElement, f.node('#sf-phone'));
+    f.node('#sf-phone').value = '9876543210';
+    f.node('#sf-send').click(); await settle();
+    f.node('#sf-code').value = '123456';
+    f.node('#sf-code').dispatchEvent(new f.window.Event('input'));
+    f.node('#sf-login').dispatchEvent(new f.window.Event('submit', { cancelable: true }));
+    await settle(); await f.tick(200);
+    assert.equal(f.node('[data-account-label]').textContent, 'Account');
+    f.node('#sf-close').click(); await settle();
+    let prevented = null;
+    // Observe at the document, then stop jsdom from attempting navigation.
+    f.document.addEventListener('click', event => { prevented = event.defaultPrevented; event.preventDefault(); }, { once: true });
+    entry.dispatchEvent(new f.window.MouseEvent('click', { bubbles: true, cancelable: true, button: 0 }));
+    await settle();
+    assert.equal(prevented, false, 'signed-in customers navigate to account.html');
+    assert.equal(f.node('#sf-drawer').open, false);
+    assert.equal(f.calls.filter(call => call.path === '/api/auth/challenge').length, 1);
+    assert.deepEqual(f.errors, []);
+  } finally { f.cleanup(); }
+});
+
+test('real basket count is singular for one item and drawer lines show the unit price', async () => {
+  const f = await fixture();
+  try {
+    plus(f).click(); await settle();
+    assert.equal(f.node('#sf-open').getAttribute('aria-label'), 'Open basket, 1 item');
+    f.node('#sf-open').click(); await settle();
+    assert.match(f.node('.sf-line .sf-line-price').textContent, /^₹20\.00 each$/);
+    assert.deepEqual(f.errors, []);
+  } finally { f.cleanup(); }
+});
 
 test('real login rejects malformed numbers without sending a challenge', async () => {
   const f = await fixture();
@@ -941,7 +997,8 @@ test('real date-first eligibility labels ineligible cards but retains their pric
   try {
     await chooseDate(f, date);
     const second = f.document.querySelectorAll('.sf-card-action')[1];
-    assert.match(second.querySelector('.sf-availability').textContent, /Unavailable/);
+    assert.match(second.querySelector('.sf-availability').textContent, /^Not available on \w{3} \d{1,2} \w{3}\. Available \w{3} \d{1,2} \w{3}/);
+    assert.doesNotMatch(second.querySelector('.sf-availability').textContent, /\d+ (left|items?)\b/, 'never expose capacity');
     assert.match(second.closest('.text').querySelector('.product-price-group').textContent, /20\.00/);
     second.querySelector('button:last-child').click();
     assert.equal(second.querySelector('.sf-quantity span').textContent, '0');
@@ -1157,8 +1214,10 @@ test('real failed snapshot cannot be resurrected by same-identity focus or drawe
     plus(f).click(); assert.equal(quantity(f), '2');
     assert.equal(f.node('#sf-prepare').disabled, true);
     assert.equal(requestCount(f, '/api/shopping'), 2);
+    assert.equal(f.node('#sf-refresh').hidden, false, 'failed availability offers a manual recheck');
     f.intercept(async () => {}); f.node('#sf-refresh').click(); await settle();
     assert.match(f.node('.product-price-group').textContent, /Fixture special rate/);
+    assert.equal(f.node('#sf-refresh').hidden, true);
     assert.equal(requestCount(f, '/api/cart', 'GET'), 1);
     assert.deepEqual(f.errors, []);
   } finally { f.cleanup(); }

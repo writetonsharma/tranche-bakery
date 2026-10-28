@@ -154,6 +154,17 @@ header {
   color: #fff !important;
 }
 
+.nav-signin {
+  gap: 7px;
+}
+
+.nav-signin .user-icon {
+  width: 16px;
+  height: 16px;
+  fill: currentColor;
+  flex: none;
+}
+
 /* WhatsApp "chat or call" contact affordance — animated icon in the nav beside Order */
 .nav-contact {
   display: inline-flex;

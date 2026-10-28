@@ -338,7 +338,7 @@ test('bread-first requires a single date fitting the whole basket, not separate 
   assert.equal(additionProblem(checked, basket(), 2), '');
   const breadFirst = basket([line(1)]);
   assert.match(additionProblem(checked, breadFirst, 2), /whole basket/);
-  assert.match(basketReadiness(checked, breadFirst), /Choose a delivery date.*whole basket/);
+  assert.equal(basketReadiness(checked, breadFirst), 'Choose a delivery date.');
   raw.dates[2].itemIds = [1, 2];
   raw.dates[2].maxItems = 1;
   assert.match(additionProblem(validateShopping(raw), breadFirst, 2), /unavailable/);

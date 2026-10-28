@@ -2,10 +2,12 @@ import { StorefrontApi } from './api.mjs';
 import { LatestRequest } from './model.mjs';
 import { checkoutEnabled, OPAQUE_ID } from './checkout-model.mjs';
 import { validateProfile, profileInput, validateHistory, validateOrderDetail, validateLocation } from './account-model.mjs';
+import { normalizePhone } from './phone-model.mjs';
 
+const SIGN_IN = 'Sign in with your WhatsApp number to see your account.';
 const empty = () => ({ authenticated: false, profile: null, history: null, detail: null,
   location: null, locationMessage: '', historyMessage: '',
-  busy: false, conflict: false, message: 'Sign in through the Products basket to see your account.' });
+  busy: false, conflict: false, message: SIGN_IN });
 
 // Private data and identity live only in this instance; never in URLs or storage.
 export class AccountController {
@@ -22,16 +24,16 @@ export class AccountController {
     this.#latest.invalidate(); this.#identity = null; this.#api.clearSession();
     this.#state = Object.freeze({ ...empty(), message }); this.#change(this.#state);
   }
-  async #run(action, { bootstrap = false, saving = false, history = false } = {}) {
+  async #run(action, { bootstrap = false, saving = false, history = false, quiet = false } = {}) {
     if (!this.#active() || this.#state.busy) return;
     const ticket = this.#latest.begin();
     const current = () => this.#latest.current(ticket) && this.#active();
-    this.#set({ busy: true, ...(history ? { historyMessage: 'Loading orders…' } : { message: 'Loading…' }) });
+    this.#set({ busy: true, ...(quiet ? {} : history ? { historyMessage: 'Loading orders…' } : { message: 'Loading…' }) });
     try {
       const raw = await this.#api.request('/api/session', undefined, ticket.signal);
       if (!current()) return;
       const session = this.#api.useSession(raw);
-      if (!session.authenticated) { this.clear('You are signed out. Sign in through the Products basket.'); return; }
+      if (!session.authenticated) { this.clear(SIGN_IN); return; }
       if (!bootstrap && session.customer.id !== this.#identity) {
         this.clear('Sign-in changed. Refresh your account.'); return;
       }
@@ -40,7 +42,8 @@ export class AccountController {
       await action(ticket.signal, current);
     } catch (error) {
       if (!current()) return;
-      if ([401, 403].includes(error.status)) this.clear('Please sign in again through Products.');
+      if ([401, 403].includes(error.status)) this.clear('Please sign in again.');
+      else if (quiet) { /* A failed background recheck keeps what is already shown. */ }
       else if (history) this.#set({ history: null, detail: null,
         historyMessage: 'Website orders unavailable. Try loading orders again.' });
       else if (saving && error.status === 409) this.#set({ conflict: true,
@@ -53,8 +56,20 @@ export class AccountController {
   }
   async refresh() {
     if (this.#refreshFlight) return this.#refreshFlight;
+    // Same signed-in customer regaining focus: only recheck the session, keeping loaded data and edits.
+    if (this.#state.authenticated && this.#identity !== null) {
+      const recheck = this.#run(async () => {}, { quiet: true });
+      this.#refreshFlight = recheck;
+      try { await recheck; } finally { if (this.#refreshFlight === recheck) this.#refreshFlight = null; }
+      return;
+    }
     this.clear('Loading your account…');
-    const loading = this.#run(async (signal, current) => {
+    const loading = this.#load();
+    this.#refreshFlight = loading;
+    try { await loading; } finally { if (this.#refreshFlight === loading) this.#refreshFlight = null; }
+  }
+  async #load() {
+    await this.#run(async (signal, current) => {
       const profile = await this.#api.request('/api/account/profile', undefined, signal);
       if (!current()) return;
       this.#set({ profile: validateProfile(profile), message: '' });
@@ -66,8 +81,7 @@ export class AccountController {
         if (current()) this.#set({ location: null, locationMessage: 'Saved delivery pin unavailable.' });
       }
     }, { bootstrap: true });
-    this.#refreshFlight = loading;
-    try { await loading; } finally { if (this.#refreshFlight === loading) this.#refreshFlight = null; }
+    if (this.#state.authenticated && !this.#state.history) await this.page(0);
   }
   async reloadProfile() {
     if (!this.#state.authenticated) return;
@@ -95,7 +109,7 @@ export class AccountController {
     if (!this.#state.authenticated || !Number.isInteger(page) || page < 0 || page > 10000) return;
     await this.#run(async (signal, current) => {
       const value = await this.#api.request(`/api/account/orders?page=${page}`, undefined, signal);
-      if (current()) this.#set({ history: validateHistory(value, page), detail: null, historyMessage: `Page ${page + 1}` });
+      if (current()) this.#set({ history: validateHistory(value, page), detail: null, historyMessage: '' });
     }, { history: true });
   }
   async detail(id) {
@@ -247,6 +261,7 @@ export function attachAccount({ root, api, win = window, doc = document }) {
   }
   function render(state) {
     status.textContent = state.message; signin.hidden = state.authenticated;
+    for (const label of doc.querySelectorAll?.('[data-account-label]') || []) label.textContent = state.authenticated ? 'Account' : 'Sign in';
     logout.hidden = !state.authenticated; logout.disabled = state.busy;
     root.setAttribute('aria-busy', String(state.busy));
     if (!state.authenticated) { erase(); return; }
@@ -274,6 +289,7 @@ export function attachAccount({ root, api, win = window, doc = document }) {
     renderHistory(state.history, state.busy, state.historyMessage); renderDetail(state.detail);
   }
   const controller = new AccountController({ api, onChange: render, isActive: active });
+  const login = makeLogin();
   const listen = (target, type, handler) => { target.addEventListener(type, handler); listeners.push(() => target.removeEventListener(type, handler)); };
   const recheckSession = () => { if (active()) controller.refresh(); else controller.clear('Offline or paused. Private information has been removed.'); };
   const identityChanged = () => controller.clear('Sign-in changed in another tab. Refresh your account.');
@@ -287,12 +303,74 @@ export function attachAccount({ root, api, win = window, doc = document }) {
   listen(win, 'online', recheckSession);
   listen(win, 'focus', recheckSession);
   listen(doc, 'visibilitychange', recheckSession);
-  listen(win, 'pagehide', () => controller.clear());
+  listen(win, 'pagehide', () => { login?.wipe(); controller.clear(); });
   listen(win, 'pageshow', recheckSession);
   listen(win, 'storage', identityChanged); // Never read or write browser persistence.
   render(controller.state);
   recheckSession();
-  return { controller, destroy() { listeners.forEach(remove => remove()); channel?.close(); controller.clear(); } };
+  return { controller, destroy() { listeners.forEach(remove => remove()); channel?.close(); login?.wipe(); controller.clear(); } };
+
+  // In-place WhatsApp sign-in. The challenge survives a trip to WhatsApp to read the code; typed values do not survive pagehide.
+  function makeLogin() {
+    if (!signin) return null;
+    let challenge = null, expires = 0, resendAt = 0, busy = false, resendTimer;
+    const form = node('form', undefined, 'account-login-form'); form.autocomplete = 'off';
+    const phoneLabel = node('label', 'WhatsApp number', 'account-field');
+    const phone = node('input'); phone.type = 'tel'; phone.inputMode = 'tel'; phone.maxLength = 16;
+    phone.placeholder = '10-digit mobile number'; phone.autocomplete = 'off'; phoneLabel.append(phone);
+    const send = node('button', 'Send WhatsApp code', 'account-primary'); send.type = 'button';
+    const codeLabel = node('label', '6-digit code', 'account-field');
+    const code = node('input'); code.type = 'text'; code.inputMode = 'numeric'; code.maxLength = 6;
+    code.pattern = '[0-9]{6}'; code.autocomplete = 'one-time-code'; codeLabel.append(code);
+    const verify = node('button', 'Verify and sign in', 'account-primary'); verify.type = 'submit';
+    const note = node('p', '', 'account-note'); note.setAttribute('role', 'status');
+    form.append(phoneLabel, send, codeLabel, verify, note);
+    signin.replaceChildren(form);
+    const update = () => {
+      clearTimeout(resendTimer);
+      const wait = resendAt - Date.now();
+      send.disabled = busy || wait > 0;
+      send.textContent = wait > 0 ? 'Code sent' : challenge ? 'Send a new code' : 'Send WhatsApp code';
+      if (wait > 0) resendTimer = setTimeout(update, wait);
+      codeLabel.hidden = verify.hidden = !challenge;
+      verify.disabled = busy;
+    };
+    send.addEventListener('click', async () => {
+      if (busy || Date.now() < resendAt) return;
+      const value = normalizePhone(phone.value);
+      if (!value) { note.textContent = 'Enter a 10-digit mobile number, or an international number with country code.'; phone.focus?.(); return; }
+      busy = true; resendAt = Date.now() + 60000; note.textContent = 'Sending your code…'; update();
+      try {
+        api.useSession(await api.request('/api/session'));
+        const sentAt = Date.now();
+        const result = await api.request('/api/auth/challenge', { phone: value });
+        if (typeof result?.challengeId !== 'string' || !result.challengeId || result.challengeId.length > 64 ||
+            !Number.isInteger(result.expiresInSeconds) || result.expiresInSeconds < 1 || result.expiresInSeconds > 300) throw new Error('Invalid challenge');
+        challenge = result.challengeId; expires = sentAt + result.expiresInSeconds * 1000;
+        phone.value = ''; code.value = '';
+        note.textContent = 'If this number can receive it, your WhatsApp code will arrive shortly. Enter it below.';
+      } catch { note.textContent = 'Could not send a code right now. Please try again in a minute.'; }
+      finally { busy = false; update(); if (challenge) code.focus?.(); }
+    });
+    form.addEventListener('submit', async event => {
+      event.preventDefault();
+      if (busy || !challenge) return;
+      if (Date.now() >= expires) { challenge = null; code.value = ''; note.textContent = 'Code expired. Send a new code.'; update(); return; }
+      const value = code.value.trim();
+      if (!/^\d{6}$/.test(value)) { note.textContent = 'Enter the 6-digit code from WhatsApp.'; code.focus?.(); return; }
+      busy = true; code.value = ''; note.textContent = 'Checking your code…'; update();
+      try {
+        channel?.postMessage('identity-changed');
+        const view = api.useSession(await api.request('/api/auth/verify', { challengeId: challenge, code: value }));
+        if (!view.authenticated) throw new Error('Not verified');
+        challenge = null; resendAt = 0; note.textContent = '';
+      } catch { note.textContent = 'That code did not work. Check it, or send a new code.'; }
+      finally { busy = false; update(); channel?.postMessage('identity-changed'); }
+      if (!challenge && !note.textContent) await controller.refresh();
+    });
+    update();
+    return { wipe() { phone.value = ''; code.value = ''; } };
+  }
 }
 
 if (typeof window !== 'undefined' && typeof document !== 'undefined' && checkoutEnabled(window.TRANCHE_STOREFRONT)) {

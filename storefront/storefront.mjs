@@ -121,9 +121,43 @@ async function start() {
     wrapper.append(availability);
     controls.push({ id: item.id, ...control, price, publicPrice, availability });
   }
+  // The basket is now the way to order; static WhatsApp ordering links remain only
+  // as the no-JS/disabled fallback. Turn them into a secondary "questions" link.
+  const contact = document.querySelector('.nav-contact[href^="https://wa.me/"]')?.getAttribute('href');
+  for (const link of document.querySelectorAll('.product .details a.btn[href^="https://wa.me/"]')) {
+    link.textContent = 'Questions? Chat on WhatsApp';
+    link.classList.add('btn-secondary');
+    if (contact) link.setAttribute('href', contact);
+  }
+  const ctaLink = document.querySelector('.cta > a.btn[href^="https://wa.me/"]');
+  if (ctaLink) {
+    const intro = ctaLink.parentElement.querySelector('p');
+    if (intro) intro.textContent = 'Add bakes to your basket and order by 5 PM for most next-morning deliveries.';
+    const actions = element('div', undefined, 'hero-actions');
+    const open = element('button', 'Open basket', 'btn'); open.type = 'button';
+    open.addEventListener('click', () => ui.opener.click());
+    ctaLink.replaceWith(actions);
+    ctaLink.textContent = 'Questions? Chat on WhatsApp';
+    ctaLink.classList.add('btn-secondary');
+    if (contact) ctaLink.setAttribute('href', contact);
+    actions.append(open, ctaLink);
+  }
 
   function invalidate(message = '') {
     ui.status.textContent = message;
+  }
+
+  const dayFormat = new Intl.DateTimeFormat('en-IN', { weekday: 'short', day: 'numeric', month: 'short', timeZone: 'UTC' });
+  const formatPrice = value => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(value);
+  function dayLabel(value) { return dayFormat.format(new Date(`${value}T00:00:00Z`)).replace(',', ''); }
+
+  function unavailableReason(id) {
+    // Name the mornings a bake can come instead of a generic refusal. Never expose capacity numbers.
+    const open = shopping.dates.filter(day => day.maxItems > 0 && day.itemIds.includes(id)).map(day => dayLabel(day.date));
+    if (date && shopping.dates.find(day => day.date === date)?.itemIds.includes(id)) return '';
+    if (!date && open.length) return '';
+    if (!open.length) return 'Not available in the next few days. Contact the bakery to ask.';
+    return `Not available on ${dayLabel(date)}. Available ${open.slice(0, 3).join(', ')}${open.length > 3 ? '…' : ''}.`;
   }
 
   function renderDates() {
@@ -131,11 +165,11 @@ async function start() {
     const placeholder = element('option', 'Choose a date'); placeholder.value = ''; ui.date.append(placeholder);
     for (const day of shopping?.dates || []) {
       const available = snapshotUsable && fitsDate(shopping, day.date, lines);
-      const option = element('option', `${day.date}${available ? '' : ' — unavailable for this basket'}`);
+      const option = element('option', `${dayLabel(day.date)}${available ? '' : ' — not available for this basket'}`);
       option.value = day.date; option.disabled = !available; ui.date.append(option);
     }
     if (date && ![...ui.date.options].some(option => option.value === date)) {
-      const option = element('option', `${date} — unavailable; choose another date`);
+      const option = element('option', `${dayLabel(date)} — no longer available; choose another date`);
       option.value = date; option.disabled = true; ui.date.append(option);
     }
     ui.date.value = date;
@@ -143,11 +177,13 @@ async function start() {
 
   function renderEstimate() {
     const paise = snapshotUsable ? estimatePaise(lines, prices) : null;
-    const text = paise === null ? 'Estimated subtotal unavailable. Refresh availability.' :
-      `Estimated subtotal: ${new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(paise / 100)}`;
+    const text = paise === null ? 'Estimated subtotal unavailable. Check availability again.' :
+      `Estimated subtotal: ${formatPrice(paise / 100)}`;
     if (ui.totals.dataset.estimate === text) return;
     ui.totals.dataset.estimate = text;
-    ui.totals.replaceChildren(element('h3', text), element('p', ESTIMATE_WARNING, 'sf-note'));
+    ui.totals.replaceChildren(element('h3', text),
+      element('p', 'Plus ₹65 delivery, unless an offer makes it free.', 'sf-note sf-delivery-note'),
+      element('p', ESTIMATE_WARNING, 'sf-note'));
   }
 
   function renderBasket() {
@@ -160,17 +196,15 @@ async function start() {
         if (item) control.price.textContent = `${new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(item.unitPrice)}${item.priceLabel ? ` · ${item.priceLabel}` : ''}`;
         else control.price.replaceChildren(...control.publicPrice.map(node => node.cloneNode(true)));
       }
-      control.availability.textContent = !snapshotUsable ? 'Availability needs rechecking. Basket kept.' :
-        (date ? !shopping.dates.find(day => day.date === date)?.itemIds.includes(control.id) :
-          !shopping.dates.some(day => day.maxItems > 0 && day.itemIds.includes(control.id))) ?
-          'Unavailable for this date or basket. Choose another date or contact the bakery.' : '';
+      control.availability.textContent = !snapshotUsable ? 'Availability needs rechecking. Basket kept.' : unavailableReason(control.id);
     }
     const count = lines.reduce((sum, line) => sum + line.quantity, 0); // Quantity only, never money.
     ui.opener.textContent = `Basket · ${count}`;
-    ui.opener.setAttribute('aria-label', `Open basket, ${count} items`);
+    ui.opener.setAttribute('aria-label', `Open basket, ${count} ${count === 1 ? 'item' : 'items'}`);
+    ui.refresh.hidden = snapshotUsable && !shoppingFailed;
     for (const [id, row] of drawerRows) {
       if (!lines.some(line => line.itemId === id)) {
-        if (row.root.contains(document.activeElement)) ui.refresh.focus();
+        if (row.root.contains(document.activeElement)) (ui.refresh.hidden ? ui.date : ui.refresh).focus();
         row.root.remove();
         drawerRows.delete(id);
       }
@@ -183,12 +217,15 @@ async function start() {
         const root = element('div', undefined, 'sf-line');
         root.dataset.sfItem = String(item.id);
         const control = quantityControl(item, change);
-        root.append(element('h3', item.name), control.root);
-        row = { ...control, root };
+        const each = element('p', '', 'sf-note sf-line-price');
+        root.append(element('h3', item.name), each, control.root);
+        row = { ...control, root, each };
         drawerRows.set(item.id, row);
         ui.items.append(root);
       }
       row.update(line.quantity);
+      const price = snapshotUsable ? prices.get(line.itemId) : null;
+      row.each.textContent = price ? `${formatPrice(price.unitPrice)} each` : '';
     }
     if (!lines.length) ui.items.append(element('p', 'Your basket is a blank canvas. Add a bake to begin.', 'sf-empty'));
     renderDates(); renderEstimate(); checkout?.availabilityChanged();
@@ -326,6 +363,7 @@ async function start() {
 
   function renderAuth() {
     const loggedIn = session?.authenticated === true;
+    for (const label of document.querySelectorAll('[data-account-label]')) label.textContent = loggedIn ? 'Account' : 'Sign in';
     ui.identity.textContent = loggedIn ? 'WhatsApp verified.' :
       (session ? '' : 'Please refresh to check your sign-in.');
     ui.form.hidden = loggedIn;
@@ -542,8 +580,20 @@ async function start() {
   renderAuth();
   ui.status.textContent = storageWarning || basketReadiness(shopping, { lines, date }) || '';
   if (session?.authenticated && !document.hidden && navigator.onLine) scheduleResume();
-  if (window.location.hash === '#sf-auth' && !document.hidden) {
+  function openSignIn() {
     ui.opener.click();
-    if (ui.dialog.open && !session?.authenticated) ui.phone.focus();
+    if (ui.dialog.open && !session?.authenticated) {
+      ui.auth.scrollIntoView?.({ block: 'start' });
+      ui.phone.focus();
+    }
   }
+  for (const entry of document.querySelectorAll('[data-account-entry]')) {
+    entry.addEventListener('click', event => {
+      // Signed-in customers go to their account; everyone else signs in here and keeps browsing.
+      if (session?.authenticated || event.defaultPrevented || event.button > 0 || event.metaKey || event.ctrlKey || event.shiftKey) return;
+      event.preventDefault();
+      openSignIn();
+    });
+  }
+  if (window.location.hash === '#sf-auth' && !document.hidden) openSignIn();
 }

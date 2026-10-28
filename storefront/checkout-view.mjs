@@ -114,7 +114,6 @@ export function attachCheckout({ api, ui, allowedIds, getBasket, onBasket, onIde
     // Only prepared quotes are exact. Ordinary cart acknowledgements never
     // replace the local estimated product subtotal or churn its DOM.
     if (ui.totals) ui.totals.hidden = Boolean(state.prepared || state.attempt);
-    if (ui.refresh) ui.refresh.hidden = false;
     load.hidden = !identity || !sync.state.retry || sync.state.associated || Boolean(state.attempt);
     save.hidden = !identity || !sync.state.retry || !sync.state.associated || Boolean(state.attempt);
     discardGuest.hidden = !identity || !sync.state.migrationBlocked || Boolean(state.attempt);

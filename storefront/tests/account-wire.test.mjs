@@ -30,7 +30,7 @@ test('real loopback backend JSON: actual checkout, verified paid history, timest
     const controller = new AccountController({ api });
     await controller.refresh();
     assert.deepEqual(controller.state.profile, wire.profile, 'broken real history must not hide a valid real profile');
-    assert.equal(calls.some(path => path.includes('/orders')), false, 'history loads only on request');
+    assert.ok(calls.some(path => path.includes('/orders')), 'history loads with the account');
     await controller.page(0);
     assert.deepEqual(controller.state.profile, wire.profile);
     assert.match(controller.state.historyMessage, /unavailable/i);

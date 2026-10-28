@@ -27,8 +27,7 @@
       <a href="breads.html#offers">Offers</a>
       <a href="about.html">About</a>
       <a href="faq.html">FAQ</a>
-      <a href="account.html" aria-current="page" class="nav-account">My account</a>
-      <a href="breads.html" class="nav-order">Browse bakes</a>
+      <a href="account.html" aria-current="page" class="nav-order nav-signin" data-account-entry><svg class="user-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 12a4.5 4.5 0 1 0 0-9 4.5 4.5 0 0 0 0 9Zm0 2c-4.4 0-8 2.3-8 5.2V21h16v-1.8c0-2.9-3.6-5.2-8-5.2Z"/></svg><span data-account-label>Sign in</span></a>
     </nav>
   </header>
   <div class="nav-backdrop" data-nav-backdrop hidden></div>
@@ -42,9 +41,9 @@
       <div class="account-seal" aria-hidden="true"><span>TRANCHÉ</span><span class="account-wheat">❧</span><span>MADE SLOWLY · SHARED OFTEN</span></div>
     </section>
     <section class="account-session" aria-label="Account access">
-      <p id="account-status" role="status" aria-live="polite">Sign in through the Products basket to see your account.</p>
+      <p id="account-status" role="status" aria-live="polite">Sign in with your WhatsApp number to see your account.</p>
+      <div id="account-signin" class="account-login"><a class="account-primary" href="breads.html#sf-auth">Sign in</a></div>
       <div class="account-actions">
-        <a id="account-signin" class="account-primary" href="breads.html#sf-auth">Sign in</a>
         <button id="account-logout" type="button" hidden>Sign out</button>
       </div>
     </section>

@@ -13,6 +13,10 @@
 .account-session { background: #e7eadb; border: 1px solid #d5dac3; padding: 24px 28px; border-radius: 16px; margin-bottom: 30px; }
 .account-session > p:first-child { margin: 0 0 18px; line-height: 1.7; font-weight: 500; }
 .account-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+.account-login-form { max-width: 420px; }
+.account-login-form .account-field { margin: 0 0 14px; }
+.account-login-form > button { margin: 0 0 14px; }
+.account-login-form .account-note { margin: 0; }
 .account-page button, .account-page .account-primary { font: inherit; font-size: .88rem; min-height: 44px; border: 1px solid #a4ad8f; background: transparent; color: #39442b; border-radius: 7px; padding: 11px 17px; cursor: pointer; text-decoration: none; text-align: center; transition: background .15s; }
 .account-page .account-primary { background: #52603a; border-color: #52603a; color: #fffdf6; display: inline-block; }
 .account-page button:hover:not(:disabled) { background: #edf0e3; }

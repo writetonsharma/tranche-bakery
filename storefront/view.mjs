@@ -63,13 +63,15 @@ export function createDrawer() {
   date.id = 'sf-date';
   dateLabel.htmlFor = date.id;
   dateLabel.append(date);
+  const dateHint = element('p', 'We deliver every morning except Wednesday. Order by 5 PM for most next-morning deliveries.', 'sf-note sf-date-hint');
   const totals = element('div', undefined, 'sf-totals');
   totals.id = 'sf-totals';
-  const refresh = button('Refresh availability', () => {});
+  const refresh = button('Check availability again', () => {});
   refresh.id = 'sf-refresh';
+  refresh.hidden = true;
   const auth = element('section', undefined, 'sf-auth');
   auth.id = 'sf-auth';
-  const authTitle = element('h3', 'WhatsApp login');
+  const authTitle = element('h3', 'Sign in with WhatsApp');
   const identity = element('p');
   identity.id = 'sf-identity';
   const form = element('form');
@@ -109,7 +111,7 @@ export function createDrawer() {
   fallback.href = 'https://wa.me/918800206057?text=hi';
   fallback.target = '_blank';
   fallback.rel = 'noopener';
-  panel.append(eyebrow, heading, disclaimer, status, items, dateLabel, totals, refresh, auth, fallback);
+  panel.append(eyebrow, heading, disclaimer, status, items, dateLabel, dateHint, totals, refresh, auth, fallback);
   dialog.append(panel);
   document.body.append(opener, dialog);
   let restoreFocus;

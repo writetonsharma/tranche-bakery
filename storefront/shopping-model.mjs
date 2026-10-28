@@ -48,7 +48,7 @@ export function basketReadiness(snapshot, basket) {
   if (!basket.lines.length) return 'Add a bake to your basket.';
   if (totalItems(basket.lines) > RETAIL_LIMIT) return 'Your basket is kept in full. Reduce it to five items or contact the bakery for a bulk order.';
   if (!snapshot) return 'Availability needs rechecking. Your basket has not changed.';
-  if (!basket.date) return 'Choose a delivery date for your whole basket. No date fits? Reduce items or contact the bakery for a bulk order.';
+  if (!basket.date) return 'Choose a delivery date.';
   if (!fitsDate(snapshot, basket.date, basket.lines)) return 'Date unavailable for your whole basket. Choose another date, reduce items or contact the bakery for a bulk order.';
   return '';
 }
