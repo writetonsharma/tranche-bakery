@@ -50,6 +50,30 @@
 .account-footer { border-top: 1px solid #d9ddcb; padding: 24px 28px; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 16px; color: #616855; font-size: .8rem; }
 .account-skip { position: absolute; left: 16px; top: -100px; z-index: 10000; padding: 12px; background: #fffdf7; color: #30382c; }
 .account-skip:focus { top: 12px; }
+.subscribe-how { list-style: none; counter-reset: how; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; padding: 0; margin: 0 0 30px; }
+.subscribe-how li { counter-increment: how; display: grid; gap: 6px; padding: 20px 22px; border-top: 2px solid #7b875e; background: #fffdf7; line-height: 1.6; font-size: .88rem; color: #5c6353; }
+.subscribe-how li strong::before { content: counter(how) ". "; color: #7b875e; }
+.subscribe-how li strong { color: #30382c; font-size: .95rem; }
+.subscribe-app { display: grid; gap: 24px; }
+.subscribe-builder { display: grid; gap: 24px; }
+.subscribe-step { margin: 0; min-width: 0; }
+.subscribe-step legend { float: left; width: 100%; padding: 0; margin: 0 0 14px; font-family: 'Playfair Display', Georgia, serif; font-size: 1.4rem; }
+.subscribe-step legend ~ * { clear: both; }
+.subscribe-options { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 12px; margin: 8px 0; }
+.subscribe-option { display: flex; gap: 12px; align-items: flex-start; padding: 14px 16px; border: 1px solid #d5dac3; border-radius: 10px; cursor: pointer; background: #fffefb; }
+.subscribe-option:has(input:checked) { border-color: #52603a; background: #edf0e4; box-shadow: inset 0 0 0 1px #52603a; }
+.subscribe-option input { margin-top: 4px; accent-color: #52603a; }
+.subscribe-option span { display: grid; gap: 4px; }
+.subscribe-option strong { font-weight: 500; font-size: .92rem; }
+.subscribe-option small { color: #616855; font-size: .8rem; line-height: 1.55; }
+.subscribe-summary .account-total { max-width: none; margin: 8px 0; }
+.subscribe-summary > button { margin: 14px 0 4px; }
+.subscribe-current { border-color: #b6bea3; overflow-wrap: anywhere; }
+.subscribe-current .account-actions { margin: 18px 0 8px; }
+.subscribe-current a:not(.account-primary) { color: #4b5834; text-underline-offset: 4px; }
+.subscribe-deliveries, .account-deliveries { padding-left: 22px; margin: 0 0 18px; line-height: 1.9; font-size: .88rem; }
+.account-subscription { grid-column: 1 / -1; overflow-wrap: anywhere; }
+@media (max-width: 700px) { .subscribe-how { grid-template-columns: 1fr; gap: 10px; } }
 @media (max-width: 900px) { .account-grid { grid-template-columns: 1fr; } .account-seal { flex-basis: 170px; height: 170px; gap: 6px; } .account-seal span:first-child { font-size: 1.1rem; } .account-seal .account-wheat { font-size: 3.2rem; } }
 @media (max-width: 600px) {
   .account-shell { padding: 24px 18px; } .account-hero { padding: 16px 0 28px; } .account-seal { display: none; }

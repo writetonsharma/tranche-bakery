@@ -30,6 +30,7 @@ function fixture(handler = () => undefined) {
       if (path === '/api/account/location') return { latitude: null, longitude: null };
       if (path.startsWith('/api/account/orders?page=')) return { ...structuredClone(history), page: Number(path.split('=')[1]) };
       if (path === `/api/account/orders/${id}`) return structuredClone(detail);
+      if (path === '/api/subscriptions/current') return { subscription: null };
       throw new Error('Unexpected route');
     }
   };
@@ -156,7 +157,7 @@ test('GET loading never saves or alters basket; detail and pagination only read 
   await controller.refresh(); await controller.page(1); await controller.detail(id);
   assert.equal(controller.state.detail.quote.totalAmount, 250);
   assert.ok(calls.every(call => call.body === undefined && call.method === undefined));
-  assert.ok(calls.every(call => call.path === '/api/session' || call.path.startsWith('/api/account/')));
+  assert.ok(calls.every(call => ['/api/session', '/api/subscriptions/current'].includes(call.path) || call.path.startsWith('/api/account/')));
   const count = calls.length; await controller.detail('../cart'); await controller.page('1');
   assert.equal(calls.length, count);
 });
@@ -232,6 +233,34 @@ function fakePage(api) {
   const view = attachAccount({ root: nodes['account-private'], api, win, doc });
   return { ...view, win, doc, nodes, channel: Channel.current };
 }
+
+test('account subscription card is read-only: friendly dates when active, a link back when pending', async () => {
+  const settle = async () => { for (let i = 0; i < 12; i++) await new Promise(resolve => setImmediate(resolve)); };
+  const sub = status => ({ status, channel: 'WEB', planName: 'Weekly Bakes', tier: 'NORMAL', weeklyPrice: 240, deliveryCharge: 50,
+    paidWeeks: 4, freeWeeks: 1, creditApplied: 0, amount: 1210, deliveryDay: 'FRIDAY',
+    startDate: status === 'ACTIVE' ? '2026-10-30' : null, endDate: status === 'ACTIVE' ? '2026-11-27' : null,
+    items: [{ name: 'Classic Table White', quantity: 1, portion: 'HALF' }],
+    deliveries: [0, 7, 14, 21, 28].map((days, i) => ({ week: i + 1, date: new Date(Date.parse('2026-10-30') + days * 864e5).toISOString().slice(0, 10),
+      status: i === 0 && status === 'ACTIVE' ? 'CONFIRMED' : 'SCHEDULED' })),
+    fulfillment: { name: 'Web Subscriber', address: 'House 7, Subscription Street', deliveryPreference: 'DOOR', loafPreference: 'SLICED' },
+    paymentUrl: status === 'ACTIVE' ? null : 'https://rzp.io/i/websub', savings: 623 });
+  for (const status of ['ACTIVE', 'PENDING_PAYMENT']) {
+    const { api } = fixture(path => path === '/api/subscriptions/current' ? { subscription: sub(status) } : undefined);
+    const page = fakePage(api); await settle();
+    const text = page.nodes['account-private'].textContent;
+    if (status === 'ACTIVE') {
+      assert.match(text, /Active · every Friday · Fri, 30 Oct to Fri, 27 Nov/);
+      assert.match(text, /Fri, 30 Oct · Confirmed/);
+      assert.match(text, /House 7, Subscription Street/);
+    } else {
+      assert.match(text, /Awaiting payment/);
+      assert.match(text, /Continue on the Subscriptions page/);
+      assert.doesNotMatch(text, /rzp\.io|Deliveries/);
+    }
+    assert.equal(page.nodes['account-private'].querySelectorAll('button').filter(button => /cancel|pay/i.test(button.textContent)).length, 0);
+    page.destroy();
+  }
+});
 
 test('signed-out account page signs in with WhatsApp in place, then loads profile and history', async () => {
   let authed = false;

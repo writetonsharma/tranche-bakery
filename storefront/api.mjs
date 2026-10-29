@@ -1,6 +1,11 @@
 import { OPAQUE_ID, PROBLEMS } from './checkout-model.mjs';
 import { shoppingInput } from './shopping-model.mjs';
 
+const SUBSCRIPTION_ROUTES = new Map([
+  ['/api/subscriptions/plans', 'GET'], ['/api/subscriptions/current', 'GET'],
+  ['/api/subscriptions', 'POST'], ['/api/subscriptions/current/cancel', 'POST']
+]);
+
 const ROUTES = new Map([
   ['/api/catalog', 'GET'], ['/api/session', 'GET'], ['/api/quote', 'POST'], ['/api/shopping', 'POST'],
   ['/api/auth/challenge', 'POST'], ['/api/auth/verify', 'POST'], ['/api/auth/logout', 'POST']
@@ -65,6 +70,16 @@ export class StorefrontApi {
         ['/api/checkout/prepare', '/api/checkout'].includes(path) ? 'POST' : 'GET';
       if (path === '/api/cart' && !['GET', 'PUT'].includes(method)) throw new Error('Disallowed API method');
     }
+    const subscriptionRoute = this.#checkout && SUBSCRIPTION_ROUTES.has(path);
+    if (subscriptionRoute) {
+      method = SUBSCRIPTION_ROUTES.get(path);
+      // Sign-up carries the subscription-model-checked body; cancel never has one.
+      if (path === '/api/subscriptions' ? body === undefined : body !== undefined) throw new Error('Disallowed API body');
+      if (body !== undefined && (!body || typeof body !== 'object' || Array.isArray(body) ||
+          Object.keys(body).sort().join(',') !== 'address,deliveryDay,deliveryPreference,items,loafPreference,name,option,planCode')) {
+        throw new Error('Disallowed API body');
+      }
+    }
     if (!method) throw new Error('Disallowed API route');
     if (requestedMethod !== undefined && requestedMethod !== method) throw new Error('Disallowed API method');
     if (method === 'GET' && body !== undefined) throw new Error('Disallowed API body');
@@ -90,7 +105,7 @@ export class StorefrontApi {
       if (!response.ok) {
         let code;
         // Only gated checkout/account failures are parsed: never retain server text/PII.
-        if (checkoutRoute || accountRoute) {
+        if (checkoutRoute || accountRoute || subscriptionRoute) {
           try {
             const payload = await response.json();
             const candidate = payload?.problems?.[0]?.code;

@@ -2140,6 +2140,25 @@ footer p {
   }
 }
 
+/* Narrow desktop/tablet: keep the full inline nav on one row until the mobile menu takes over. */
+@media (min-width: 769px) and (max-width: 1080px) {
+  header {
+    padding-left: 3%;
+    padding-right: 3%;
+    gap: 12px;
+  }
+
+  .site-nav {
+    gap: 13px;
+  }
+
+  .site-nav a {
+    font-size: 13px;
+    letter-spacing: 0;
+    white-space: nowrap;
+  }
+}
+
 .btn:hover,
 .btn-secondary:hover,
 .nav-order:hover {
@@ -2337,6 +2356,14 @@ summary:focus-visible,
   margin: 0;
   font-size: 14px;
   color: rgba(43, 43, 43, 0.92);
+}
+.offer-card .offer-link {
+  display: inline-block;
+  margin-top: 12px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--olive-deep);
+  text-underline-offset: 4px;
 }
 .offers-fineprint {
   margin-top: 22px;

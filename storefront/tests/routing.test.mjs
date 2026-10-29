@@ -12,7 +12,8 @@ const paths = ['/api/catalog', '/api/session', '/api/quote', '/api/shopping',
   '/api/auth/challenge', '/api/auth/verify', '/api/auth/logout',
   '/api/cart', '/api/checkout/prepare', '/api/checkout', '/api/checkout/:opaqueId([A-Za-z0-9_-]{32})',
   '/api/account/profile', '/api/account/location', '/api/account/orders', '/api/account/checkout',
-  '/api/account/orders/:opaqueId([A-Za-z0-9_-]{32})'];
+  '/api/account/orders/:opaqueId([A-Za-z0-9_-]{32})',
+  '/api/subscriptions/plans', '/api/subscriptions/current', '/api/subscriptions', '/api/subscriptions/current/cancel'];
 const backend = 'https://tranchewa-app-production.up.railway.app';
 const configCode = () => readFile(new URL('../config.js', import.meta.url), 'utf8');
 const routing = async () => JSON.parse(await readFile(new URL('../../vercel.json', import.meta.url), 'utf8'));

@@ -19,7 +19,12 @@ export const PROBLEMS = Object.freeze({
   INVALID_REQUEST: 'Check quantities, date and delivery details, then try again.',
   EMPTY_CART: 'Add a bake to your basket.', DATE_REQUIRED: 'Choose a delivery date.',
   DATE_UNAVAILABLE: 'Choose an available delivery date.',
-  ITEM_UNAVAILABLE: 'A bake is no longer available. Review your basket.'
+  ITEM_UNAVAILABLE: 'A bake is no longer available. Review your basket.',
+  PLAN_UNAVAILABLE: 'That plan is no longer offered. Choose one of the plans shown.',
+  SUBSCRIPTION_EXISTS: 'You already have a subscription in progress. It is shown below.',
+  SUBSCRIPTION_NOT_FOUND: 'There is no unpaid subscription request to cancel.',
+  SUBSCRIPTION_ACTIVE: 'This subscription is paid. Message the bakery to change, pause or skip a week.',
+  CANCEL_UNCONFIRMED: 'Cancellation not confirmed — a payment may be in progress. Message the bakery before paying or cancelling again.'
 });
 export const problemMessage = code => Object.hasOwn(PROBLEMS, code) ? PROBLEMS[code] :
   'Service unavailable or basket needs attention. Refresh safely or contact the bakery.';

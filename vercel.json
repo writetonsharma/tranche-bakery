@@ -80,6 +80,26 @@
       "source": "/api/auth/logout",
       "has": [{ "type": "host", "value": "^(?:www\\.)?tranchebakery\\.in$" }],
       "destination": "https://tranchewa-app-production.up.railway.app/api/auth/logout"
+    },
+    {
+      "source": "/api/subscriptions/plans",
+      "has": [{ "type": "host", "value": "^(?:www\\.)?tranchebakery\\.in$" }],
+      "destination": "https://tranchewa-app-production.up.railway.app/api/subscriptions/plans"
+    },
+    {
+      "source": "/api/subscriptions/current",
+      "has": [{ "type": "host", "value": "^(?:www\\.)?tranchebakery\\.in$" }],
+      "destination": "https://tranchewa-app-production.up.railway.app/api/subscriptions/current"
+    },
+    {
+      "source": "/api/subscriptions",
+      "has": [{ "type": "host", "value": "^(?:www\\.)?tranchebakery\\.in$" }],
+      "destination": "https://tranchewa-app-production.up.railway.app/api/subscriptions"
+    },
+    {
+      "source": "/api/subscriptions/current/cancel",
+      "has": [{ "type": "host", "value": "^(?:www\\.)?tranchebakery\\.in$" }],
+      "destination": "https://tranchewa-app-production.up.railway.app/api/subscriptions/current/cancel"
     }
   ],
   "headers": [

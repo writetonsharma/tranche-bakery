@@ -141,7 +141,12 @@ async function start() {
     ctaLink.textContent = 'Questions? Chat on WhatsApp';
     ctaLink.classList.add('btn-secondary');
     if (contact) ctaLink.setAttribute('href', contact);
-    actions.append(open, ctaLink);
+    actions.append(open);
+    if (checkoutOn) {
+      const subscribe = element('a', 'Subscribe weekly', 'btn btn-secondary'); subscribe.href = 'subscribe.html';
+      actions.append(subscribe);
+    }
+    actions.append(ctaLink);
   }
 
   function invalidate(message = '') {

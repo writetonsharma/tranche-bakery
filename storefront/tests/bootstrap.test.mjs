@@ -190,7 +190,8 @@ test('real drawer uses concise accessible copy and qualifies card prices and sub
     assert.equal(f.document.querySelectorAll('.product a[href^="https://wa.me/"]').length, 0, 'cards order through the basket only');
     assert.equal(f.document.querySelectorAll('#sf-drawer a[href^="https://wa.me/"]').length, 0);
     assert.doesNotMatch(f.document.body.textContent, /Order on WhatsApp|start your order on WhatsApp|Subscribe on WhatsApp|ordering on WhatsApp/);
-    assert.equal(f.node('.cta a.btn-secondary').getAttribute('href'), f.node('.nav-contact').getAttribute('href'));
+    assert.equal(f.node('.cta a.btn-secondary[href^="https://wa.me/"]').getAttribute('href'), f.node('.nav-contact').getAttribute('href'));
+    assert.equal(f.node('.cta a.btn-secondary[href="subscribe.html"]').textContent, 'Subscribe weekly');
     const ctaOpen = f.node('.cta .hero-actions button.btn');
     assert.equal(ctaOpen.textContent, 'Open basket');
     f.node('#sf-close').click(); await settle();

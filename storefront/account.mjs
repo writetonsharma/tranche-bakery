@@ -2,11 +2,13 @@ import { StorefrontApi } from './api.mjs';
 import { LatestRequest } from './model.mjs';
 import { checkoutEnabled, OPAQUE_ID } from './checkout-model.mjs';
 import { validateProfile, profileInput, validateHistory, validateOrderDetail, validateLocation } from './account-model.mjs';
-import { normalizePhone, authFailureMessage } from './phone-model.mjs';
+import { validateCurrent } from './subscription-model.mjs';
+import { createLogin } from './login.mjs';
 
 const SIGN_IN = 'Sign in with your WhatsApp number to see your account.';
 const empty = () => ({ authenticated: false, profile: null, history: null, detail: null,
   location: null, locationMessage: '', historyMessage: '',
+  subscription: undefined, subscriptionMessage: '',
   busy: false, conflict: false, message: SIGN_IN });
 
 // Private data and identity live only in this instance; never in URLs or storage.
@@ -80,6 +82,13 @@ export class AccountController {
         if ([401, 403].includes(error.status)) throw error;
         if (current()) this.#set({ location: null, locationMessage: 'Saved delivery pin unavailable.' });
       }
+      try {
+        const subscription = validateCurrent(await this.#api.request('/api/subscriptions/current', undefined, signal));
+        if (current()) this.#set({ subscription, subscriptionMessage: '' });
+      } catch (error) {
+        if ([401, 403].includes(error.status)) throw error;
+        if (current()) this.#set({ subscription: undefined, subscriptionMessage: 'Subscription details unavailable. Refresh your account to try again.' });
+      }
     }, { bootstrap: true });
     if (this.#state.authenticated && !this.#state.history) await this.page(0);
   }
@@ -141,7 +150,10 @@ const orderLabels = Object.freeze({ INVOICED: 'Invoice sent', PENDING_CONFIRMATI
   PENDING_PAYMENT_SCREENSHOT: 'Awaiting payment confirmation', PAYMENT_SCREENSHOT_RECEIVED: 'Payment being checked',
   PAYMENT_SCREENSHOT_VERIFIED: 'Payment checked', PAYMENT_REVIEW_REQUIRED: 'Payment needs review',
   CONFIRMED: 'Confirmed', IN_BAKING: 'Baking', OUT_FOR_DELIVERY: 'Out for delivery',
-  CANCELLED: 'Cancelled', COMPLETED: 'Completed' });
+  CANCELLED: 'Cancelled', COMPLETED: 'Completed', SCHEDULED: 'Scheduled' });
+const dayName = day => day.charAt(0) + day.slice(1).toLowerCase();
+const shortDate = new Intl.DateTimeFormat('en-IN', { weekday: 'short', day: 'numeric', month: 'short', timeZone: 'UTC' });
+const prettyDate = value => shortDate.format(new Date(`${value}T00:00:00Z`));
 
 export function attachAccount({ root, api, win = window, doc = document }) {
   const node = (tag, text, className) => {
@@ -157,7 +169,7 @@ export function attachAccount({ root, api, win = window, doc = document }) {
   const signin = doc.getElementById('account-signin');
   const logout = doc.getElementById('account-logout');
   const shop = doc.getElementById('account-shop');
-  let form, fields, save, reload, locationRoot, historyRoot, detailRoot, previousProfile;
+  let form, fields, save, reload, locationRoot, subscriptionRoot, historyRoot, detailRoot, previousProfile;
   let linkTimer;
   let channel;
   const listeners = [];
@@ -168,7 +180,7 @@ export function attachAccount({ root, api, win = window, doc = document }) {
     for (const input of root.querySelectorAll('input, select, textarea')) { input.value = ''; input.defaultValue = ''; }
     for (const link of root.querySelectorAll('a')) { link.removeAttribute('href'); link.textContent = ''; }
     root.replaceChildren(); root.hidden = true;
-    form = fields = save = reload = locationRoot = historyRoot = detailRoot = previousProfile = null;
+    form = fields = save = reload = locationRoot = subscriptionRoot = historyRoot = detailRoot = previousProfile = null;
   }
   function makeForm() {
     const card = node('section', undefined, 'account-card');
@@ -198,12 +210,49 @@ export function attachAccount({ root, api, win = window, doc = document }) {
       controller.save(Object.fromEntries(Object.entries(fields).map(([key, input]) => [key, input.value])));
     });
     locationRoot = node('div');
-    card.append(heading, help, form, locationRoot); root.append(card);
+    card.append(heading, help, form, locationRoot);
+    subscriptionRoot = node('section', undefined, 'account-card account-subscription');
+    subscriptionRoot.setAttribute('aria-label', 'Weekly subscription'); root.append(subscriptionRoot, card);
     const orders = node('section', undefined, 'account-card'); orders.append(node('h2', 'From our oven to your table'));
-    orders.append(node('p', 'Website and WhatsApp orders. Website orders open to their original details; subscription orders are not listed.', 'account-note'));
+    orders.append(node('p', 'Website and WhatsApp orders. Website orders open to their original details; weekly subscription deliveries are shown with your subscription.', 'account-note'));
     historyRoot = node('div'); orders.append(historyRoot); root.append(orders);
     detailRoot = node('section', undefined, 'account-card account-order-detail'); detailRoot.setAttribute('aria-label', 'Original order details');
     root.append(detailRoot);
+  }
+  function renderSubscription(subscription, message) {
+    for (const link of subscriptionRoot.querySelectorAll('a')) link.removeAttribute('href');
+    subscriptionRoot.replaceChildren(node('p', 'SUBSCRIPTIONS', 'eyebrow'));
+    const start = node('a', 'Start a weekly subscription', 'account-primary'); start.href = 'subscribe.html';
+    if (subscription === undefined) {
+      subscriptionRoot.append(node('h2', 'Fresh bread, every week'), node('p', message || 'Checking your subscription…', 'account-note'));
+      return;
+    }
+    if (subscription === null) {
+      subscriptionRoot.append(node('h2', 'Fresh bread, every week'),
+        node('p', 'Choose a bake and a delivery day. Pay once for the weeks ahead; one week is on us.', 'account-note'), start);
+      return;
+    }
+    const pending = subscription.status === 'PENDING_PAYMENT';
+    subscriptionRoot.append(node('h2', subscription.planName),
+      node('p', pending ? 'Awaiting payment' : `Active · every ${dayName(subscription.deliveryDay)} · ${prettyDate(subscription.startDate)} to ${prettyDate(subscription.endDate)}`, 'account-state'));
+    for (const item of subscription.items) subscriptionRoot.append(node('p', `${item.quantity} × ${item.name}${item.portion === 'HALF' ? ' (half)' : ''}`));
+    const total = node('p', undefined, 'account-total');
+    total.append(node('span', `${subscription.paidWeeks + subscription.freeWeeks} weeks · ${subscription.freeWeeks} on us`), node('strong', money.format(subscription.amount)));
+    subscriptionRoot.append(total);
+    if (pending) {
+      const open = node('a', 'Continue on the Subscriptions page', 'account-primary'); open.href = 'subscribe.html';
+      subscriptionRoot.append(node('p', 'Delivery dates are fixed once payment is confirmed.', 'account-note'), open);
+      return;
+    }
+    subscriptionRoot.append(node('h3', 'Deliveries'));
+    const list = node('ol', undefined, 'account-deliveries');
+    for (const row of subscription.deliveries) list.append(node('li', `${prettyDate(row.date)} · ${orderLabels[row.status]}`));
+    subscriptionRoot.append(list);
+    if (subscription.fulfillment) {
+      subscriptionRoot.append(node('h3', 'Delivering to'), node('p', subscription.fulfillment.name), node('p', subscription.fulfillment.address),
+        node('p', `${labels[subscription.fulfillment.deliveryPreference]} · ${labels[subscription.fulfillment.loafPreference]}`));
+    }
+    subscriptionRoot.append(node('p', 'To change, pause or skip a week, message the bakery on WhatsApp.', 'account-note'));
   }
   function renderHistory(history, busy, message) {
     historyRoot.replaceChildren();
@@ -293,10 +342,12 @@ export function attachAccount({ root, api, win = window, doc = document }) {
       link.target = '_blank'; link.rel = 'noopener noreferrer'; link.referrerPolicy = 'no-referrer';
       locationRoot.append(link, node('p', 'Saved with the bakery. This page does not change your pin.', 'account-note'));
     } else if (state.locationMessage) locationRoot.append(node('p', state.locationMessage, 'account-note'));
+    renderSubscription(state.subscription, state.subscriptionMessage);
     renderHistory(state.history, state.busy, state.historyMessage); renderDetail(state.detail);
   }
   const controller = new AccountController({ api, onChange: render, isActive: active });
-  const login = makeLogin();
+  const login = createLogin({ doc, mount: signin, api, notify: message => channel?.postMessage(message),
+    onVerified: () => controller.refresh() });
   const listen = (target, type, handler) => { target.addEventListener(type, handler); listeners.push(() => target.removeEventListener(type, handler)); };
   const recheckSession = () => { if (active()) controller.refresh(); else controller.clear('Offline or paused. Private information has been removed.'); };
   const identityChanged = () => controller.clear('Sign-in changed in another tab. Refresh your account.');
@@ -316,70 +367,6 @@ export function attachAccount({ root, api, win = window, doc = document }) {
   render(controller.state);
   recheckSession();
   return { controller, destroy() { listeners.forEach(remove => remove()); channel?.close(); login?.wipe(); controller.clear(); } };
-
-  // In-place WhatsApp sign-in. The challenge survives a trip to WhatsApp to read the code; typed values do not survive pagehide.
-  function makeLogin() {
-    if (!signin) return null;
-    let challenge = null, expires = 0, resendAt = 0, busy = false, resendTimer;
-    const form = node('form', undefined, 'account-login-form'); form.autocomplete = 'off';
-    const phoneLabel = node('label', 'WhatsApp number', 'account-field');
-    const phone = node('input'); phone.type = 'tel'; phone.inputMode = 'tel'; phone.maxLength = 16;
-    phone.placeholder = '10-digit mobile number'; phone.autocomplete = 'off'; phoneLabel.append(phone);
-    const send = node('button', 'Send WhatsApp code', 'account-primary'); send.type = 'button';
-    const codeLabel = node('label', '6-digit code', 'account-field');
-    const code = node('input'); code.type = 'text'; code.inputMode = 'numeric'; code.maxLength = 6;
-    code.pattern = '[0-9]{6}'; code.autocomplete = 'one-time-code'; codeLabel.append(code);
-    const verify = node('button', 'Verify and sign in', 'account-primary'); verify.type = 'submit';
-    const note = node('p', '', 'account-note'); note.setAttribute('role', 'status');
-    form.append(phoneLabel, send, codeLabel, verify, note);
-    signin.replaceChildren(form);
-    const update = () => {
-      clearTimeout(resendTimer);
-      const wait = resendAt - Date.now();
-      send.disabled = busy || wait > 0;
-      send.textContent = wait > 0 ? 'Code sent' : challenge ? 'Send a new code' : 'Send WhatsApp code';
-      if (wait > 0) resendTimer = setTimeout(update, wait);
-      codeLabel.hidden = verify.hidden = !challenge;
-      verify.disabled = busy;
-    };
-    send.addEventListener('click', async () => {
-      if (busy || Date.now() < resendAt) return;
-      const value = normalizePhone(phone.value);
-      if (!value) { note.textContent = 'Enter a 10-digit mobile number, or an international number with country code.'; phone.focus?.(); return; }
-      busy = true; resendAt = Date.now() + 60000; note.textContent = 'Sending your code…'; update();
-      try {
-        api.useSession(await api.request('/api/session'));
-        const sentAt = Date.now();
-        const result = await api.request('/api/auth/challenge', { phone: value });
-        if (typeof result?.challengeId !== 'string' || !result.challengeId || result.challengeId.length > 64 ||
-            !Number.isInteger(result.expiresInSeconds) || result.expiresInSeconds < 1 || result.expiresInSeconds > 300) throw new Error('Invalid challenge');
-        challenge = result.challengeId; expires = sentAt + result.expiresInSeconds * 1000;
-        phone.value = ''; code.value = '';
-        note.textContent = 'If this number can receive it, your WhatsApp code will arrive shortly. Enter it below.';
-      } catch (error) { note.textContent = authFailureMessage(error, 'send'); }
-      finally { busy = false; update(); if (challenge) code.focus?.(); }
-    });
-    form.addEventListener('submit', async event => {
-      event.preventDefault();
-      if (busy || !challenge) return;
-      if (Date.now() >= expires) { challenge = null; code.value = ''; note.textContent = 'Code expired. Send a new code.'; update(); return; }
-      const value = code.value.trim();
-      if (!/^\d{6}$/.test(value)) { note.textContent = 'Enter the 6-digit code from WhatsApp.'; code.focus?.(); return; }
-      busy = true; code.value = ''; note.textContent = 'Checking your code…'; update();
-      try {
-        channel?.postMessage('identity-changed');
-        // Returning from WhatsApp rechecks the account, which drops the CSRF token: always bootstrap first.
-        api.useSession(await api.request('/api/session'));
-        const view = api.useSession(await api.request('/api/auth/verify', { challengeId: challenge, code: value }));
-        if (!view.authenticated) throw new Error('Not verified');
-        challenge = null; resendAt = 0; note.textContent = '';
-      } catch (error) { note.textContent = authFailureMessage(error, 'verify'); }
-      finally { busy = false; update(); channel?.postMessage('identity-changed'); }
-      if (!challenge && !note.textContent) await controller.refresh();
-    });
-    update();
-    return { wipe() { phone.value = ''; code.value = ''; } };
-  }
 }
 
 if (typeof window !== 'undefined' && typeof document !== 'undefined' && checkoutEnabled(window.TRANCHE_STOREFRONT)) {

@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Weekly Bread Subscriptions | TRANCHÉ Bakery</title>
+  <meta name="description" content="Fresh, slow-fermented bread delivered on the same day every week in Gurugram. Choose your bakes and delivery day, pay once, and your fifth week is on us.">
+  <meta name="robots" content="index, follow">
+  <meta name="referrer" content="no-referrer">
+  <meta name="theme-color" content="#6e7750">
+  <link rel="canonical" href="https://www.tranchebakery.in/subscribe.html">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="TRANCHÉ Bakery">
+  <meta property="og:locale" content="en_IN">
+  <meta property="og:title" content="Weekly Bread Subscriptions | TRANCHÉ Bakery">
+  <meta property="og:description" content="Fresh bread on the same day every week. Pay once; your fifth week is on us.">
+  <meta property="og:url" content="https://www.tranchebakery.in/subscribe.html">
+  <meta property="og:image" content="https://www.tranchebakery.in/Images/HomePage/CoolingRack-desktop.jpg">
+  <meta property="og:image:alt" content="Freshly baked breads cooling on bakery racks">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Weekly Bread Subscriptions | TRANCHÉ Bakery">
+  <meta name="twitter:description" content="Fresh bread on the same day every week. Pay once; your fifth week is on us.">
+  <meta name="twitter:image" content="https://www.tranchebakery.in/Images/HomePage/CoolingRack-desktop.jpg">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="storefront/account.css">
+  <script src="storefront/config.js"></script>
+  <script type="module" src="storefront/subscribe.mjs"></script>
+  <script src="scripts/site.js" defer></script>
+</head>
+<body class="account-page subscribe-page" id="top">
+  <a class="account-skip" href="#subscribe-main">Skip to subscriptions</a>
+  <header>
+    <a class="logo" href="index.html" aria-label="Go to home"><strong>TRANCHÉ</strong><span>Bakery</span></a>
+    <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="site-nav" data-menu-toggle>
+      <span class="menu-toggle-bar"></span><span class="menu-toggle-bar"></span><span class="menu-toggle-bar"></span><span class="menu-toggle-label">Menu</span>
+    </button>
+    <nav id="site-nav" class="site-nav" aria-label="Primary">
+      <a href="index.html">Home</a>
+      <a href="breads.html">Breads &amp; Bakes</a>
+      <a href="breads.html#offers">Offers</a>
+      <a href="subscribe.html" aria-current="page">Subscriptions</a>
+      <a href="about.html">About</a>
+      <a href="faq.html">FAQ</a>
+      <a href="account.html" class="nav-order nav-signin" data-account-entry><svg class="user-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 12a4.5 4.5 0 1 0 0-9 4.5 4.5 0 0 0 0 9Zm0 2c-4.4 0-8 2.3-8 5.2V21h16v-1.8c0-2.9-3.6-5.2-8-5.2Z"/></svg><span data-account-label>Sign in</span></a>
+    </nav>
+  </header>
+  <div class="nav-backdrop" data-nav-backdrop hidden></div>
+  <main id="subscribe-main" class="account-shell">
+    <section class="account-hero" aria-labelledby="subscribe-heading">
+      <div>
+        <p class="eyebrow">SUBSCRIPTIONS</p>
+        <h1 id="subscribe-heading">Fresh bread,<br>every week.</h1>
+        <p>Choose your bakes and a delivery day. We bake them fresh and bring them to your door on the same day each week. Pay once for the weeks ahead, and one week is on us.</p>
+      </div>
+      <div class="account-seal" aria-hidden="true"><span>TRANCHÉ</span><span class="account-wheat">❧</span><span>EVERY WEEK<br>BAKED FOR YOU</span></div>
+    </section>
+    <ol class="subscribe-how" aria-label="How subscriptions work">
+      <li><strong>Choose</strong><span>A plan, what comes each week, and your bakes.</span></li>
+      <li><strong>Pick a day</strong><span>The same delivery day every week.</span></li>
+      <li><strong>Pay once</strong><span>One secure payment covers every week, including the one on us.</span></li>
+    </ol>
+    <section class="account-session" aria-label="Subscription status">
+      <p id="subscribe-status" role="status" aria-live="polite"></p>
+      <div data-subscribe-fallback>
+        <p class="account-note">Online sign-up isn't available here yet. Message us on WhatsApp and we'll set up your subscription.</p>
+        <a class="account-primary" href="https://wa.me/918796770308?text=Hi%2C%20I%27d%20like%20a%20weekly%20subscription." target="_blank" rel="noopener noreferrer">Subscribe on WhatsApp ↗</a>
+      </div>
+    </section>
+    <noscript><p class="account-card">JavaScript is required to sign up online. You can still subscribe by messaging us on WhatsApp.</p></noscript>
+    <div id="subscribe-app" class="subscribe-app" hidden></div>
+    <aside class="account-help">
+      <p class="eyebrow">A REAL PERSON, NOT JUST A PAGE</p>
+      <h2>Need to change, pause or skip a week?</h2>
+      <p>Once you've paid, the bakery handles changes. Message us and we'll sort it out. If a payment is uncertain, check with us before paying again.</p>
+      <a href="https://wa.me/918796770308?text=Hi%2C%20about%20my%20subscription." target="_blank" rel="noopener noreferrer">Chat with the bakery ↗</a>
+    </aside>
+  </main>
+  <footer class="account-footer"><span>TRANCHÉ · Small-batch bakery, Gurugram</span><a href="breads.html">Browse breads &amp; bakes →</a></footer>
+</body>
+</html>
