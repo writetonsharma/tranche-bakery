@@ -11,6 +11,7 @@ const otherOrigins = ['http://www.tranchebakery.in', 'http://tranchebakery.in',
 const paths = ['/api/catalog', '/api/session', '/api/quote', '/api/shopping',
   '/api/auth/challenge', '/api/auth/verify', '/api/auth/logout',
   '/api/cart', '/api/checkout/prepare', '/api/checkout', '/api/checkout/:opaqueId([A-Za-z0-9_-]{32})',
+  '/api/checkout/:opaqueId([A-Za-z0-9_-]{32})/cancel',
   '/api/account/profile', '/api/account/location', '/api/account/orders', '/api/account/checkout',
   '/api/account/orders/:opaqueId([A-Za-z0-9_-]{32})',
   '/api/subscriptions/plans', '/api/subscriptions/current', '/api/subscriptions', '/api/subscriptions/current/cancel'];

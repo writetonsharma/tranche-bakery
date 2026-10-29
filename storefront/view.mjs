@@ -1,3 +1,5 @@
+import { appendQuoteLine } from './model.mjs';
+
 const money = new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' });
 export function element(tag, text, className) {
   const node = document.createElement(tag);
@@ -182,7 +184,7 @@ export function renderQuote(root, quote, mode = 'preview') {
     mode === 'prepared' ? 'Review your order' : quote.valid ? 'Basket total' : 'Basket needs attention');
   root.append(heading);
   for (const line of quote.lines) {
-    root.append(element('p', `${line.name} · ${line.quantity} × ${money.format(line.unitPrice)} · ${money.format(line.lineTotal)}`, 'sf-note'));
+    root.append(appendQuoteLine(element('p', undefined, 'sf-note'), line, money, element));
   }
   if (typeof quote.giftLabel === 'string' && quote.giftLabel) {
     const gift = element('p', undefined, 'sf-total-row sf-gift');

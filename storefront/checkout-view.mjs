@@ -45,13 +45,14 @@ export function attachCheckout({ api, ui, allowedIds, getBasket, onBasket, onIde
     flow.startNewOrder();
     if (!flow.state.attempt) await flow.resume();
   }); newOrder.id = 'sf-new-order';
+  const cancelOrder = button('Cancel this order', () => flow.cancelOrder()); cancelOrder.id = 'sf-checkout-cancel';
   const payment = element('a', 'Pay with Razorpay ↗', 'sf-payment-link'); payment.id = 'sf-payment-link';
   payment.target = '_blank'; payment.rel = 'noopener noreferrer'; payment.referrerPolicy = 'no-referrer';
   const abort = button('Hide delivery details', () => {
     flow.cancelReview(); forgetDetails();
   }); abort.id = 'sf-checkout-abort';
   const support = element('p', 'Payment uncertain? Contact the bakery before ordering or paying again.', 'sf-note');
-  recovery.append(retry, check, payment, newOrder, abort);
+  recovery.append(retry, check, payment, cancelOrder, newOrder, abort);
   root.append(title, accountLink, help, status, basketStatus, choices, quoteRoot, form, accepted, confirm, recovery, support);
   ui.auth.after(root);
   let identity = null;
@@ -162,6 +163,8 @@ export function attachCheckout({ api, ui, allowedIds, getBasket, onBasket, onIde
     const url = privateVisible ? state.result?.paymentUrl : null;
     if (url) { if (payment.getAttribute?.('href') !== url) payment.href = url; payment.hidden = false; }
     else { payment.hidden = true; payment.removeAttribute('href'); }
+    cancelOrder.hidden = !privateVisible || !state.attempt?.id || state.result?.status !== 'PAYABLE';
+    cancelOrder.disabled = state.busy && !state.background;
     abort.hidden = !active || state.suspended || !state.prepared;
     support.hidden = !identity || !state.attempt || ['PAID', 'CANCELLED', 'EXPIRED'].includes(state.result?.status);
     // Poll only an already owned opaque ID, at most ten GETs, no hidden-page work.

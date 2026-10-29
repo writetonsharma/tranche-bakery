@@ -52,6 +52,11 @@
       "destination": "https://tranchewa-app-production.up.railway.app/api/checkout/:opaqueId"
     },
     {
+      "source": "/api/checkout/:opaqueId([A-Za-z0-9_-]{32})/cancel",
+      "has": [{ "type": "host", "value": "^(?:www\\.)?tranchebakery\\.in$" }],
+      "destination": "https://tranchewa-app-production.up.railway.app/api/checkout/:opaqueId/cancel"
+    },
+    {
       "source": "/api/catalog",
       "has": [{ "type": "host", "value": "^(?:www\\.)?tranchebakery\\.in$" }],
       "destination": "https://tranchewa-app-production.up.railway.app/api/catalog"

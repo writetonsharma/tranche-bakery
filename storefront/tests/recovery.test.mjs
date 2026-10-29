@@ -345,6 +345,45 @@ test('optional default failure cannot install historical paid checkout; a later 
   assert.equal(f.requests().some(call => call.path === '/api/checkout'), false);
 });
 
+test('leaving and returning keeps an unchanged reviewed quote without preparing again; delivery details are dropped', async () => {
+  for (const reason of ['page hidden', 'drawer opening', 'drawer closing', 'drawer closed']) {
+    const f = fixture(null); await f.flow.resume(); await f.flow.load(); await f.flow.prepare();
+    const prepared = f.flow.state.prepared;
+    f.flow.review(details);
+    assert.ok(f.flow.state.review);
+    f.flow.suspend(reason);
+    assert.equal(f.flow.state.prepared, prepared);
+    assert.equal(f.flow.state.review, null);
+    assert.equal(f.flow.state.suspended, true);
+    await f.flow.resume();
+    assert.equal(f.flow.state.suspended, false);
+    assert.equal(f.flow.state.prepared, prepared);
+    assert.match(f.flow.state.message, /check your total/i);
+    assert.equal(f.requests().filter(call => call.path === '/api/checkout/prepare').length, 1);
+  }
+});
+
+test('a kept quote is dropped once expired, and every other suspension still clears it', async () => {
+  const expired = fixture(null); await expired.flow.resume(); await expired.flow.load(); await expired.flow.prepare();
+  expired.flow.suspend('page hidden');
+  expired.flow.now = () => now + 600000;
+  await expired.flow.resume();
+  assert.equal(expired.flow.state.prepared, null);
+  assert.match(expired.flow.state.message, /review your basket/i);
+  const late = fixture(null); await late.flow.resume(); await late.flow.load(); await late.flow.prepare();
+  late.flow.now = () => now + 600000;
+  late.flow.suspend('page hidden');
+  assert.equal(late.flow.state.prepared, null);
+  for (const reason of ['offline', 'identity uncertain', 'account basket refreshed', 'quote or payment deadline reached', 'paused by you']) {
+    const f = fixture(null); await f.flow.resume(); await f.flow.load(); await f.flow.prepare();
+    f.flow.suspend(reason);
+    assert.equal(f.flow.state.prepared, null, reason);
+  }
+  const edited = fixture(null); await edited.flow.resume(); await edited.flow.load(); await edited.flow.prepare();
+  edited.flow.suspend('page hidden'); edited.flow.changed();
+  assert.equal(edited.flow.state.prepared, null);
+});
+
 test('malformed recovery envelope or historical snapshot fails closed without POST or fabricated attempt', async () => {
   for (const value of [{ checkout: historical(), extra: true }, { checkout: { ...historical(), orderStatus: 'SUCCESS' } },
     { checkout: { ...historical(), quote: { ...historicalQuote, itemCount: 999 } } }]) {
@@ -483,4 +522,54 @@ test('initial null then pending is recovered on visible resume with no overlappi
   assert.equal(f.flow.state.background, false);
   assert.equal(f.requests().some(call => call.path === '/api/checkout'), false);
   assert.equal(f.keys, 0);
+});
+
+const cancelled = () => ({ id, status: 'CANCELLED', expiresAt: '2026-11-01T08:00:00Z', paymentUrl: null });
+
+test('cancelling a PAYABLE order POSTs once without a body and unlocks the unchanged basket', async () => {
+  const f = fixture(); await f.flow.resume();
+  assert.equal(f.flow.canEditBasket, false);
+  const original = f.api.request;
+  f.api.request = async (...args) => {
+    if (args[0] === `/api/checkout/${id}/cancel`) { f.calls.push({ path: args[0], body: args[1], method: args[3] }); return cancelled(); }
+    if (args[0] === '/api/account/checkout') { f.calls.push({ path: args[0] }); return { checkout: historical('CANCELLED') }; }
+    return original(...args);
+  };
+  await f.flow.cancelOrder();
+  const posts = f.requests().filter(call => call.path === `/api/checkout/${id}/cancel`);
+  assert.equal(posts.length, 1);
+  assert.equal(posts[0].body, undefined);
+  assert.equal(posts[0].method, 'POST');
+  assert.equal(f.flow.state.attempt, null);
+  assert.equal(f.flow.state.result, null);
+  assert.equal(f.flow.canEditBasket, true);
+  assert.equal(f.flow.recoveryReady, true);
+  assert.match(f.flow.state.message, /Order cancelled/);
+  assert.deepEqual(f.local, basket);
+  assert.equal(f.replacements.length, 0);
+  await f.flow.cancelOrder();
+  assert.equal(f.requests().filter(call => call.path === `/api/checkout/${id}/cancel`).length, 1);
+});
+
+test('an unconfirmed cancel keeps the order locked and its status checkable', async () => {
+  const f = fixture(); await f.flow.resume();
+  const original = f.api.request;
+  f.api.request = async (...args) => {
+    if (args[0] === `/api/checkout/${id}/cancel`) throw Object.assign(new Error(), { status: 409, code: 'CANCEL_UNCONFIRMED' });
+    return original(...args);
+  };
+  await f.flow.cancelOrder();
+  assert.equal(f.flow.state.attempt.id, id);
+  assert.equal(f.flow.canEditBasket, false);
+  assert.match(f.flow.state.message, /Cancellation not confirmed/);
+  await f.flow.check();
+  assert.equal(f.flow.state.result.status, 'PAYABLE');
+});
+
+test('cancel is ignored without a PAYABLE owned order', async () => {
+  const f = fixture(null); await f.flow.resume();
+  await f.flow.cancelOrder();
+  const g = fixture(); await g.flow.resume(); g.flow.suspend('hidden');
+  await g.flow.cancelOrder();
+  for (const x of [f, g]) assert.equal(x.requests().some(call => call.path.endsWith('/cancel')), false);
 });

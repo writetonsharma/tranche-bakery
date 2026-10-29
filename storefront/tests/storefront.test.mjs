@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import vm from 'node:vm';
 import { PRODUCT_NAMES, STORAGE_KEY, catalogBindings, validateLines, readBasket,
-  saveBasket, changeQuantity, LatestRequest, validDate, validateQuote } from '../model.mjs';
+  saveBasket, changeQuantity, LatestRequest, validDate, validateQuote, appendQuoteLine } from '../model.mjs';
 import { StorefrontApi, ApiError } from '../api.mjs';
 import { quantityControl } from '../view.mjs';
 
@@ -128,6 +128,25 @@ test('wrong quote identity/quantity/date, duplicate lines and malformed money re
     { ...quote, problems: [{}] }]) assert.throws(() => validateQuote(bad, lines, '2026-11-01'));
   assert.throws(() => validateQuote({ ...quote, lines: [quote.lines[0], quote.lines[0]] },
     [...lines, { itemId: 2, quantity: 1 }], '2026-11-01'));
+});
+test('special unit price is optional, null, or a non-negative number', () => {
+  const lines = [{ itemId: 1, quantity: 2 }];
+  for (const specialUnitPrice of [null, 0, 9.5]) {
+    assert.equal(validateQuote({ ...quote, lines: [{ ...quote.lines[0], specialUnitPrice }] }, lines, '2026-11-01').valid, true);
+  }
+  for (const specialUnitPrice of [-1, '9', Infinity]) {
+    assert.throws(() => validateQuote({ ...quote, lines: [{ ...quote.lines[0], specialUnitPrice }] }, lines, '2026-11-01'));
+  }
+});
+test('quote lines strike through the list price only when a special price applies', () => {
+  const money = { format: value => `Rs${value}` };
+  const make = (tag, text) => ({ tag, text });
+  const target = () => ({ parts: [], textContent: '', append(...nodes) { this.parts.push(...nodes); } });
+  const plain = appendQuoteLine(target(), { ...quote.lines[0], specialUnitPrice: null }, money, make);
+  assert.equal(plain.textContent, 'Bread · 2 × Rs13 · Rs26');
+  assert.deepEqual(plain.parts, []);
+  const special = appendQuoteLine(target(), { ...quote.lines[0], specialUnitPrice: 9.5 }, money, make);
+  assert.deepEqual(special.parts, [{ tag: 'span', text: 'Bread · 2 × ' }, { tag: 's', text: 'Rs13' }, { tag: 'span', text: ' Rs9.5 · Rs19' }]);
 });
 test('no-date quote accepts the exact backend null contract', () => {
   assert.equal(validateQuote({ ...quote, date: null, valid: false, problems: [{ message: 'Choose date' }] },

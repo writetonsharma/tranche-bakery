@@ -391,6 +391,14 @@ test('checkout API routes require enabled client, exact methods, opaque IDs, boo
   const before = calls.length;
   await assert.rejects(api.request('/api/cart', {}, undefined, 'POST'));
   assert.equal(calls.length, before);
+  for (const [path, body, method] of [[`/api/checkout/${id}/cancel`, {}], [`/api/checkout/${id}/cancel`, undefined, 'GET'],
+    ['/api/checkout/x/cancel'], [`/api/checkout/${id}/cancel/x`], [`/api/checkout/${id}/../cancel`]]) {
+    await assert.rejects(api.request(path, body, undefined, method)); assert.equal(calls.length, before);
+  }
+  await assert.rejects(api.request(`/api/checkout/${id}/cancel`), e => e.code === 'QUOTE_EXPIRED');
+  assert.equal(calls.at(-1).options.method, 'POST');
+  assert.equal(calls.at(-1).options.body, undefined);
+  assert.equal(calls.at(-1).options.headers['X-XSRF-TOKEN'], 'csrf');
 });
 
 test('ambiguous retry preserves original payload if bootstrap itself fails; failed quote is not redisplayed', async () => {
@@ -469,7 +477,7 @@ test('status response for a different opaque ID never exposes a payment URL', as
 test('all durable routes remain disallowed without independent client opt-in', async () => {
   let calls = 0;
   const api = new StorefrontApi(async () => { calls++; }); api.useSession(session);
-  for (const path of ['/api/cart', '/api/checkout/prepare', '/api/checkout', `/api/checkout/${id}`]) {
+  for (const path of ['/api/cart', '/api/checkout/prepare', '/api/checkout', `/api/checkout/${id}`, `/api/checkout/${id}/cancel`]) {
     await assert.rejects(api.request(path));
   }
   assert.equal(calls, 0);

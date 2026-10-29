@@ -117,10 +117,24 @@ export function validateQuote(quote, lines, date) {
     const input = lines.find(line => line.itemId === row.itemId);
     if (!input || seen.has(row.itemId) || row.quantity !== input.quantity ||
         typeof row.name !== 'string' || !['unitPrice', 'lineTotal'].every(key =>
-          typeof row[key] === 'number' && Number.isFinite(row[key]) && row[key] >= 0)) {
+          typeof row[key] === 'number' && Number.isFinite(row[key]) && row[key] >= 0) ||
+        !(row.specialUnitPrice == null || (typeof row.specialUnitPrice === 'number' &&
+          Number.isFinite(row.specialUnitPrice) && row.specialUnitPrice >= 0))) {
       throw new Error('Invalid quote');
     }
     seen.add(row.itemId);
   }
   return quote;
+}
+
+// A special-rate line shows the customer's own price after the struck-through list price.
+export function appendQuoteLine(target, line, money, make) {
+  const special = typeof line.specialUnitPrice === 'number' ? line.specialUnitPrice : null;
+  if (special === null) {
+    target.textContent = `${line.name} · ${line.quantity} × ${money.format(line.unitPrice)} · ${money.format(line.lineTotal)}`;
+  } else {
+    target.append(make('span', `${line.name} · ${line.quantity} × `), make('s', money.format(line.unitPrice)),
+      make('span', ` ${money.format(special)} · ${money.format(Math.round(special * 100) * line.quantity / 100)}`));
+  }
+  return target;
 }

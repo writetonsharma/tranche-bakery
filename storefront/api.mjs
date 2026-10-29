@@ -63,12 +63,15 @@ export class StorefrontApi {
         (requestedMethod === undefined ? (body === undefined ? 'GET' : 'PUT') : requestedMethod) : 'GET';
       if (!['GET', 'PUT'].includes(method)) throw new Error('Disallowed API method');
     }
+    const opaqueTail = typeof path === 'string' && path.startsWith('/api/checkout/') ? path.slice('/api/checkout/'.length) : '';
+    const cancelRoute = opaqueTail.endsWith('/cancel') && OPAQUE_ID.test(opaqueTail.slice(0, -'/cancel'.length));
     const checkoutRoute = this.#checkout && (['/api/cart', '/api/checkout/prepare', '/api/checkout'].includes(path) ||
-      (typeof path === 'string' && path.startsWith('/api/checkout/') && OPAQUE_ID.test(path.slice('/api/checkout/'.length))));
+      OPAQUE_ID.test(opaqueTail) || cancelRoute);
     if (checkoutRoute) {
       method = path === '/api/cart' ? (requestedMethod || (body === undefined ? 'GET' : 'PUT')) :
-        ['/api/checkout/prepare', '/api/checkout'].includes(path) ? 'POST' : 'GET';
+        ['/api/checkout/prepare', '/api/checkout'].includes(path) || cancelRoute ? 'POST' : 'GET';
       if (path === '/api/cart' && !['GET', 'PUT'].includes(method)) throw new Error('Disallowed API method');
+      if (cancelRoute && body !== undefined) throw new Error('Disallowed API body');
     }
     const subscriptionRoute = this.#checkout && SUBSCRIPTION_ROUTES.has(path);
     if (subscriptionRoute) {

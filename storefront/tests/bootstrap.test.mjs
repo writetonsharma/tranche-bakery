@@ -87,6 +87,7 @@ async function fixture({ authenticated = false, status = null, hidden = false, s
     else if (path === '/api/checkout/prepare') value = { cartVersion: cart.version, quote: cart.quote,
       quoteToken: 't'.repeat(43), expiresAt: new Date(Date.now() + 600000).toISOString() };
     else if (path === '/api/checkout') { status = 'PAYABLE'; value = historical(status); }
+    else if (path === `/api/checkout/${id}/cancel` && options.method === 'POST' && body === undefined) { status = 'CANCELLED'; value = historical(status); }
     else if (path === '/api/account/profile') value = { version: 1, ...details };
     else if (path === '/api/cart') {
       if (options.method === 'PUT') cart = { ...body, version: body.version + 1, quote: quoteFor(body.lines, body.date), problems: [] };
@@ -679,6 +680,32 @@ test('real current payment polls quietly, stops at PAID, and Continue preserves 
     assert.equal(f.node('#sf-prepare').disabled, false);
     assert.equal(f.node('#sf-new-order').hidden, true);
     assert.equal(f.calls.filter(call => call.path === '/api/checkout').length, 1);
+    assert.deepEqual(f.errors, []);
+  } finally { f.cleanup(); }
+});
+
+test('cancelling an unpaid order closes its link and lets the basket be edited and reviewed again', async () => {
+  const f = await fixture({ authenticated: true });
+  try {
+    await f.tick(200); f.node('#sf-open').click(); await settle();
+    f.node('#sf-prepare').click(); await settle();
+    f.node('#sf-delivery').dispatchEvent(new f.window.Event('submit', { cancelable: true }));
+    assert.equal(f.node('#sf-checkout-cancel').hidden, true);
+    f.node('#sf-confirm-pay').click(); await settle();
+    assert.equal(f.node('#sf-checkout-cancel').hidden, false);
+    assert.equal(f.node('#sf-payment-link').hidden, false);
+    f.node('#sf-checkout-cancel').click(); await settle();
+    assert.equal(f.calls.filter(call => call.path === `/api/checkout/${id}/cancel`).length, 1);
+    assert.match(f.node('#sf-checkout-status').textContent, /Order cancelled/);
+    assert.equal(f.node('#sf-checkout-cancel').hidden, true);
+    assert.equal(f.node('#sf-payment-link').hidden, true);
+    assert.equal(f.node('#sf-checkout-refresh').hidden, true);
+    assert.equal(quantity(f), '2', 'basket is unchanged');
+    plus(f).click(); assert.equal(quantity(f), '3');
+    await f.tick(400); await f.tick(200);
+    assert.equal(f.cart.lines[0].quantity, 3);
+    assert.equal(f.node('#sf-prepare').hidden, false);
+    assert.equal(f.node('#sf-prepare').disabled, false);
     assert.deepEqual(f.errors, []);
   } finally { f.cleanup(); }
 });

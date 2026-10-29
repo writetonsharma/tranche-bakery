@@ -24,7 +24,8 @@ export const PROBLEMS = Object.freeze({
   SUBSCRIPTION_EXISTS: 'You already have a subscription in progress. It is shown below.',
   SUBSCRIPTION_NOT_FOUND: 'There is no unpaid subscription request to cancel.',
   SUBSCRIPTION_ACTIVE: 'This subscription is paid. Message the bakery to change, pause or skip a week.',
-  CANCEL_UNCONFIRMED: 'Cancellation not confirmed — a payment may be in progress. Message the bakery before paying or cancelling again.'
+  CANCEL_UNCONFIRMED: 'Cancellation not confirmed — a payment may be in progress. Message the bakery before paying or cancelling again.',
+  ALREADY_PAID: 'This order is already paid. Message the bakery to change it.'
 });
 export const problemMessage = code => Object.hasOwn(PROBLEMS, code) ? PROBLEMS[code] :
   'Service unavailable or basket needs attention. Refresh safely or contact the bakery.';

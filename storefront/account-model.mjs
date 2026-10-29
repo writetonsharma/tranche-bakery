@@ -64,9 +64,11 @@ function historicalQuote(value) {
   if (!Array.isArray(value.lines) || !value.lines.length || !validDate(value.date) ||
       value.valid !== true || !Array.isArray(value.problems) || value.problems.length !== 0) throw new Error('Invalid historical quote');
   const lines = validateLineStructure(value.lines.map(row => {
-    exact(row, 'itemId,lineTotal,name,quantity,unitPrice');
+    if (!Object.hasOwn(row, 'specialUnitPrice')) exact(row, 'itemId,lineTotal,name,quantity,unitPrice');
+    else exact(row, 'itemId,lineTotal,name,quantity,specialUnitPrice,unitPrice');
     text(row.name, 1, 200);
-    if (!amount(row.unitPrice) || !amount(row.lineTotal)) throw new Error('Invalid historical amounts');
+    if (!amount(row.unitPrice) || !amount(row.lineTotal) ||
+        !(row.specialUnitPrice == null || amount(row.specialUnitPrice))) throw new Error('Invalid historical amounts');
     return { itemId: row.itemId, quantity: row.quantity };
   }));
   for (const key of ['listSubtotal', 'discountAmount', 'batchDiscountAmount', 'deliveryCharge', 'creditApplied', 'totalAmount']) {

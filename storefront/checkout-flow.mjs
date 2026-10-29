@@ -5,9 +5,11 @@ import { validateOrderDetail, validateProfile } from './account-model.mjs';
 const initial = () => ({ cart: null, prepared: null, review: null, attempt: null, result: null,
   busy: false, background: false, ambiguous: false, suspended: false, dirty: false, needsReload: false, message: '' });
 const resolved = status => ['PAID', 'CANCELLED', 'EXPIRED'].includes(status);
+// Leaving and returning changes nothing the server priced, so a reviewed quote may be shown again.
+const KEEPS_QUOTE = new Set(['page hidden', 'drawer opening', 'drawer closing', 'drawer closed']);
 const stateMessage = status => ({
   CREATING: 'Payment link is being created. Do not submit another order.',
-  PAYABLE: 'Order awaiting payment. Already paid? Refresh payment status; do not pay again.',
+  PAYABLE: 'Order awaiting payment. Already paid? Refresh payment status; do not pay again. To change your basket, cancel this order first.',
   UNKNOWN: 'Payment uncertain. Contact the bakery before ordering or paying again.',
   PAID: 'Payment received. Thank you! Your order is confirmed.',
   REVIEW_REQUIRED: 'Payment needs manual review. Contact the bakery; do not pay again.',
@@ -48,7 +50,10 @@ export class CheckoutFlow {
         payload: null, recovered: true });
     }
     // Preserve ONLY an already accepted/possibly sent attempt for same-identity explicit recovery.
-    Object.assign(this.state, { prepared: null, review: null, result: null, busy: false, background: false,
+    // An unexpired quote holds no delivery details; Confirm & Pay re-checks it on the server.
+    const kept = !this.state.attempt && KEEPS_QUOTE.has(reason) && this.state.prepared &&
+      Date.parse(this.state.prepared.expiresAt) > this.now() ? this.state.prepared : null;
+    Object.assign(this.state, { prepared: kept, review: null, result: null, busy: false, background: false,
       suspended: true, ambiguous: this.state.ambiguous || Boolean(this.state.attempt && !this.state.attempt.id),
       message: this.state.attempt ? 'Refresh payment status or contact the bakery before ordering or paying again.' : '' });
     this.emit();
@@ -242,6 +247,25 @@ export class CheckoutFlow {
     if (this.state.suspended || this.state.busy || !['PAYABLE', 'CREATING', 'UNKNOWN'].includes(this.state.result?.status) || this.polls >= 10) return;
     this.polls++; return this.check();
   }
+  // The server closes the payment link before cancelling, so it can never be paid afterwards.
+  async cancelOrder() {
+    const attempt = this.state.attempt;
+    if (!attempt?.id || this.state.suspended || this.state.result?.status !== 'PAYABLE') return;
+    if (this.state.busy && !await this.settled()) return;
+    if (this.state.attempt !== attempt || this.state.result?.status !== 'PAYABLE') return;
+    await this.run(async ({ signal, current }) => {
+      const value = await this.api.request(`/api/checkout/${attempt.id}/cancel`, undefined, signal, 'POST');
+      const result = validateCheckout(value, attempt.id, this.now());
+      if (current()) this.accept(result, attempt, value.status);
+    });
+    if (this.state.attempt?.id !== attempt.id || !['CANCELLED', 'EXPIRED'].includes(this.state.result?.status)) return;
+    this.startNewOrder();
+    await this.resume();
+    if (!this.state.attempt && !this.state.busy) {
+      this.state.message = 'Order cancelled and its payment link closed. Your basket is unchanged — edit it, then review again.';
+      this.emit();
+    }
+  }
   async resume() {
     if (!this.accountEnabled || !this.identity || !this.isActive()) return;
     if (this.state.busy) return;
@@ -250,6 +274,8 @@ export class CheckoutFlow {
     // must not reset the poll bound, invalidate a review or churn its message.
     const recovering = this.state.suspended || !this.recoveryReady;
     if (this.state.suspended || !this.recoveryReady) this.polls = 0;
+    if (this.state.prepared && (Date.parse(this.state.prepared.expiresAt) <= this.now() ||
+        this.state.cart?.version !== this.state.prepared.cartVersion || this.state.dirty)) this.state.prepared = null;
     if (this.state.attempt?.id) {
       await this.check();
       if (this.state.result && !this.defaultsRead) {
@@ -275,7 +301,7 @@ export class CheckoutFlow {
         this.accept(detail, attempt, value.checkout.status);
       } else if (recovering) {
         this.state.suspended = false;
-        this.state.message = 'Review your basket when ready.';
+        this.state.message = this.state.prepared ? 'Check your total and delivery details.' : 'Review your basket when ready.';
       }
       await this.readDefaults(signal, current);
     }, { background: !recovering });

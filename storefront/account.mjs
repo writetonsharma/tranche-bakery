@@ -1,5 +1,5 @@
 import { StorefrontApi } from './api.mjs';
-import { LatestRequest } from './model.mjs';
+import { LatestRequest, appendQuoteLine } from './model.mjs';
 import { checkoutEnabled, OPAQUE_ID } from './checkout-model.mjs';
 import { validateProfile, profileInput, validateHistory, validateOrderDetail, validateLocation } from './account-model.mjs';
 import { validateCurrent } from './subscription-model.mjs';
@@ -292,7 +292,7 @@ export function attachAccount({ root, api, win = window, doc = document }) {
       node('h3', 'Delivery details accepted for this order'), node('p', detail.fulfillment.name), node('p', detail.fulfillment.address),
       node('p', `${labels[detail.fulfillment.deliveryPreference]} · ${labels[detail.fulfillment.loafPreference]}`),
       node('h3', 'Order total'));
-    for (const line of detail.quote.lines) detailRoot.append(node('p', `${line.name} · ${line.quantity} × ${money.format(line.unitPrice)} · ${money.format(line.lineTotal)}`));
+    for (const line of detail.quote.lines) detailRoot.append(appendQuoteLine(node('p'), line, money, node));
     for (const [label, key] of [['List subtotal', 'listSubtotal'], ['Discount', 'discountAmount'], ['Batch discount', 'batchDiscountAmount'],
       ['Delivery', 'deliveryCharge'], ['Credit applied', 'creditApplied'], ['Original total', 'totalAmount']]) {
       const row = node('p', undefined, 'account-total'); row.append(node('span', label), node('strong', money.format(detail.quote[key]))); detailRoot.append(row);

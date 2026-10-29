@@ -138,6 +138,16 @@ test('detail retains immutable original fulfillment, retired quote and validated
   }
 });
 
+test('history detail accepts a special unit price only as null or a valid amount', () => {
+  for (const specialUnitPrice of [null, 80]) {
+    const value = validateOrderDetail({ ...detail, quote: { ...quote, lines: [{ ...quote.lines[0], specialUnitPrice }] } }, id, now);
+    assert.equal(value.quote.lines[0].specialUnitPrice, specialUnitPrice);
+  }
+  for (const specialUnitPrice of [-1, '80', Infinity]) {
+    assert.throws(() => validateOrderDetail({ ...detail, quote: { ...quote, lines: [{ ...quote.lines[0], specialUnitPrice }] } }, id, now));
+  }
+});
+
 test('account uncertain states survive expiry, only safe live PAYABLE exposes URL', () => {
   for (const status of ['CREATING', 'UNKNOWN']) {
     const value = validateOrderDetail({ ...detail, status }, id, now);
