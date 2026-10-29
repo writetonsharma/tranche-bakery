@@ -119,6 +119,30 @@ test('history accepts summary-only WhatsApp rows and legacy channel-less website
   assert.throws(() => validateHistory({ ...history, orders: [noChannel] }));
 });
 
+const pastSubscription = { id: null, channel: 'SUBSCRIPTION', orderNumber: null, createdAt: '2026-08-01T03:30:00Z',
+  deliveryDate: null, orderStatus: null, status: 'COMPLETED', totalAmount: 800,
+  subscription: { planName: 'Weekly sourdough', deliveryDay: 'FRIDAY', startDate: '2026-08-07', endDate: '2026-09-04', weeks: 5, delivered: 4 } };
+
+test('history accepts one summary row per started subscription and rejects order-shaped or malformed ones', () => {
+  const value = validateHistory({ ...history, orders: [summary, whatsapp, pastSubscription] }, 0);
+  assert.deepEqual(value.orders[2], pastSubscription);
+  assert.equal(validateHistory({ ...history, orders: [{ ...pastSubscription, totalAmount: null }] }).orders[0].totalAmount, null);
+  for (const patch of [{ id }, { orderNumber: 'SUB-1' }, { deliveryDate: '2026-08-07' }, { orderStatus: 'COMPLETED' },
+    { status: 'PENDING_PAYMENT' }, { status: 'PAID' }, { totalAmount: '800' }, { createdAt: 'yesterday' },
+    { subscription: null }, { address: profile.address }]) {
+    assert.throws(() => validateHistory({ ...history, orders: [{ ...pastSubscription, ...patch }] }));
+  }
+  for (const patch of [{ planName: '' }, { deliveryDay: 'friday' }, { startDate: '2026-02-30' }, { endDate: '2026-08-01' },
+    { weeks: 5.5 }, { delivered: 6 }, { delivered: -1 }, { phone: '9876543210' }]) {
+    const row = { ...pastSubscription, subscription: { ...pastSubscription.subscription, ...patch } };
+    assert.throws(() => validateHistory({ ...history, orders: [row] }));
+  }
+  const noDetail = { ...pastSubscription }; delete noDetail.subscription;
+  assert.throws(() => validateHistory({ ...history, orders: [noDetail] }));
+  const noChannel = { ...pastSubscription }; delete noChannel.channel;
+  assert.throws(() => validateHistory({ ...history, orders: [noChannel] }));
+});
+
 test('detail retains immutable original fulfillment, retired quote and validated checkout', () => {
   const input = structuredClone(detail);
   const value = validateOrderDetail(input, id, now);
@@ -487,7 +511,27 @@ test('WhatsApp history rows render as summaries without a detail action', async 
     assert.match(wa.textContent, /Ordered on WhatsApp · Completed/);
     assert.match(wa.textContent, /345/);
     assert.doesNotMatch(bare.textContent, /Delivery|₹|null|undefined/);
-    assert.match(page.nodes['account-private'].textContent, /Website and WhatsApp orders/);
+    assert.match(page.nodes['account-private'].textContent, /Website and WhatsApp orders, and weekly subscriptions/);
+  } finally { page.destroy(); }
+});
+
+test('past subscriptions render in the order history as summaries without a detail action', async () => {
+  const { api } = fixture(path => path.startsWith('/api/account/orders?page=')
+    ? { ...structuredClone(history), orders: [summary, pastSubscription, { ...pastSubscription, status: 'CANCELLED', totalAmount: null }] }
+    : undefined);
+  const page = fakePage(api);
+  try {
+    await page.controller.refresh();
+    const rows = page.nodes['account-private'].querySelectorAll('article');
+    const [, past, cancelled] = rows;
+    assert.equal(rows.length, 3);
+    assert.equal(past.querySelectorAll('button').length, 0);
+    assert.match(past.textContent, /Subscription · Weekly sourdough/);
+    assert.match(past.textContent, /Every Friday · [^·]*7 Aug[^·]* to [^·]*4 Sep/);
+    assert.match(past.textContent, /Completed · 4 of 5 weeks delivered/);
+    assert.match(past.textContent, /800/);
+    assert.match(cancelled.textContent, /Cancelled · 4 of 5 weeks delivered/);
+    assert.doesNotMatch(cancelled.textContent, /₹|null|undefined/);
   } finally { page.destroy(); }
 });
 

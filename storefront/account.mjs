@@ -151,6 +151,7 @@ const orderLabels = Object.freeze({ INVOICED: 'Invoice sent', PENDING_CONFIRMATI
   PAYMENT_SCREENSHOT_VERIFIED: 'Payment checked', PAYMENT_REVIEW_REQUIRED: 'Payment needs review',
   CONFIRMED: 'Confirmed', IN_BAKING: 'Baking', OUT_FOR_DELIVERY: 'Out for delivery',
   CANCELLED: 'Cancelled', COMPLETED: 'Completed', SCHEDULED: 'Scheduled' });
+const subscriptionLabels = Object.freeze({ ACTIVE: 'Active', COMPLETED: 'Completed', CANCELLED: 'Cancelled' });
 const dayName = day => day.charAt(0) + day.slice(1).toLowerCase();
 const shortDate = new Intl.DateTimeFormat('en-IN', { weekday: 'short', day: 'numeric', month: 'short', timeZone: 'UTC' });
 const prettyDate = value => shortDate.format(new Date(`${value}T00:00:00Z`));
@@ -214,7 +215,7 @@ export function attachAccount({ root, api, win = window, doc = document }) {
     subscriptionRoot = node('section', undefined, 'account-card account-subscription');
     subscriptionRoot.setAttribute('aria-label', 'Weekly subscription'); root.append(subscriptionRoot, card);
     const orders = node('section', undefined, 'account-card'); orders.append(node('h2', 'From our oven to your table'));
-    orders.append(node('p', 'Website and WhatsApp orders. Website orders open to their original details; weekly subscription deliveries are shown with your subscription.', 'account-note'));
+    orders.append(node('p', 'Website and WhatsApp orders, and weekly subscriptions. Website orders open to their original details.', 'account-note'));
     historyRoot = node('div'); orders.append(historyRoot); root.append(orders);
     detailRoot = node('section', undefined, 'account-card account-order-detail'); detailRoot.setAttribute('aria-label', 'Original order details');
     root.append(detailRoot);
@@ -266,6 +267,15 @@ export function attachAccount({ root, api, win = window, doc = document }) {
     if (!history.orders.length) historyRoot.append(node('p', 'No orders on this page. Your next slow morning starts with the menu.', 'account-empty'));
     for (const order of history.orders) {
       const row = node('article', undefined, 'account-order');
+      if (order.channel === 'SUBSCRIPTION') {
+        const sub = order.subscription;
+        const info = node('div'); info.append(node('h3', `Subscription · ${sub.planName}`),
+          node('p', `Every ${dayName(sub.deliveryDay)} · ${prettyDate(sub.startDate)} to ${prettyDate(sub.endDate)}`),
+          node('p', `${subscriptionLabels[order.status]} · ${sub.delivered} of ${sub.weeks} weeks delivered`, 'account-note'));
+        row.append(info);
+        if (order.totalAmount !== null) row.append(node('strong', money.format(order.totalAmount)));
+        historyRoot.append(row); continue;
+      }
       const whatsapp = order.channel === 'WHATSAPP';
       const placed = `Placed ${order.createdAt.slice(0, 10)}${order.deliveryDate ? ` · Delivery ${order.deliveryDate}` : ''}`;
       const info = node('div'); info.append(node('h3', `Order ${order.orderNumber}`), node('p', placed),

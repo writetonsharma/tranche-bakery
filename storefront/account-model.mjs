@@ -8,6 +8,9 @@ const orderStatuses = new Set(['INVOICED', 'PENDING_CONFIRMATION', 'PENDING_PAYM
   'CONFIRMED', 'IN_BAKING', 'OUT_FOR_DELIVERY', 'CANCELLED', 'COMPLETED']);
 const controls = /[\u0000-\u001f\u007f-\u009f\u2028\u2029]/;
 const summaryKeys = 'createdAt,deliveryDate,id,orderNumber,orderStatus,status,totalAmount';
+const subscriptionStatuses = new Set(['ACTIVE', 'COMPLETED', 'CANCELLED']);
+const deliveryDays = new Set(['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY', 'SUNDAY']);
+const count = value => Number.isSafeInteger(value) && value >= 0 && value <= 520;
 function exact(value, keys) {
   if (!value || typeof value !== 'object' || Array.isArray(value) ||
       Object.keys(value).sort().join(',') !== keys) throw new Error('Invalid account response');
@@ -98,6 +101,21 @@ export function validateOrderDetail(value, expectedId, now = Date.now()) {
   text(value.fulfillment.address, 10, 2000); // Reject U+2028/U+2029 even with an older checkout validator.
   return immutable({ ...summary, ...checkout, fulfillment: fulfillment(value.fulfillment), quote: historicalQuote(value.quote) });
 }
+function pastSubscription(row) {
+  exact(row, 'channel,createdAt,deliveryDate,id,orderNumber,orderStatus,status,subscription,totalAmount');
+  const sub = row.subscription;
+  exact(sub, 'delivered,deliveryDay,endDate,planName,startDate,weeks');
+  if (row.id !== null || row.orderNumber !== null || row.deliveryDate !== null || row.orderStatus !== null ||
+      !subscriptionStatuses.has(row.status) || (row.totalAmount !== null && !amount(row.totalAmount)) ||
+      !deliveryDays.has(sub.deliveryDay) || !validDate(sub.startDate) || !validDate(sub.endDate) ||
+      sub.endDate < sub.startDate || !count(sub.weeks) || !count(sub.delivered) || sub.delivered > sub.weeks) {
+    throw new Error('Invalid subscription summary');
+  }
+  return { channel: 'SUBSCRIPTION', id: null, orderNumber: null, orderStatus: null, deliveryDate: null,
+    status: row.status, createdAt: instant(row.createdAt), totalAmount: row.totalAmount,
+    subscription: { planName: text(sub.planName, 1, 100), deliveryDay: sub.deliveryDay, startDate: sub.startDate,
+      endDate: sub.endDate, weeks: sub.weeks, delivered: sub.delivered } };
+}
 export function validateHistory(value, expectedPage) {
   exact(value, 'hasMore,orders,page');
   if (!Number.isInteger(value.page) || value.page < 0 || value.page > 10000 ||
@@ -109,6 +127,7 @@ export function validateHistory(value, expectedPage) {
   const orders = value.orders.map(row => {
     // Older backends omit channel; every such row is a website order.
     const legacy = row && typeof row === 'object' && !Array.isArray(row) && !('channel' in row);
+    if (!legacy && row?.channel === 'SUBSCRIPTION') return pastSubscription(row);
     exact(row, legacy ? summaryKeys : `channel,${summaryKeys}`);
     if (row.channel === 'WHATSAPP') {
       if (row.id !== null || row.status !== null || !orderStatuses.has(row.orderStatus) ||

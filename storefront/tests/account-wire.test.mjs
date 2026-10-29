@@ -11,7 +11,12 @@ test('real loopback backend JSON: actual checkout, verified paid history, timest
     const wire = JSON.parse(readFileSync(artifact, 'utf8'));
     assert.equal(validateProfile(wire.profile).name, 'Wire Customer');
     assert.equal(validateLocation(wire.location), null);
-    assert.equal(validateHistory(wire.history, 0).orders[0].status, 'PAID');
+    const history = validateHistory(wire.history, 0);
+    assert.equal(history.orders[0].status, 'PAID');
+    const past = history.orders.find(row => row.channel === 'SUBSCRIPTION');
+    assert.equal(past.status, 'COMPLETED');
+    assert.equal(past.subscription.planName, 'Weekly sourdough');
+    assert.equal(past.subscription.weeks, 5);
     assert.equal(validateOrderDetail(wire.paid, wire.paid.id).status, 'PAID');
     assert.equal(validateOrderDetail(wire.payable, wire.payable.id, Date.parse(wire.payable.createdAt)).status, 'PAYABLE');
     for (const detail of [wire.paid, wire.payable]) {
