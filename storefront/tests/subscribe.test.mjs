@@ -178,7 +178,38 @@ test('changing the option rebuilds the bake choices and the summary', async () =
   assert.match(view.$('.subscribe-summary').textContent, /Two half loaves · Classic Table White, Multi-Seed Loaf/);
   view.submit().click(); await settle();
   assert.equal(view.calls.some(call => call.path === '/api/subscriptions'), false, 'incomplete choices are never posted');
-  assert.match(view.$('#subscribe-status').textContent, /Choose a plan/);
+  assert.match(view.$('.subscribe-error').textContent, /Step 3 still needs your delivery day/);
+  view.destroy();
+});
+
+test('the pay button names the first missing choice instead of silently doing nothing', async () => {
+  const view = page({ signedIn: true });
+  await settle();
+  view.pick('day', 'FRIDAY');
+  view.submit().click(); await settle();
+  assert.equal(view.calls.some(call => call.path === '/api/subscriptions'), false);
+  assert.match(view.$('.subscribe-error').textContent, /Step 2 still needs your loaf/);
+  assert.equal(view.document.activeElement.name, 'item-0', 'focus moves to the choice that is missing');
+  view.select('item-0', loaves[0]);
+  assert.equal(view.$('.subscribe-error').textContent, '', 'making a choice clears the warning');
+  view.submit().click(); await settle();
+  assert.match(view.$('.subscribe-error').textContent, /Step 2 still needs your rolls/);
+  view.select('item-1', rolls[0]);
+  view.submit().click(); await settle();
+  assert.equal(view.calls.filter(call => call.path === '/api/subscriptions').length, 1, 'a complete choice still posts');
+  view.destroy();
+});
+
+test('a rejected sign-up explains itself at the button and survives the reload that follows', async () => {
+  const view = page({ signedIn: true, hook: path => path === '/api/subscriptions' ? problem(409, 'FULLY_BOOKED') : undefined });
+  await settle();
+  view.select('item-0', loaves[0]); view.select('item-1', rolls[0]); view.pick('day', 'FRIDAY');
+  view.submit().click(); await settle();
+  assert.equal(view.$('.subscribe-builder').hidden, false, 'the builder stays open so the choice can be changed');
+  assert.match(view.$('.subscribe-error').textContent, /fully booked/, 'the reason sits next to the button, not only at the top');
+  assert.match(view.$('#subscribe-status').textContent, /fully booked/);
+  view.pick('day', 'MONDAY');
+  assert.equal(view.$('.subscribe-error').textContent, '', 'changing the day clears the stale reason');
   view.destroy();
 });
 

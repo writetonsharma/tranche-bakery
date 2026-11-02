@@ -146,7 +146,7 @@ export function attachSubscribe({ root, api, win = window, doc = document }) {
   };
   const status = doc.getElementById('subscribe-status');
   const listeners = [];
-  let channel, builtPlans = null, shownCustomer = null, filledFor = null;
+  let channel, builtPlans = null, shownCustomer = null, filledFor = null, pendingSubmit = false;
   const selection = { plan: null, option: null, items: [], day: null };
   const active = () => !doc.hidden && win.navigator.onLine !== false;
 
@@ -176,6 +176,7 @@ export function attachSubscribe({ root, api, win = window, doc = document }) {
   for (const [key, label, max, min] of [['name', 'Delivery name', 100, 1], ['address', 'One-line delivery address', 2000, 10]]) {
     const wrap = node('label', label, 'account-field'); const input = node('input');
     input.type = 'text'; input.name = key; input.maxLength = max; input.minLength = min; input.required = true; input.autocomplete = 'off';
+    input.addEventListener('input', clearProblem);
     wrap.append(input); detailRoot.append(wrap); fields[key] = input;
   }
   const choices = node('div', undefined, 'account-choices');
@@ -184,6 +185,7 @@ export function attachSubscribe({ root, api, win = window, doc = document }) {
     const wrap = node('label', label, 'account-field'); const select = node('select'); select.name = key; select.required = true;
     const placeholder = node('option', 'Choose a preference'); placeholder.value = ''; select.append(placeholder);
     for (const value of values) { const option = node('option', PREFERENCES[value]); option.value = value; select.append(option); }
+    select.addEventListener('change', clearProblem);
     wrap.append(select); choices.append(wrap); fields[key] = select;
   }
   detailRoot.append(choices);
@@ -191,7 +193,9 @@ export function attachSubscribe({ root, api, win = window, doc = document }) {
   const summary = node('section', undefined, 'account-card subscribe-summary'); summary.setAttribute('aria-live', 'polite');
   const summaryLines = node('div');
   const submit = node('button', 'Reserve and pay', 'account-primary'); submit.type = 'button';
-  summary.append(node('h2', 'Your subscription'), summaryLines, submit,
+  // The button sits below every step, so an unexplained no-op reads as a broken page.
+  const submitError = node('p', '', 'subscribe-error'); submitError.setAttribute('role', 'alert');
+  summary.append(node('h2', 'Your subscription'), summaryLines, submit, submitError,
     node('p', 'Pay once for every week. The first delivery shown needs payment before 5 PM; pay later and it moves to the next week. Unpaid requests are cancelled at 8 PM.', 'account-note'));
   form.append(summary);
   root.append(currentRoot, form);
@@ -205,7 +209,7 @@ export function attachSubscribe({ root, api, win = window, doc = document }) {
   function radio(list, name, value, title, note, checked, onSelect) {
     const label = node('label', undefined, 'subscribe-option'); const input = node('input');
     input.type = 'radio'; input.name = name; input.value = String(value); input.checked = checked;
-    input.addEventListener('change', () => { if (input.checked) onSelect(); });
+    input.addEventListener('change', () => { if (input.checked) { clearProblem(); onSelect(); } });
     const text = node('span'); text.append(node('strong', title)); if (note) text.append(node('small', note));
     label.append(input, text); list.append(label);
   }
@@ -221,7 +225,7 @@ export function attachSubscribe({ root, api, win = window, doc = document }) {
       const placeholder = node('option', 'Choose a bake'); placeholder.value = ''; select.append(placeholder);
       for (const name of part.choices) { const entry = node('option', name); entry.value = name; select.append(entry); }
       select.value = selection.items[index];
-      select.addEventListener('change', () => { selection.items[index] = select.value; renderSummary(); });
+      select.addEventListener('change', () => { clearProblem(); selection.items[index] = select.value; renderSummary(); });
       wrap.append(select); itemList.append(wrap);
     });
   }
@@ -253,6 +257,27 @@ export function attachSubscribe({ root, api, win = window, doc = document }) {
     }
     buildOptions();
   }
+  // Names the first gap so the button can say why it didn't move, and points at the control that fills it.
+  function problem() {    if (!plan()) return { message: 'Step 1 still needs your plan.', field: planList.querySelector('input') };
+    const chosen = option();
+    if (!chosen) return { message: 'Step 2 still needs what comes each week.', field: optionList.querySelector('input') };
+    const index = selection.items.findIndex(item => !item);
+    if (index !== -1) {
+      const part = chosen.components[index];
+      return { message: `Step 2 still needs your ${(KINDS[part.type] || part.type).toLowerCase()}.`,
+        field: itemList.querySelectorAll('select')[index] };
+    }
+    if (!selection.day) return { message: 'Step 3 still needs your delivery day.', field: dayList.querySelector('input') };
+    for (const [key, label, min] of [['name', 'delivery name', 1], ['address', 'one-line delivery address', 10],
+      ['deliveryPreference', 'delivery preference', 1], ['loafPreference', 'loaf preference', 1]]) {
+      const value = fields[key].value.trim();
+      if (!value) return { message: `Step 4 still needs your ${label}.`, field: fields[key] };
+      if (value.length < min) return { message: `Your ${label} needs at least ${min} characters.`, field: fields[key] };
+    }
+    return null;
+  }
+  // Cleared by the next edit, not by the next render, so a rejection stays readable while the page reloads itself.
+  function clearProblem() { submitError.textContent = ''; }
   function renderSummary() {
     summaryLines.replaceChildren();
     const chosen = plan();
@@ -336,8 +361,22 @@ export function attachSubscribe({ root, api, win = window, doc = document }) {
     submit.disabled = state.busy || !state.authenticated;
     for (const button of currentRoot.querySelectorAll('button')) button.disabled = state.busy;
     renderSummary();
+    if (pendingSubmit && !state.busy) {
+      pendingSubmit = false;
+      // The reserve lands above the button, and a rejection would otherwise only show at the top of the page.
+      if (state.current) currentRoot.scrollIntoView?.({ block: 'start', behavior: 'smooth' });
+      else if (state.message) submitError.textContent = state.message;
+    }
   }
   submit.addEventListener('click', () => {
+    const issue = problem();
+    submitError.textContent = issue ? issue.message : '';
+    if (issue) {
+      issue.field?.scrollIntoView?.({ block: 'center', behavior: 'smooth' });
+      issue.field?.focus?.({ preventScroll: true });
+      return;
+    }
+    pendingSubmit = true;
     controller.submit({ planCode: selection.plan, option: selection.option, items: [...selection.items], deliveryDay: selection.day,
       ...Object.fromEntries(Object.entries(fields).map(([key, input]) => [key, input.value])) });
   });

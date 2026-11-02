@@ -68,6 +68,8 @@
 .subscribe-option small { color: #616855; font-size: .8rem; line-height: 1.55; }
 .subscribe-summary .account-total { max-width: none; margin: 8px 0; }
 .subscribe-summary > button { margin: 14px 0 4px; }
+.subscribe-error { margin: 0 0 4px; font-size: .84rem; line-height: 1.6; color: #8a4b2f; }
+.subscribe-error:empty { display: none; }
 .subscribe-current { border-color: #b6bea3; overflow-wrap: anywhere; }
 .subscribe-current .account-actions { margin: 18px 0 8px; }
 .subscribe-current a:not(.account-primary) { color: #4b5834; text-underline-offset: 4px; }
