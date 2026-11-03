@@ -603,6 +603,97 @@ header {
   aspect-ratio: 4 / 3;
 }
 
+.reviews-band {
+  border-top: 1px solid rgba(110, 119, 80, 0.1);
+  border-bottom: 1px solid rgba(110, 119, 80, 0.1);
+}
+
+.hamper-shots {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.hamper-shots figure {
+  margin: 0;
+}
+
+.hamper-shots img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+}
+
+.hamper-shots figcaption {
+  margin-top: 9px;
+  font-size: 13px;
+  text-align: center;
+  opacity: 0.7;
+}
+
+.hamper-closer {
+  margin-top: 18px;
+  color: var(--primary);
+  font-weight: 600;
+  letter-spacing: 0.2px;
+}
+
+.review-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px;
+}
+
+.review-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 0;
+  padding: 26px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.88), rgba(243,236,225,0.74));
+  border: 1px solid var(--border-soft);
+  border-radius: 18px;
+  box-shadow: var(--shadow-soft);
+}
+
+.review-stars {
+  margin: 0;
+  color: var(--accent);
+  font-size: 15px;
+  letter-spacing: 3px;
+}
+
+.review-card blockquote {
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.7;
+  opacity: 0.9;
+}
+
+.review-card figcaption {
+  margin-top: auto;
+  font-size: 14px;
+  color: var(--primary);
+}
+
+.review-source {
+  display: block;
+  margin-top: 2px;
+  font-size: 12px;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  opacity: 0.6;
+}
+
+.reviews-footer {
+  margin: 28px 0 0;
+  font-size: 15px;
+  text-align: center;
+}
+
 .page-hero {
   padding: 84px 0 52px;
   text-align: center;
@@ -1387,6 +1478,7 @@ footer p {
   .guide-grid,
   .process-grid,
   .compact-process-grid,
+  .review-grid,
   .why-layout,
   .page-grid {
     grid-template-columns: 1fr;
