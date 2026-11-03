@@ -345,6 +345,11 @@ header {
   letter-spacing: 0.5px;
   border-radius: 999px;
     font-weight: 500;
+  /* The storefront injects <button class="btn">, which otherwise keeps the UA
+     outset border, Arial, and default cursor. */
+  border: 0;
+  font-family: inherit;
+  cursor: pointer;
   transition:
     background-color 0.2s ease,
     color 0.2s ease,
@@ -368,6 +373,19 @@ header {
 
 .btn.btn-secondary:hover {
   background: rgba(90, 62, 43, 0.06);
+}
+
+/* Above 768px the hero text overlays the dark photo, so the secondary button
+   needs light-on-dark treatment; below it the hero sits on a light panel. */
+@media (min-width: 769px) {
+  .home-hero .btn.btn-secondary {
+    color: #fff;
+    border-color: rgba(255, 255, 255, 0.55);
+  }
+
+  .home-hero .btn.btn-secondary:hover {
+    background: rgba(255, 255, 255, 0.14);
+  }
 }
 
 .hero-actions,
@@ -1094,7 +1112,7 @@ header {
 
 .cta .btn.btn-secondary {
   color: #fff;
-  border-color: rgba(255, 255, 255, 0.36);
+  border-color: rgba(255, 255, 255, 0.55);
 }
 
 .cta .btn.btn-secondary:hover {

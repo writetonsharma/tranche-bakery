@@ -192,14 +192,29 @@ async function start() {
       element('p', ESTIMATE_WARNING, 'sf-note'));
   }
 
+  const money = new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' });
+
+  // listPrice is the undiscounted price and unitPrice is what the customer actually pays.
+  // Showing the paid price beside a bare offer label reads as ambiguous, so strike the
+  // list price whenever the two differ and let the saving be visible.
+  function livePriceNodes(item) {
+    const row = element('span', undefined, 'product-price');
+    if (Number(item.listPrice) > Number(item.unitPrice)) {
+      row.append(element('span', money.format(item.listPrice), 'price-was'));
+    }
+    row.append(element('span', money.format(item.unitPrice), 'price-now'));
+    if (item.priceLabel) row.append(element('span', item.priceLabel, 'price-offer-tag'));
+    return row;
+  }
+
   function renderBasket() {
     for (const control of controls) {
       control.update(lines.find(line => line.itemId === control.id)?.quantity || 0);
       const item = snapshotUsable ? prices.get(control.id) : null;
-      const priceKey = item ? JSON.stringify([item.unitPrice, item.priceLabel]) : 'public';
+      const priceKey = item ? JSON.stringify([item.listPrice, item.unitPrice, item.priceLabel]) : 'public';
       if (control.price.dataset.shoppingPrice !== priceKey) {
         control.price.dataset.shoppingPrice = priceKey;
-        if (item) control.price.textContent = `${new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(item.unitPrice)}${item.priceLabel ? ` · ${item.priceLabel}` : ''}`;
+        if (item) control.price.replaceChildren(livePriceNodes(item));
         else control.price.replaceChildren(...control.publicPrice.map(node => node.cloneNode(true)));
       }
       control.availability.textContent = !snapshotUsable ? 'Availability needs rechecking. Basket kept.' : unavailableReason(control.id);
