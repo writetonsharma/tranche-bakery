@@ -2453,6 +2453,16 @@ summary:focus-visible,
   min-width: 96px;
 }
 
+.product-price-variant {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.product-price-variant + .product-price-variant {
+  margin-top: 6px;
+}
+
 /* Offers section */
 #offers {
   background: var(--surface);

@@ -19,7 +19,9 @@ function memoryStorage(raw = null) {
 test('every current public heading exactly matches the pinned mapping', async () => {
   const html = await readFile(new URL('../../breads.html', import.meta.url), 'utf8');
   const beforeOffers = html.slice(0, html.indexOf('<section id="offers">'));
-  const headings = [...beforeOffers.matchAll(/<h3>([^<]+)<\/h3>/g)].map(match => match[1].replaceAll('&amp;', '&').trim());
+  // A card may stand for several catalogue SKUs; those names, not the heading, are the contract.
+  const headings = [...beforeOffers.matchAll(/<h3(?: data-sf-variants="([^"]*)")?>([^<]+)<\/h3>/g)]
+    .flatMap(match => (match[1] ? match[1].split('|') : [match[2]]).map(name => name.replaceAll('&amp;', '&').trim()));
   assert.deepEqual(headings.toSorted(), [...PRODUCT_NAMES].toSorted());
   assert.equal(catalogBindings(catalog, headings).size, PRODUCT_NAMES.length);
   assert.match(html, /type="module" src="storefront\/storefront.mjs"/);

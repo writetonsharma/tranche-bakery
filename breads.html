@@ -1048,14 +1048,14 @@
 		  </div>
 		</div>
         <div class="text">
-		  <h3>Walnut Dark Chocolate Brownies (Pack of 4)</h3>
-		  <p>Dense, fudgy eggless brownies made with dark couverture, condensed milk and a measured blend of two cocoa powders, studded with toasted walnuts.</p>
+		  <h3 data-sf-variants="Walnut Dark Chocolate Brownies (Pack of 2)|Walnut Dark Chocolate Brownies (Pack of 4)">Walnut Dark Chocolate Brownies</h3>
+		  <p>Dense, fudgy eggless brownies made with dark couverture, condensed milk and a measured blend of two cocoa powders, studded with toasted walnuts. Boxed in twos or fours, same recipe either way.</p>
 		  <p class="diet-note">Eggless &middot; made with butter &middot; contains tree nuts</p>
 			<ul>
 			  <li>Van Houten 46.5% dark couverture, no compound chocolate</li>
 			  <li>Medium and dark cocoa blended two to one, for sweetness with a bitter edge</li>
 			  <li>Thin, shiny top over a deliberately moist centre</li>
-			  <li>Four generous 150 g brownies per box</li>
+			  <li>Generous 150 g brownies, in a box of two or a box of four</li>
 			</ul>
 		  <button class="toggle-btn">View Details &#8595;</button>
 		  <div class="details">
@@ -1065,40 +1065,7 @@
 			<p><strong>What to Expect</strong><br>
 			A fudgy, truffle-like centre rather than a cakey crumb, with a dry shiny crust on top and toasted walnut pieces throughout. The cocoa is split two to one between a mellow medium roast and a darker, more bitter one, so the sweetness of the condensed milk is answered by a clean bitter finish rather than buried under it. No raising agent is used, so the brownie stays deliberately dense.</p>
 			<p><strong>Pack Profile</strong><br>
-			Pack of 4 brownies, 150 g each<br>
-			Eggless &middot; no raising agents, improvers or preservatives<br>
-			Best within 4 days in cool, dry storage; up to 7 days refrigerated
-			</p>
-			<p>See our <a href="faq.html#storage-guide">storage guidance</a> for the best way to store your bakes across different weather conditions.</p>
-		  </div>
-        </div>
-      </div>
-
-      <div class="product reverse">
-		<div class="image gallery">
-		  <img class="main-img" src="Images/Products/SweetRolls/Brownie/Brownie1.jpg" alt="Walnut Dark Chocolate Brownies" decoding="async" sizes="(max-width: 768px) 100vw, (max-width: 1200px) 58vw, 840px">
-		  <div class="thumbs">
-			<img src="Images/Products/SweetRolls/Brownie/Brownie1-thumb.jpg" data-full="Images/Products/SweetRolls/Brownie/Brownie1.jpg" onclick="changeImage(this)" class="active" alt="Walnut Dark Chocolate Brownies" decoding="async">
-		  </div>
-		</div>
-        <div class="text">
-		  <h3>Walnut Dark Chocolate Brownies (Pack of 2)</h3>
-		  <p>The same fudgy walnut brownies, built on dark couverture and a two-to-one blend of medium and dark cocoa, in a smaller box for when four is more than you need.</p>
-		  <p class="diet-note">Eggless &middot; made with butter &middot; contains tree nuts</p>
-			<ul>
-			  <li>Identical recipe to the pack of four</li>
-			  <li>Two 150 g brownies per box</li>
-			  <li>A good way to try them for the first time</li>
-			</ul>
-		  <button class="toggle-btn">View Details &#8595;</button>
-		  <div class="details">
-			<p><strong>Ingredients</strong><br>
-			Butter, dark chocolate couverture (46.5% cocoa solids), sweetened condensed milk, refined wheat flour, sugar, whole milk, cocoa powder, walnuts (tree nuts), sea salt, natural vanilla.
-			</p>
-			<p><strong>What to Expect</strong><br>
-			A fudgy, truffle-like centre rather than a cakey crumb, with a dry shiny crust on top and toasted walnut pieces throughout. The cocoa is split two to one between a mellow medium roast and a darker, more bitter one, so the sweetness of the condensed milk is answered by a clean bitter finish rather than buried under it. No raising agent is used, so the brownie stays deliberately dense.</p>
-			<p><strong>Pack Profile</strong><br>
-			Pack of 2 brownies, 150 g each<br>
+			Box of 2 or box of 4 brownies, 150 g each &mdash; identical recipe in both<br>
 			Eggless &middot; no raising agents, improvers or preservatives<br>
 			Best within 4 days in cool, dry storage; up to 7 days refrigerated
 			</p>
@@ -1257,8 +1224,11 @@
 		  "Date & Walnut Tea Cake":       { price: 550, unit: "per cake",  dough: "cake" },
 		  "Chocolate Chunk & Sea Salt Cookies": { price: 300, unit: "pack of 5", dough: "cookie" },
 		  "Almond Biscotti":              { price: 220, unit: "pack of 6", dough: "biscotti" },
-		  "Walnut Dark Chocolate Brownies (Pack of 4)": { price: 800, unit: "pack of 4", dough: "brownie" },
-		  "Walnut Dark Chocolate Brownies (Pack of 2)": { price: 440, unit: "pack of 2", dough: "brownie" },
+		  // One card, two catalogue SKUs: `name` must match the basket item exactly.
+		  "Walnut Dark Chocolate Brownies": { unit: "per box", dough: "brownie", sizes: [
+			{ label: "Pack of 2", price: 440, name: "Walnut Dark Chocolate Brownies (Pack of 2)" },
+			{ label: "Pack of 4", price: 800, name: "Walnut Dark Chocolate Brownies (Pack of 4)" }
+		  ] },
 		  "Garlic & Herb Butter":         { price: 350, unit: "per 150 g jar", dough: "butter" }
 		};
 
@@ -1294,19 +1264,14 @@
 		  } else {
 			const intro = OFFERS.intro.active;
 			const variants = info.sizes || [{ label: '', price: info.price }];
-			const group = document.createElement('div');
-			group.className = 'product-price-group';
 			variants.forEach(variant => {
+			  const group = document.createElement('div');
+			  group.className = 'product-price-group';
+			  if (variant.name) group.dataset.variant = variant.name;
+
 			  const price = document.createElement('div');
 			  price.className = 'product-price';
 			  const now = intro ? Math.round(variant.price * (1 - OFFERS.intro.percent / 100)) : variant.price;
-
-			  if (variant.label) {
-				const sizeEl = document.createElement('span');
-				sizeEl.className = 'price-size';
-				sizeEl.textContent = variant.label;
-				price.appendChild(sizeEl);
-			  }
 
 			  if (intro) {
 				const was = document.createElement('span');
@@ -1332,8 +1297,20 @@
 				price.appendChild(tag);
 			  }
 			  group.appendChild(price);
+
+			  // Live basket prices replace the group's children, so the pack label sits outside it.
+			  if (variant.label) {
+				const row = document.createElement('div');
+				row.className = 'product-price-variant';
+				const sizeEl = document.createElement('span');
+				sizeEl.className = 'price-size';
+				sizeEl.textContent = variant.label;
+				row.append(sizeEl, group);
+				meta.appendChild(row);
+			  } else {
+				meta.appendChild(group);
+			  }
 			});
-			meta.appendChild(group);
 		  }
 
 		  h3.insertAdjacentElement('afterend', meta);

@@ -61,7 +61,9 @@ async function start() {
   document.querySelector('.products-intro-copy')?.append(
     element('p', 'Estimated prices. Final total shown before payment.', 'sf-note sf-price-note'));
   const cards = [...document.querySelectorAll('.product .text > h3')];
-  const bindings = catalogBindings(catalog, cards.map(h3 => h3.textContent.trim()));
+  // A card may offer several catalogue SKUs (e.g. pack sizes) under one heading.
+  const cardNames = h3 => (h3.dataset.sfVariants || h3.textContent).split('|').map(name => name.trim());
+  const bindings = catalogBindings(catalog, cards.flatMap(cardNames));
   const allowedIds = new Set([...bindings.values()].map(item => item.id));
   let storage;
   try { storage = window.localStorage; } catch { /* Private/blocked storage: memory only. */ }
@@ -106,21 +108,29 @@ async function start() {
   try { channel = new BroadcastChannel('tranche.preview.identity'); } catch { /* Focus also revalidates. */ }
 
   for (const h3 of cards) {
-    const item = bindings.get(h3.textContent.trim());
-    if (!item) continue; // Unknown, duplicate or absent/retired: never orderable.
-    const wrapper = element('div', undefined, 'sf-card-action');
-    wrapper.dataset.sfItem = String(item.id);
-    const label = element('span', 'Add to basket', 'sf-card-label');
-    const control = quantityControl(item, change);
-    wrapper.append(label, control.root);
-    h3.parentElement.append(wrapper);
-    let price = h3.parentElement.querySelector('.product-price-group');
-    if (!price) { price = element('p', 'Public prices are shown in product details.', 'sf-card-price'); wrapper.prepend(price); }
-    const publicPrice = [...price.childNodes].map(node => node.cloneNode(true));
-    const availability = element('p', '', 'sf-note sf-availability');
-    availability.setAttribute('role', 'status');
-    wrapper.append(availability);
-    controls.push({ id: item.id, ...control, price, publicPrice, availability });
+    const names = cardNames(h3);
+    for (const name of names) {
+      const item = bindings.get(name);
+      if (!item) continue; // Unknown, duplicate or absent/retired: never orderable.
+      const variant = [...h3.parentElement.querySelectorAll('.product-price-group[data-variant]')]
+        .find(node => node.dataset.variant === name);
+      // Without its own price node a variant would overwrite a sibling's; fall back to no price.
+      if (names.length > 1 && !variant) continue;
+      const wrapper = element('div', undefined, 'sf-card-action');
+      wrapper.dataset.sfItem = String(item.id);
+      const size = variant?.parentElement.querySelector('.price-size')?.textContent.trim();
+      const label = element('span', size ? `Add ${size.toLowerCase()}` : 'Add to basket', 'sf-card-label');
+      const control = quantityControl(item, change);
+      wrapper.append(label, control.root);
+      h3.parentElement.append(wrapper);
+      let price = variant || h3.parentElement.querySelector('.product-price-group');
+      if (!price) { price = element('p', 'Public prices are shown in product details.', 'sf-card-price'); wrapper.prepend(price); }
+      const publicPrice = [...price.childNodes].map(node => node.cloneNode(true));
+      const availability = element('p', '', 'sf-note sf-availability');
+      availability.setAttribute('role', 'status');
+      wrapper.append(availability);
+      controls.push({ id: item.id, ...control, price, publicPrice, availability });
+    }
   }
   // The basket is now the way to order; static WhatsApp ordering links remain only
   // as the no-JS/disabled fallback. The page's inline script normally removes them first.
