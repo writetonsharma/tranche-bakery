@@ -16,12 +16,12 @@ function memoryStorage(raw = null) {
     setItem(key, value) { assert.equal(key, STORAGE_KEY); this.raw = value; }, removeItem() { this.raw = null; } };
 }
 
-test('all 20 current public headings exactly match the pinned mapping', async () => {
+test('every current public heading exactly matches the pinned mapping', async () => {
   const html = await readFile(new URL('../../breads.html', import.meta.url), 'utf8');
   const beforeOffers = html.slice(0, html.indexOf('<section id="offers">'));
   const headings = [...beforeOffers.matchAll(/<h3>([^<]+)<\/h3>/g)].map(match => match[1].replaceAll('&amp;', '&').trim());
   assert.deepEqual(headings.toSorted(), [...PRODUCT_NAMES].toSorted());
-  assert.equal(catalogBindings(catalog, headings).size, 20);
+  assert.equal(catalogBindings(catalog, headings).size, PRODUCT_NAMES.length);
   assert.match(html, /type="module" src="storefront\/storefront.mjs"/);
 });
 

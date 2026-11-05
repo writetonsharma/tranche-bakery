@@ -158,7 +158,7 @@ async function fixture({ authenticated = false, status = null, hidden = false, s
 
 function assertStarted(f) {
   assert.equal(f.node('.sf-start-error'), null, 'real storefront startup must complete');
-  assert.equal(f.document.querySelectorAll('.sf-card-action').length, 20);
+  assert.equal(f.document.querySelectorAll('.sf-card-action').length, PRODUCT_NAMES.length);
   assert.deepEqual(f.errors, []);
 }
 const quantity = f => f.node('.sf-card-action .sf-quantity span').textContent;
