@@ -1484,9 +1484,18 @@
 		}
 
 		function setActiveCategory(targetId) {
+		  let active = null;
 		  navLinks.forEach(link => {
-			link.classList.toggle('active', link.getAttribute('href') === '#' + targetId);
+			const on = link.getAttribute('href') === '#' + targetId;
+			link.classList.toggle('active', on);
+			if (on) active = link;
 		  });
+		  // The strip scrolls sideways on phones, so the current category must stay in view.
+		  const strip = active && active.parentElement;
+		  if (!active || !strip || strip.scrollWidth <= strip.clientWidth) return;
+		  const offset = active.offsetLeft - (strip.clientWidth - active.offsetWidth) / 2;
+		  const wanted = Math.max(0, Math.min(offset, strip.scrollWidth - strip.clientWidth));
+		  if (Math.abs(strip.scrollLeft - wanted) > 4) strip.scrollTo({ left: wanted, behavior: 'smooth' });
 		}
 
 		function alignHashTarget(hash = window.location.hash, offsetPadding = 6) {

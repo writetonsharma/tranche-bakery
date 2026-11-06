@@ -22,8 +22,11 @@ body.nav-open .sf-launcher, body.modal-open .sf-launcher { visibility: hidden; }
 .sf-quantity span { min-width: 24px; text-align: center; font-variant-numeric: tabular-nums; }
 .sf-card-action { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px; border-top: 1px solid #cbd2ba; padding-top: 18px; margin-top: 22px; }
 .sf-card-label { color: #434c2b; font: 500 13px Inter, sans-serif; }
-.sf-line { padding: 20px 0; border-bottom: 1px solid #dce0cf; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-.sf-line h3 { margin: 0; font-size: 15px; line-height: 1.5; font-weight: 500; }
+/* Name and price share row one whatever the name's length; quantity always owns row two. */
+.sf-line { padding: 20px 0; border-bottom: 1px solid #dce0cf; display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: baseline; column-gap: 16px; row-gap: 12px; }
+.sf-line h3 { margin: 0; font-size: 15px; line-height: 1.5; font-weight: 500; overflow-wrap: anywhere; }
+.sf-line-price { margin: 0; justify-self: end; text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.sf-line .sf-quantity { grid-column: 1 / -1; }
 .sf-field { display: block; margin: 20px 0 12px; font-size: 13px; font-weight: 500; }
 .sf-field input, .sf-field select { display: block; width: 100%; min-height: 48px; margin-top: 9px; border: 1px solid #9da88c; border-radius: 10px; padding: 10px 12px; background: #fffef9; color: #303623; font: 16px Inter, sans-serif; }
 .sf-totals:empty { display: none; }
@@ -44,5 +47,5 @@ body.nav-open .sf-launcher, body.modal-open .sf-launcher { visibility: hidden; }
 .sf-checkout-review { padding: 0 8px; border-left: 2px solid #748351; }
 .sf-checkout #sf-confirm-pay { width: 100%; margin: 18px 0; background: #434c2b; color: #fffdf5; font-weight: 700; }
 .sf-payment-link { display: block; text-align: center; background: #434c2b; color: #fffdf5; padding: 16px; border-radius: 12px; line-height: 1.5; text-underline-offset: 4px; }
-@media (max-width: 480px) { .sf-launcher { bottom: max(16px, env(safe-area-inset-bottom)); right: 16px; } .sf-line { flex-wrap: wrap; } }
+@media (max-width: 480px) { .sf-launcher { bottom: max(16px, env(safe-area-inset-bottom)); right: 16px; } }
 @media (prefers-reduced-motion: reduce) { .sf-panel, .sf-dialog button, .sf-quantity button { transition: none; } .sf-dialog::backdrop { animation: none; } }

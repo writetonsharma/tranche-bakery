@@ -129,6 +129,9 @@ export class AccountController {
       if (current()) this.#set({ detail: validateOrderDetail(value, id, this.#now()), historyMessage: 'Order details loaded.' });
     }, { history: true });
   }
+  closeDetail() {
+    if (this.#state.authenticated && this.#state.detail) this.#set({ detail: null, historyMessage: '' });
+  }
   async logout() {
     let confirmed = false;
     this.clear('Signing out. Private information has been removed.');
@@ -171,6 +174,7 @@ export function attachAccount({ root, api, win = window, doc = document }) {
   const logout = doc.getElementById('account-logout');
   const shop = doc.getElementById('account-shop');
   let form, fields, save, reload, locationRoot, subscriptionRoot, historyRoot, detailRoot, previousProfile;
+  let openDetailId = null;
   let linkTimer;
   let channel;
   const listeners = [];
@@ -181,6 +185,7 @@ export function attachAccount({ root, api, win = window, doc = document }) {
     for (const input of root.querySelectorAll('input, select, textarea')) { input.value = ''; input.defaultValue = ''; }
     for (const link of root.querySelectorAll('a')) { link.removeAttribute('href'); link.textContent = ''; }
     root.replaceChildren(); root.hidden = true;
+    openDetailId = null;
     form = fields = save = reload = locationRoot = subscriptionRoot = historyRoot = detailRoot = previousProfile = null;
   }
   function makeForm() {
@@ -255,7 +260,7 @@ export function attachAccount({ root, api, win = window, doc = document }) {
     }
     subscriptionRoot.append(node('p', 'To change, pause or skip a week, message the bakery on WhatsApp.', 'account-note'));
   }
-  function renderHistory(history, busy, message) {
+  function renderHistory(history, busy, message, detail) {
     historyRoot.replaceChildren();
     if (message) {
       const notice = node('p', message); notice.setAttribute('role', 'status'); historyRoot.append(notice);
@@ -283,9 +288,14 @@ export function attachAccount({ root, api, win = window, doc = document }) {
       row.append(info);
       if (order.totalAmount !== null) row.append(node('strong', money.format(order.totalAmount)));
       if (!whatsapp) {
-        const open = action('View original order', () => controller.detail(order.id)); open.disabled = busy; row.append(open);
+        const open = detail?.id === order.id
+          ? action('Hide details', () => controller.closeDetail())
+          : action('View original order', () => controller.detail(order.id));
+        open.disabled = busy; row.append(open);
       }
       historyRoot.append(row);
+      // Details belong under their own order; appended after the list they go unnoticed.
+      if (detail?.id === order.id) historyRoot.append(detailRoot);
     }
     const paging = node('div', undefined, 'account-paging');
     const previous = action('Previous', () => controller.page(history.page - 1)); previous.disabled = busy || history.page === 0;
@@ -296,6 +306,7 @@ export function attachAccount({ root, api, win = window, doc = document }) {
     clearTimeout(linkTimer);
     detailRoot.replaceChildren(); detailRoot.hidden = !detail;
     if (!detail) return;
+    detailRoot.tabIndex = -1;
     detailRoot.append(node('p', 'ORIGINAL WEBSITE ORDER', 'eyebrow'), node('h2', `Order ${detail.orderNumber}`),
       node('p', `${labels[detail.status]} · ${orderLabels[detail.orderStatus]}`, 'account-state'),
       node('p', `Placed ${detail.createdAt} · Delivery ${detail.quote.date}`),
@@ -323,6 +334,14 @@ export function attachAccount({ root, api, win = window, doc = document }) {
       linkTimer = setTimeout(() => controller.clear('Payment link expired. Refresh your account to check payment status.'), Math.min(remaining, 2147483647));
     }
     detailRoot.append(node('p', 'Payment uncertain or under review? Contact the bakery before ordering or paying again. Returning from payment does not confirm it.', 'account-note'));
+  }
+  // Called once the detail is filled, so the browser scrolls to its real height.
+  function revealDetail(detail) {
+    if (!detail) { openDetailId = null; return; }
+    if (openDetailId === detail.id) return;
+    openDetailId = detail.id;
+    detailRoot.scrollIntoView?.({ block: 'nearest', behavior: 'smooth' });
+    detailRoot.focus?.({ preventScroll: true });
   }
   function render(state) {
     status.textContent = state.message; signin.hidden = state.authenticated;
@@ -353,7 +372,7 @@ export function attachAccount({ root, api, win = window, doc = document }) {
       locationRoot.append(link, node('p', 'Saved with the bakery. This page does not change your pin.', 'account-note'));
     } else if (state.locationMessage) locationRoot.append(node('p', state.locationMessage, 'account-note'));
     renderSubscription(state.subscription, state.subscriptionMessage);
-    renderHistory(state.history, state.busy, state.historyMessage); renderDetail(state.detail);
+    renderHistory(state.history, state.busy, state.historyMessage, state.detail); renderDetail(state.detail); revealDetail(state.detail);
   }
   const controller = new AccountController({ api, onChange: render, isActive: active });
   const login = createLogin({ doc, mount: signin, api, notify: message => channel?.postMessage(message),

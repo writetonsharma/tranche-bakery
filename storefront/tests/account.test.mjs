@@ -515,6 +515,26 @@ test('WhatsApp history rows render as summaries without a detail action', async 
   } finally { page.destroy(); }
 });
 
+test('order details open inline under their own order and close from the same row', async () => {
+  const page = fakePage(fixture().api);
+  try {
+    await page.controller.refresh();
+    await page.controller.detail(id);
+    const list = (function find(node) {
+      return node.children.some(child => child.tagName === 'ARTICLE') ? node : node.children.map(find).find(Boolean);
+    })(page.nodes['account-private']);
+    const index = list.children.findIndex(child => child.tagName === 'ARTICLE');
+    const opened = list.children[index + 1];
+    assert.equal(opened.tagName, 'SECTION');
+    assert.equal(opened.className, 'account-card account-order-detail');
+    assert.match(opened.textContent, /ORIGINAL WEBSITE ORDER/);
+    const hide = list.children[index].querySelectorAll('button').find(button => button.textContent === 'Hide details');
+    assert.ok(hide, 'the order row offers to close its own details');
+    hide.dispatchEvent(new Event('click'));
+    assert.equal(page.controller.state.detail, null);
+  } finally { page.destroy(); }
+});
+
 test('past subscriptions render in the order history as summaries without a detail action', async () => {
   const { api } = fixture(path => path.startsWith('/api/account/orders?page=')
     ? { ...structuredClone(history), orders: [summary, pastSubscription, { ...pastSubscription, status: 'CANCELLED', totalAmount: null }] }

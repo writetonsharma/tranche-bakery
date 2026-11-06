@@ -38,7 +38,10 @@
 .account-order p { margin: 5px 0; font-size: .82rem; line-height: 1.7; }
 .account-order button { grid-column: 1 / -1; justify-self: start; }
 .account-paging { display: flex; align-items: center; justify-content: space-between; gap: 12px; font-size: .83rem; margin-top: 24px; }
-.account-order-detail { grid-column: 1 / -1; overflow-wrap: anywhere; }
+/* Sits inside the history list, directly under its own order, so it reads as an inset panel. */
+.account-order-detail { grid-column: 1 / -1; overflow-wrap: anywhere; margin: 0 0 22px; padding: 22px; border: 0; border-left: 3px solid #87946b; border-radius: 0 14px 14px 0; background: #f4f5ea; box-shadow: none; }
+.account-order-detail:focus-visible { outline: 3px solid #8a5c23; outline-offset: 3px; }
+.account-order-detail h2 { font-size: 1.3rem; }
 .account-order-detail > p { line-height: 1.75; }
 .account-order-detail h3 { margin-top: 28px; }
 .account-state { background: #edf0e4; padding: 12px 16px; border-left: 3px solid #7b875e; }
