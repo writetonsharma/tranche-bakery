@@ -113,7 +113,7 @@
 		</div>
 	  <div class="text">
 		<h3>Classic Table White</h3>
-		<p>A lighter everyday loaf designed for sandwiches, toast, and everyday eating. Baked from a balanced mix of white and whole wheat flour for a lighter crumb while keeping the character of a lean European-style bread.</p>
+		<p>A lighter everyday loaf designed for sandwiches, toast, and everyday eating. Baked from a balanced mix of white and whole wheat flour for a lighter crumb, with nothing added to soften or sweeten it &mdash; so it tastes of wheat, and toasts without turning gummy.</p>
 		<p class="diet-note">No added sugar or fat</p>
 		<ul>
 		  <li>Daily lean sandwich loaf</li>
@@ -185,7 +185,6 @@
 		  <img class="main-img" src="Images/Products/seeded/SeededFull.jpg" alt="Multi-Seed Loaf" decoding="async" sizes="(max-width: 768px) 100vw, (max-width: 1200px) 58vw, 840px">
 		  <div class="thumbs">
 			<img src="Images/Products/seeded/SeededFull-thumb.jpg" data-full="Images/Products/seeded/SeededFull.jpg" onclick="changeImage(this)" class="active" decoding="async">
-			<img src="Images/Products/seeded/SeededFull1-thumb.jpg" data-full="Images/Products/seeded/SeededFull1.jpg" onclick="changeImage(this)" decoding="async">
 		  </div>
 		</div>
 	  <div class="text">
@@ -209,7 +208,7 @@
 		Whole wheat flour: 50%<br>
 		Overnight-soaked seed mix: ~17%<br>
 		Lean dough<br>
-		Rustic European-style loaf<br>
+		Rustic seeded loaf<br>
 		Dough weight: ~820g<br>
 		Approximate baked weight: ~765g
 		</p>
@@ -325,7 +324,7 @@
 		<ul>
 		  <li>Gentle onion sweetness</li>
 		  <li>Soft savory crumb</li>
-		  <li>Warm European-style loaf</li>
+		  <li>Made for soup, cheese, and eggs</li>
 		</ul>
 
 		<button class="toggle-btn">View Details &#8595;</button>
@@ -540,7 +539,7 @@
 
 		<div class="product-subsection">
 		  <p class="premium-kicker">Specialty Buns & Rolls</p>
-		  <p class="subsection-copy">More expressive bun and roll styles baked for richer fillings, premium burgers, and European-style café sandwiches.</p>
+		  <p class="subsection-copy">Bolder bun styles for when an ordinary bun won't do &mdash; enough crust and chew to stand up to a loaded burger or a serious sandwich without going soggy.</p>
 		</div>
 
       <div class="product reverse">
@@ -1123,20 +1122,20 @@
       <p class="rolls-intro">A few launch offers while we settle into small-batch baking. Offers apply to priced products and are included in the total shown before you pay.</p>
 
       <div class="offer-grid">
-        <div class="offer-card">
+        <div class="offer-card" data-offer-card="percent">
           <p class="offer-kicker">Launch offer</p>
-          <h3>20% off everything</h3>
-          <p>Every priced product on this page is 20% off during our launch. The discounted price is shown alongside each item.</p>
+          <h3><span data-offer="percent">20%</span> off everything</h3>
+          <p>Every priced product on this page is <span data-offer="percent">20%</span> off during our launch. The discounted price is shown alongside each item.</p>
         </div>
-        <div class="offer-card">
+        <div class="offer-card" data-offer-card="freeDelivery">
           <p class="offer-kicker">Delivery</p>
-          <h3>Free delivery over &#8377;550</h3>
-          <p>Orders above &#8377;550 (after discount) are delivered free within our local area. Smaller orders carry a small delivery charge.</p>
+          <h3>Free delivery over &#8377;<span data-offer="freeDelivery">800</span></h3>
+          <p>Orders above &#8377;<span data-offer="freeDelivery">800</span> (after discount) are delivered free within our local area. Smaller orders carry a small delivery charge.</p>
         </div>
-        <div class="offer-card">
+        <div class="offer-card" data-offer-card="gift">
           <p class="offer-kicker">Little extra</p>
           <h3>A roll on us</h3>
-          <p>Spend &#8377;450 or more and we&rsquo;ll add one complimentary sweet or savory roll of the day to your bake, baker&rsquo;s choice.</p>
+          <p>Spend &#8377;<span data-offer="gift">600</span> or more and we&rsquo;ll add one complimentary sweet or savory roll of the day to your bake, baker&rsquo;s choice.</p>
         </div>
         <div class="offer-card">
           <p class="offer-kicker">Weekly subscription</p>
@@ -1146,7 +1145,7 @@
         </div>
       </div>
 
-      <p class="offers-fineprint">Offers are introductory and may change as we grow. The launch discount, free delivery, and complimentary roll can apply together on the same order; where two discounts could apply, you always get the better one. We currently deliver to DLF Phase 5, Gurugram.</p>
+      <p class="offers-fineprint">Offers are introductory and may change as we grow. The launch discount, free delivery, and complimentary roll can apply together on the same order; where two discounts could apply, you always get the better one.</p>
     </div>
   </section>
 
@@ -1191,11 +1190,13 @@
 	<script src="scripts/site.js"></script>
 	<script>
 		/* ---------- Pricing, dough type & launch offers ----------
-		   Edit these two blocks to change prices or toggle offers. */
+		   Fallbacks only: the storefront replaces every price and offer number below with
+		   the live values from /api/catalog. Editing these changes what a no-JS visitor
+		   sees, never what checkout charges. */
 		const OFFERS = {
 		  intro: { active: true, percent: 20 },      // launch discount on every priced item
-		  freeDeliveryAbove: 550,                     // shown in the Offers section
-		  complimentarySweetRollAbove: 450            // shown in the Offers section
+		  freeDeliveryAbove: 800,                     // shown in the Offers section
+		  complimentarySweetRollAbove: 600            // shown in the Offers section
 		};
 
 		const RUPEE = "\u20B9";

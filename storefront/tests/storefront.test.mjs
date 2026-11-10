@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import vm from 'node:vm';
-import { PRODUCT_NAMES, STORAGE_KEY, catalogBindings, validateLines, readBasket,
+import { PRODUCT_NAMES, STORAGE_KEY, catalogBindings, offerDisplay, validateLines, readBasket,
   saveBasket, changeQuantity, LatestRequest, validDate, validateQuote, appendQuoteLine } from '../model.mjs';
 import { StorefrontApi, ApiError } from '../api.mjs';
 import { quantityControl } from '../view.mjs';
@@ -25,6 +25,12 @@ test('every current public heading exactly matches the pinned mapping', async ()
   assert.deepEqual(headings.toSorted(), [...PRODUCT_NAMES].toSorted());
   assert.equal(catalogBindings(catalog, headings).size, PRODUCT_NAMES.length);
   assert.match(html, /type="module" src="storefront\/storefront.mjs"/);
+  // Every offer card needs its hook, or the live values silently fail to replace the static ones.
+  const offersSection = html.slice(html.indexOf('<section id="offers">'));
+  for (const key of ['percent', 'freeDelivery', 'gift']) {
+    assert.ok(offersSection.includes(`data-offer-card="${key}"`), `${key} card is not hideable`);
+    assert.ok(offersSection.includes(`data-offer="${key}"`), `${key} value is not replaceable`);
+  }
 });
 
 test('mapping uses catalogue IDs, not array position, prices, fuzzy aliases or public extra products', () => {
@@ -36,6 +42,24 @@ test('mapping uses catalogue IDs, not array position, prices, fuzzy aliases or p
 test('missing/retired mappings and duplicate headings cannot be ordered', () => {
   assert.equal(catalogBindings({ ...catalog, items: [] }, PRODUCT_NAMES).size, 0);
   assert.equal(catalogBindings(catalog, [PRODUCT_NAMES[0], PRODUCT_NAMES[0]]).size, 0);
+});
+test('advertised offers follow the live server offers, best discount and lowest threshold', () => {  assert.deepEqual(offerDisplay([
+    { kind: 'PERCENT_OFF', percent: 20 },
+    { kind: 'PERCENT_OFF', percent: 15 },
+    { kind: 'FREE_DELIVERY_OVER', thresholdAmount: 800 },
+    { kind: 'FREE_DELIVERY_OVER', thresholdAmount: 900 },
+    { kind: 'FREE_ITEM_OVER', thresholdAmount: 600 }
+  ]), { percent: 20, freeDelivery: 800, gift: 600 });
+});
+test('an offer the server no longer publishes is advertised as nothing, never as a stale number', () => {
+  // A paused promotion drops out of /api/catalog, so its card must hide rather than keep its markup value.
+  assert.deepEqual(offerDisplay([{ kind: 'FREE_ITEM_OVER', thresholdAmount: 600 }]),
+    { percent: null, freeDelivery: null, gift: 600 });
+  for (const offers of [[], null, undefined, 'nonsense',
+    [{ kind: 'PERCENT_OFF', percent: 0 }, { kind: 'FREE_DELIVERY_OVER', thresholdAmount: -1 }],
+    [{ kind: 'PERCENT_OFF', percent: 'free' }, { kind: 'FREE_ITEM_OVER', thresholdAmount: null }],
+    [null, { kind: 'UNKNOWN_KIND', percent: 90 }]
+  ]) assert.deepEqual(offerDisplay(offers), { percent: null, freeDelivery: null, gift: null });
 });
 test('duplicate catalogue names/IDs and invalid numeric IDs fail closed', () => {
   for (const items of [

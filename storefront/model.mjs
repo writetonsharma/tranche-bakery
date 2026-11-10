@@ -37,6 +37,32 @@ export function catalogBindings(catalog, headings) {
     names.has(name)).map(name => [name, names.get(name)]));
 }
 
+/**
+ * Headline numbers for the public Offers section, read from the offers the server
+ * publishes. The best discount wins and the lowest threshold wins, matching how
+ * PromotionEngine picks. A null means no live offer of that kind, so the card is
+ * hidden rather than advertising a promotion checkout will not honour.
+ */
+export function offerDisplay(offers) {
+  const list = Array.isArray(offers) ? offers : [];
+  const pick = (kind, field, beats) => {
+    let best = null;
+    for (const offer of list) {
+      if (offer?.kind !== kind) continue;
+      const value = Number(offer[field]);
+      if (!Number.isFinite(value) || value <= 0) continue;
+      if (best === null || beats(value, best)) best = value;
+    }
+    return best;
+  };
+  const lower = (a, b) => a < b;
+  return {
+    percent: pick('PERCENT_OFF', 'percent', (a, b) => a > b),
+    freeDelivery: pick('FREE_DELIVERY_OVER', 'thresholdAmount', lower),
+    gift: pick('FREE_ITEM_OVER', 'thresholdAmount', lower)
+  };
+}
+
 // Persisted account lines can outlive catalogue membership; structure stays strict.
 export function validateLineStructure(value) {
   if (!Array.isArray(value) || value.length > MAX_LINES) throw new Error('Invalid basket');

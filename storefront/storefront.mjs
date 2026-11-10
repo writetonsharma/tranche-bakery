@@ -1,4 +1,4 @@
-import { catalogBindings, readBasket, saveBasket, LatestRequest, STORAGE_KEY } from './model.mjs';
+import { catalogBindings, offerDisplay, readBasket, saveBasket, LatestRequest, STORAGE_KEY } from './model.mjs';
 import { validateShopping, additionProblem, basketReadiness, fitsDate, estimatePaise, ESTIMATE_WARNING } from './shopping-model.mjs';
 import { StorefrontApi } from './api.mjs';
 import { createDrawer, element, quantityControl, renderQuote } from './view.mjs';
@@ -6,6 +6,21 @@ import { checkoutEnabled } from './checkout-model.mjs';
 import { attachCheckout } from './checkout-view.mjs';
 import { GuestIntent } from './guest-intent.mjs';
 import { normalizePhone, authFailureMessage } from './phone-model.mjs';
+
+/**
+ * The Offers section ships as static HTML so it still reads with JS off; those numbers
+ * are a fallback, not the contract. Once the live offers arrive they replace the text,
+ * and any promotion that is no longer live has its card hidden.
+ */
+function renderOffers(offers) {
+  for (const [key, value] of Object.entries(offerDisplay(offers))) {
+    const card = document.querySelector(`[data-offer-card="${key}"]`);
+    if (card) card.hidden = value === null;
+    if (value === null) continue;
+    const text = key === 'percent' ? `${Math.round(value)}%` : String(Math.round(value));
+    for (const node of document.querySelectorAll(`[data-offer="${key}"]`)) node.textContent = text;
+  }
+}
 
 // Disabled means no fetch, storage access, DOM enhancement, or event listeners.
 if (window.TRANCHE_STOREFRONT?.enabled === true && typeof HTMLDialogElement !== 'undefined') {
@@ -60,6 +75,7 @@ async function start() {
   let shoppingFailed = false;
   document.querySelector('.products-intro-copy')?.append(
     element('p', 'Estimated prices. Final total shown before payment.', 'sf-note sf-price-note'));
+  renderOffers(catalog.offers);
   const cards = [...document.querySelectorAll('.product .text > h3')];
   // A card may offer several catalogue SKUs (e.g. pack sizes) under one heading.
   const cardNames = h3 => (h3.dataset.sfVariants || h3.textContent).split('|').map(name => name.trim());

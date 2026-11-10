@@ -310,12 +310,14 @@ header {
   left: 10%;
   transform: translate(0, -50%);
   text-align: left;
-  max-width: 380px;
+  max-width: 470px;
   z-index: 1;
 }
 
+/* The hero photo bottoms out at its 560px minimum on laptop-height screens, so the
+   headline has to shrink with the viewport or the text block overflows the image. */
 .hero h1 {
-  font-size: 52px;
+  font-size: clamp(40px, 3.4vw, 52px);
   line-height: 1.15;
   letter-spacing: -0.5px;
 }
@@ -323,8 +325,16 @@ header {
 .hero p {
   font-size: 16px;
   opacity: 0.9;
-  max-width: 350px;
+  max-width: 400px;
   margin-top: 14px;
+}
+
+/* .hero p is more specific than .eyebrow and would otherwise clobber its sizing. */
+.hero p.eyebrow {
+  font-size: 12px;
+  opacity: 0.72;
+  max-width: none;
+  margin-top: 0;
 }
 
 
@@ -378,6 +388,10 @@ header {
 /* Above 768px the hero text overlays the dark photo, so the secondary button
    needs light-on-dark treatment; below it the hero sits on a light panel. */
 @media (min-width: 769px) {
+  .home-hero .eyebrow {
+    color: #fff;
+  }
+
   .home-hero .btn.btn-secondary {
     color: #fff;
     border-color: rgba(255, 255, 255, 0.55);
