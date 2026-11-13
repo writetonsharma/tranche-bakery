@@ -1,6 +1,7 @@
 import { element, button, renderQuote } from './view.mjs';
 import { CheckoutFlow } from './checkout-flow.mjs';
 import { BasketSync } from './basket-sync.mjs';
+import { PIN_UPDATE_LINK } from './checkout-model.mjs';
 
 // Called only behind BOTH strict feature flags. No checkout DOM/listeners otherwise.
 export function attachCheckout({ api, ui, allowedIds, getBasket, onBasket, onIdentityLost, onActivity, onAssociate = () => {}, guestIntent,
@@ -52,7 +53,11 @@ export function attachCheckout({ api, ui, allowedIds, getBasket, onBasket, onIde
     flow.cancelReview(); forgetDetails();
   }); abort.id = 'sf-checkout-abort';
   const support = element('p', 'Payment uncertain? Contact the bakery before ordering or paying again.', 'sf-note');
-  recovery.append(retry, check, payment, cancelOrder, newOrder, abort);
+  // A website order carries no pinned location, so always offer one once payment lands.
+  const pinPrompt = element('a', 'Help us find you — add your delivery pin on WhatsApp ↗', 'sf-pin-link');
+  pinPrompt.id = 'sf-pin-link'; pinPrompt.href = PIN_UPDATE_LINK;
+  pinPrompt.target = '_blank'; pinPrompt.rel = 'noopener noreferrer';
+  recovery.append(retry, check, payment, cancelOrder, pinPrompt, newOrder, abort);
   root.append(title, accountLink, help, status, basketStatus, choices, quoteRoot, form, accepted, confirm, recovery, support);
   ui.auth.after(root);
   let identity = null;
@@ -170,6 +175,7 @@ export function attachCheckout({ api, ui, allowedIds, getBasket, onBasket, onIde
     // Poll only an already owned opaque ID, at most ten GETs, no hidden-page work.
     newOrder.hidden = !active || !['PAID', 'CANCELLED', 'EXPIRED'].includes(state.result?.status);
     newOrder.disabled = state.busy;
+    pinPrompt.hidden = !privateVisible || state.result?.status !== 'PAID';
     if (networkActive() && !state.suspended && !state.busy && ['PAYABLE', 'CREATING', 'UNKNOWN'].includes(state.result?.status) && flow.polls < 10) {
       pollTimer = setTimeout(() => { if (networkActive()) flow.poll(); }, 5000);
     }

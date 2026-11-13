@@ -24,6 +24,7 @@
 .account-page button:disabled { opacity: .5; cursor: not-allowed; }
 .account-page :is(a, button, input, select):focus-visible { outline: 3px solid #8b6034; outline-offset: 4px; }
 .account-note { font-size: .84rem; line-height: 1.75; color: #616855; }
+.account-pin-link { display: inline-block; margin: 8px 0 2px; }
 .account-session .account-note { margin-bottom: 0; }
 .account-grid { display: grid; grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr); gap: 24px; align-items: start; }
 .account-card { padding: 30px; border: 1px solid #e0dfd2; background: #fffdf7; border-radius: 16px; box-shadow: 0 6px 30px #3d452b06; min-width: 0; }

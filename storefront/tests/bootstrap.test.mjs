@@ -189,7 +189,8 @@ test('real drawer uses concise accessible copy and qualifies card prices and sub
     assert.doesNotMatch(text, /basket preview|browsing and preparing|verify WhatsApp for your account basket|personalised preview|estimated unit price|final server quote|\b(?:backend|token|version|opaque|dispatch|identity|CAS|CSRF|GET|POST)\b/i);
     assert.equal(f.node('.sf-card-label').textContent, 'Add to basket');
     assert.equal(f.document.querySelectorAll('.product a[href^="https://wa.me/"]').length, 0, 'cards order through the basket only');
-    assert.equal(f.document.querySelectorAll('#sf-drawer a[href^="https://wa.me/"]').length, 0);
+    // The delivery-pin link is the one deliberate WhatsApp hand-off; ordering never leaves the basket.
+    assert.equal(f.document.querySelectorAll('#sf-drawer a[href^="https://wa.me/"]:not(#sf-pin-link)').length, 0);
     assert.doesNotMatch(f.document.body.textContent, /Order on WhatsApp|start your order on WhatsApp|Subscribe on WhatsApp|ordering on WhatsApp/);
     assert.equal(f.node('.cta a.btn-secondary[href^="https://wa.me/"]').getAttribute('href'), f.node('.nav-contact').getAttribute('href'));
     assert.equal(f.node('.cta a.btn-secondary[href="subscribe.html"]').textContent, 'Subscribe weekly');

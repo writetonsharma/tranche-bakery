@@ -47,5 +47,6 @@ body.nav-open .sf-launcher, body.modal-open .sf-launcher { visibility: hidden; }
 .sf-checkout-review { padding: 0 8px; border-left: 2px solid #748351; }
 .sf-checkout #sf-confirm-pay { width: 100%; margin: 18px 0; background: #434c2b; color: #fffdf5; font-weight: 700; }
 .sf-payment-link { display: block; text-align: center; background: #434c2b; color: #fffdf5; padding: 16px; border-radius: 12px; line-height: 1.5; text-underline-offset: 4px; }
+.sf-pin-link { display: block; text-align: center; border: 1px solid #a4ad8f; color: #39442b; padding: 14px; border-radius: 12px; line-height: 1.5; text-underline-offset: 4px; }
 @media (max-width: 480px) { .sf-launcher { bottom: max(16px, env(safe-area-inset-bottom)); right: 16px; } }
 @media (prefers-reduced-motion: reduce) { .sf-panel, .sf-dialog button, .sf-quantity button { transition: none; } .sf-dialog::backdrop { animation: none; } }

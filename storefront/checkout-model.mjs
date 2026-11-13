@@ -2,6 +2,8 @@ import { validateLines, validateLineStructure, validateQuote, validDate } from '
 
 // Server currently generates 192-bit base64url attempt IDs. Bounded, not a path.
 export const OPAQUE_ID = /^[A-Za-z0-9_-]{32}$(?![\s\S])/;
+// Pins are dropped on a map in chat, so the site links out rather than asking for coordinates.
+export const PIN_UPDATE_LINK = 'https://wa.me/918800206057?text=Update%20my%20delivery%20pin';
 export const checkoutEnabled = config => config?.enabled === true && config?.checkoutEnabled === true;
 export const PROBLEMS = Object.freeze({
   PROFILE_CONFLICT: 'Saved details changed elsewhere. Reload them before saving again.',

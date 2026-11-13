@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { validateProfile, profileInput, validateHistory, validateOrderDetail, validateLocation } from '../account-model.mjs';
+import { PIN_UPDATE_LINK } from '../checkout-model.mjs';
 import { AccountController, attachAccount } from '../account.mjs';
 
 const now = Date.parse('2026-10-27T08:00:00Z');
@@ -638,6 +639,27 @@ test('saved pin is strictly numeric, bounded, optional and exposed only as a use
     assert.equal(page.controller.state.location, null);
     assert.equal(link.textContent, '');
     assert.equal(link.attributes.href, undefined);
+    page.destroy();
+  }
+});
+
+test('the pin is editable only through WhatsApp, offered whether or not one is on file', async () => {
+  const cases = [
+    { pin: { latitude: 28.45, longitude: 77.02 }, text: 'Update your pin on WhatsApp ↗' },
+    { pin: { latitude: null, longitude: null }, text: 'Add your delivery pin on WhatsApp ↗' }];
+  for (const { pin, text } of cases) {
+    const { api } = fixture(path => path === '/api/account/location' ? pin : undefined);
+    const page = fakePage(api);
+    await page.controller.refresh();
+    const links = page.nodes['account-private'].querySelectorAll('a').filter(link => link.textContent.includes('WhatsApp'));
+    assert.equal(links.length, 1, 'exactly one hand-off, never a coordinate form');
+    assert.equal(links[0].textContent, text);
+    assert.equal(links[0].href, PIN_UPDATE_LINK);
+    assert.equal(links[0].target, '_blank');
+    assert.equal(links[0].rel, 'noopener noreferrer');
+    page.controller.clear();
+    assert.equal(links[0].textContent, '');
+    assert.equal(links[0].attributes.href, undefined);
     page.destroy();
   }
 });

@@ -1,6 +1,6 @@
 import { StorefrontApi } from './api.mjs';
 import { LatestRequest, appendQuoteLine } from './model.mjs';
-import { checkoutEnabled, OPAQUE_ID } from './checkout-model.mjs';
+import { checkoutEnabled, OPAQUE_ID, PIN_UPDATE_LINK } from './checkout-model.mjs';
 import { validateProfile, profileInput, validateHistory, validateOrderDetail, validateLocation } from './account-model.mjs';
 import { validateCurrent } from './subscription-model.mjs';
 import { createLogin } from './login.mjs';
@@ -168,6 +168,12 @@ export function attachAccount({ root, api, win = window, doc = document }) {
   };
   const action = (text, handler, className) => {
     const value = node('button', text, className); value.type = 'button'; value.addEventListener('click', handler); return value;
+  };
+  const pinLink = text => {
+    const value = node('a', text, 'account-pin-link');
+    value.href = PIN_UPDATE_LINK;
+    value.target = '_blank'; value.rel = 'noopener noreferrer';
+    return value;
   };
   const status = doc.getElementById('account-status');
   const signin = doc.getElementById('account-signin');
@@ -369,8 +375,13 @@ export function attachAccount({ root, api, win = window, doc = document }) {
       const link = node('a', 'View saved pin in Maps ↗');
       link.href = `https://www.google.com/maps?q=${state.location.latitude},${state.location.longitude}`;
       link.target = '_blank'; link.rel = 'noopener noreferrer'; link.referrerPolicy = 'no-referrer';
-      locationRoot.append(link, node('p', 'Saved with the bakery. This page does not change your pin.', 'account-note'));
-    } else if (state.locationMessage) locationRoot.append(node('p', state.locationMessage, 'account-note'));
+      locationRoot.append(link, pinLink('Update your pin on WhatsApp ↗'),
+        node('p', 'Drop a new pin in chat and we will replace the one on file.', 'account-note'));
+    } else if (state.locationMessage) {
+      locationRoot.append(node('p', state.locationMessage, 'account-note'),
+        pinLink('Add your delivery pin on WhatsApp ↗'),
+        node('p', 'Share a pinned location in chat so our delivery team can find you.', 'account-note'));
+    }
     renderSubscription(state.subscription, state.subscriptionMessage);
     renderHistory(state.history, state.busy, state.historyMessage, state.detail); renderDetail(state.detail); revealDetail(state.detail);
   }

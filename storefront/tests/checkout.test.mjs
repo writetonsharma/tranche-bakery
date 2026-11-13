@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { checkoutEnabled, validateCart, cartInput, validatePrepared, fulfillment,
-  paymentUrl, validateCheckout, problemMessage } from '../checkout-model.mjs';
+  paymentUrl, validateCheckout, problemMessage, PIN_UPDATE_LINK } from '../checkout-model.mjs';
 import { CheckoutFlow } from '../checkout-flow.mjs';
 import { StorefrontApi } from '../api.mjs';
 import { attachCheckout } from '../checkout-view.mjs';
@@ -607,6 +607,68 @@ test('mock DOM automatically resumes account basket/defaults, reviews immutable 
     assert.equal(checkout.accountOwned, true);
     assert.equal(select('sf-checkout-quote').children.length, 0, 'advisory saved quote never renders');
     assert.equal(calls.some(call => call.method === 'PUT'), false);
+  } finally {
+    checkout?.suspend('test complete');
+    if (originalDocument === undefined) delete globalThis.document; else globalThis.document = originalDocument;
+    if (originalNavigator) Object.defineProperty(globalThis, 'navigator', originalNavigator); else delete globalThis.navigator;
+  }
+});
+
+test('delivery pin prompt waits for a paid website order and never leaks private detail', async () => {
+  const originalDocument = globalThis.document;
+  const originalNavigator = Object.getOwnPropertyDescriptor(globalThis, 'navigator');
+  const nodes = [];
+  class Node {
+    constructor(tag) { this.tagName = tag; this.children = []; this.events = {}; this.attributes = {}; this.value = ''; nodes.push(this); }
+    append(...value) { this.children.push(...value); }
+    after(value) { this.sibling = value; }
+    setAttribute(key, value) { this.attributes[key] = value; }
+    removeAttribute(key) { delete this.attributes[key]; if (key === 'href') delete this.href; }
+    replaceChildren(...value) { this.children = value; }
+    addEventListener(type, callback) { (this.events[type] ||= []).push(callback); }
+    async fire(type) { for (const callback of this.events[type] || []) await callback({ preventDefault() {} }); }
+  }
+  let checkout;
+  try {
+    const authHelp = new Node('p'); const disclaimer = new Node('p');
+    const select = value => nodes.find(node => node.id === value);
+    globalThis.document = { hidden: false, createElement: tag => new Node(tag),
+      querySelector: selector => selector === '#sf-auth .sf-note' ? authHelp : selector === '#sf-disclaimer' ? disclaimer : null };
+    Object.defineProperty(globalThis, 'navigator', { configurable: true, value: { onLine: true } });
+    const expiresAt = new Date(Date.now() + 3600000).toISOString();
+    const accountDetail = { ...payable, expiresAt, orderNumber: 'WEB-1027',
+      createdAt: '2026-10-26T08:00:00Z', orderStatus: 'CONFIRMED', fulfillment: structuredClone(details),
+      quote: { ...structuredClone(quote), discountLabel: null, batchDiscountLabel: null, giftLabel: null, itemCount: 2 } };
+    let status = 'PAYABLE';
+    // A paid order no longer carries a payment link, mirroring the server contract.
+    const owned = () => ({ ...accountDetail, status, paymentUrl: status === 'PAYABLE' ? accountDetail.paymentUrl : null });
+    const api = { session: async () => session, request: async path => {
+      if (path === '/api/account/checkout') return { checkout: owned() };
+      if (path === `/api/account/orders/${id}`) return owned();
+      if (path === '/api/account/profile') return { version: 2, ...details };
+      if (path === '/api/cart') return structuredClone(cart);
+      throw new Error(`Unexpected checkout request: ${path}`);
+    } };
+    checkout = attachCheckout({ api, ui: { auth: new Node('section'), dialog: { open: true } },
+      getShopping: () => ({ dates: [{ date: basket.date, maxItems: 5, itemIds: [...ids] }] }),
+      allowedIds: ids, getBasket: () => structuredClone(basket), onBasket: () => {} });
+    checkout.identity(7);
+
+    assert.equal(select('sf-pin-link').href, PIN_UPDATE_LINK);
+    assert.equal(select('sf-pin-link').target, '_blank');
+    assert.equal(select('sf-pin-link').rel, 'noopener noreferrer');
+
+    await checkout.resume();
+    assert.equal(checkout.flow.state.result.status, 'PAYABLE');
+    assert.equal(select('sf-pin-link').hidden, true, 'nothing is asked before payment lands');
+
+    status = 'PAID';
+    await checkout.resume();
+    assert.equal(checkout.flow.state.result.status, 'PAID');
+    assert.equal(select('sf-pin-link').hidden, false);
+
+    checkout.suspend('offline');
+    assert.equal(select('sf-pin-link').hidden, true, 'suspended checkout hides every order-specific control');
   } finally {
     checkout?.suspend('test complete');
     if (originalDocument === undefined) delete globalThis.document; else globalThis.document = originalDocument;
