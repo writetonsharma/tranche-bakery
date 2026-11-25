@@ -3,11 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="scripts/season.js?v=20261125-1"></script>
 	<title>Products - TRANCHÉ</title>
 
   <!-- Reuse same fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
-	<link rel="stylesheet" href="styles.css?v=20261028-1">
+	<link rel="stylesheet" href="styles.css?v=20261125-3">
 	<link rel="stylesheet" href="storefront/storefront.css?v=20261029-1">
 	<script src="storefront/config.js"></script>
 	<script type="module" src="storefront/storefront.mjs"></script>
@@ -77,13 +78,203 @@
 
 <div class="category-nav">
   <div class="container">
+		<a href="#christmas" class="festive-link" data-season-only="christmas">Christmas</a>
 		<a href="#bread">Loaves</a>
 		<a href="#buns-rolls">Buns & Rolls</a>
 		<a href="#breakfast-european">Breakfast</a>
 		<a href="#sweet-bakes">Sweet Bakes</a>
-		<a href="#spreads">Spreads</a>
+		<a href="#gift-hampers">Gift Hampers</a>
   </div>
 </div>
+
+  <section id="christmas" class="festive-section" data-season-only="christmas">
+    <div class="container">
+		<h2 class="section-divider">
+		  <span>Christmas Specials</span>
+		</h2>
+		<p class="rolls-intro">A short festive menu for the Christmas and New Year weeks. Every bake is eggless and made in small batches, and we deliver on Christmas Day too. Festive bakes are full price; the launch discount does not apply to them.</p>
+		<p class="season-note">Mid-December to the first week of January &middot; every day the bakery is open</p>
+
+      <div class="product">
+		<div class="image gallery">
+		  <img class="main-img" src="Images/Products/Christmas/PlumCake/Mock1.jpg" alt="Test image: Christmas Plum Cake" loading="lazy" decoding="async" srcset="Images/Products/Christmas/PlumCake/Mock1-phone.jpg 560w, Images/Products/Christmas/PlumCake/Mock1-tablet.jpg 960w, Images/Products/Christmas/PlumCake/Mock1-desktop.jpg 1400w" sizes="(max-width: 768px) 100vw, (max-width: 1200px) 58vw, 840px">
+		  <div class="thumbs">
+			<img src="Images/Products/Christmas/PlumCake/Mock1-thumb.jpg" data-full="Images/Products/Christmas/PlumCake/Mock1.jpg" onclick="changeImage(this)" class="active" alt="Test image: Christmas Plum Cake" loading="lazy" decoding="async">
+		  </div>
+		  <button type="button" class="info-icon test-image" onclick="toggleTooltip('testimage-plum')" aria-label="About this image">&#9888; Test image</button>
+		  <div id="testimage-plum" class="tooltip"><strong>Test image.</strong><br>An AI-generated stand-in used while we finish this page. It is not our bake; real photographs replace it before these products go on sale.</div>
+		</div>
+        <div class="text">
+		  <h3 data-sf-variants="Christmas Plum Cake (Rum-Soaked)|Christmas Plum Cake (Alcohol-Free)">Christmas Plum Cake</h3>
+		  <p>A dark, fruit-laden eggless Christmas cake. Raisins, dates and cranberries are soaked with orange zest, then folded through a gently spiced caramel crumb with toasted walnuts and almonds. Choose it rum-soaked, or alcohol-free with the fruit soaked in fresh orange juice.</p>
+		  <p class="diet-note">Eggless &middot; made with butter &middot; contains tree nuts &middot; rum-soaked version contains alcohol</p>
+			<ul>
+			  <li>Fruit soaked in dark rum or fresh orange juice</li>
+			  <li>Cinnamon, ginger, nutmeg and clove</li>
+			  <li>Rested a full day before it leaves the kitchen</li>
+			</ul>
+		  <button class="toggle-btn">View Details &#8595;</button>
+		  <div class="details">
+			<p><strong>Ingredients</strong><br>
+			Dried fruit (black raisins, golden raisins, dates, cranberries), refined wheat flour, sweetened condensed milk (milk solids, sugar), butter, dark rum (rum-soaked version) or fresh orange juice (alcohol-free version), caramel (sugar), walnuts (tree nuts), almonds (tree nuts), brown sugar, spices (cinnamon, ginger, nutmeg, clove), raising agents (baking powder, baking soda), orange zest, sea salt, vanilla.
+			</p>
+			<p><strong>What to Expect</strong><br>
+			A moist, closely packed fruit cake with warm spice, a caramel depth and a bright orange note. The rum-soaked version keeps some of its alcohol, because the fruit is soaked in rum before baking; choose the alcohol-free version for children or anyone avoiding alcohol.</p>
+			<p><strong>Cake Profile</strong><br>
+			Single small tin, the same size as our tea cakes<br>
+			Approx 450g per cake<br>
+			Rum-soaked or alcohol-free (orange-soaked)<br>
+			Eggless &middot; no preservatives, emulsifiers or cake enhancers
+			</p>
+			<p>See our <a href="faq.html#storage-guide">storage guidance</a> for the best way to store your bakes across different weather conditions.</p>
+		  </div>
+        </div>
+      </div>
+
+      <div class="product reverse">
+		<div class="image gallery">
+		  <img class="main-img" src="Images/Products/Christmas/OrangeCranberryTeaCake/Mock1.jpg" alt="Test image: Orange &amp; Cranberry Tea Cake" loading="lazy" decoding="async" srcset="Images/Products/Christmas/OrangeCranberryTeaCake/Mock1-phone.jpg 560w, Images/Products/Christmas/OrangeCranberryTeaCake/Mock1-tablet.jpg 960w, Images/Products/Christmas/OrangeCranberryTeaCake/Mock1-desktop.jpg 1400w" sizes="(max-width: 768px) 100vw, (max-width: 1200px) 58vw, 840px">
+		  <div class="thumbs">
+			<img src="Images/Products/Christmas/OrangeCranberryTeaCake/Mock1-thumb.jpg" data-full="Images/Products/Christmas/OrangeCranberryTeaCake/Mock1.jpg" onclick="changeImage(this)" class="active" alt="Test image: Orange &amp; Cranberry Tea Cake" loading="lazy" decoding="async">
+		  </div>
+		  <button type="button" class="info-icon test-image" onclick="toggleTooltip('testimage-teacake')" aria-label="About this image">&#9888; Test image</button>
+		  <div id="testimage-teacake" class="tooltip"><strong>Test image.</strong><br>An AI-generated stand-in used while we finish this page. It is not our bake; real photographs replace it before these products go on sale.</div>
+		</div>
+        <div class="text">
+		  <h3>Orange &amp; Cranberry Tea Cake</h3>
+		  <p>Our soft condensed-milk tea cake, brightened with fresh orange zest rubbed into the sugar and studded with chopped cranberries.</p>
+		  <p class="diet-note">Eggless &middot; made with butter &middot; sweet, added sugar</p>
+			<ul>
+			  <li>Fresh orange zest, never flavouring</li>
+			  <li>Tart cranberries through a soft butter crumb</li>
+			  <li>Whole cake, ready to slice and serve</li>
+			</ul>
+		  <button class="toggle-btn">View Details &#8595;</button>
+		  <div class="details">
+			<p><strong>Ingredients</strong><br>
+			Refined wheat flour, sweetened condensed milk (milk solids, sugar), butter, whole milk, dried cranberries, sugar, fresh orange zest, raising agent (baking powder), sea salt, natural vanilla.
+			</p>
+			<p><strong>What to Expect</strong><br>
+			A tender, buttery tea cake with a clean citrus lift and little bursts of tart cranberry. Lighter than the plum cake, and lovely with tea or coffee.</p>
+			<p><strong>Cake Profile</strong><br>
+			Single small tin, approx 375g<br>
+			Orange zest and cranberry butter crumb<br>
+			Eggless &middot; no preservatives, emulsifiers or cake enhancers<br>
+			Best within 3 days in cool, dry storage; up to 7 days refrigerated
+			</p>
+			<p>See our <a href="faq.html#storage-guide">storage guidance</a> for the best way to store your bakes across different weather conditions.</p>
+		  </div>
+        </div>
+      </div>
+
+      <div class="product">
+		<div class="image gallery">
+		  <img class="main-img" src="Images/Products/Christmas/DarkChocolateBabkaLoaf/Mock1.jpg" alt="Test image: Dark Chocolate Babka Loaf" loading="lazy" decoding="async" srcset="Images/Products/Christmas/DarkChocolateBabkaLoaf/Mock1-phone.jpg 560w, Images/Products/Christmas/DarkChocolateBabkaLoaf/Mock1-tablet.jpg 960w, Images/Products/Christmas/DarkChocolateBabkaLoaf/Mock1-desktop.jpg 1400w" sizes="(max-width: 768px) 100vw, (max-width: 1200px) 58vw, 840px">
+		  <div class="thumbs">
+			<img src="Images/Products/Christmas/DarkChocolateBabkaLoaf/Mock1-thumb.jpg" data-full="Images/Products/Christmas/DarkChocolateBabkaLoaf/Mock1.jpg" onclick="changeImage(this)" class="active" alt="Test image: Dark Chocolate Babka Loaf" loading="lazy" decoding="async">
+		  </div>
+		  <button type="button" class="info-icon test-image" onclick="toggleTooltip('testimage-babka')" aria-label="About this image">&#9888; Test image</button>
+		  <div id="testimage-babka" class="tooltip"><strong>Test image.</strong><br>An AI-generated stand-in used while we finish this page. It is not our bake; real photographs replace it before these products go on sale.</div>
+		</div>
+        <div class="text">
+		  <h3>Dark Chocolate Babka Loaf</h3>
+		  <p>Our chocolate babka, baked as a small twisted loaf: soft buttery dough rolled around dark couverture filling, split to show the layers, and glazed while warm.</p>
+		  <p class="diet-note">Eggless &middot; butter &amp; dark chocolate &middot; sweet, added sugar</p>
+			<ul>
+			  <li>Filled with Van Houten 46.5% dark couverture &mdash; never compound</li>
+			  <li>Twisted to show every chocolate layer</li>
+			  <li>A small loaf for sharing</li>
+			</ul>
+		  <button class="toggle-btn">View Details &#8595;</button>
+		  <div class="details">
+			<p><strong>Ingredients</strong><br>
+			White wheat flour, whole wheat flour, filtered water, dark couverture chocolate, fresh white butter, full-cream milk, sugar, brown sugar, dark cocoa powder, sea salt, instant yeast, vital wheat gluten.
+			</p>
+			<p><strong>What to Expect</strong><br>
+			The same soft, layered babka as our buns, in a loaf you slice at the table. A light sugar glaze keeps the crust soft and gives it a gentle shine.</p>
+			<p><strong>Bread Profile</strong><br>
+			Same sweet dough and filling as our Chocolate Babka Buns<br>
+			One small loaf, baked in our tea-cake tin<br>
+			Approx 400g filled dough before baking<br>
+			High-enriched dough
+			</p>
+			<p>See our <a href="faq.html#storage-guide">storage guidance</a> for the best way to store bread across different weather conditions.</p>
+		  </div>
+        </div>
+      </div>
+
+      <div class="product reverse">
+		<div class="image gallery">
+		  <img class="main-img" src="Images/Products/Christmas/CranberryWhiteChocolateCookies/Mock1.jpg" alt="Test image: Cranberry &amp; White Chocolate Cookies" loading="lazy" decoding="async" srcset="Images/Products/Christmas/CranberryWhiteChocolateCookies/Mock1-phone.jpg 560w, Images/Products/Christmas/CranberryWhiteChocolateCookies/Mock1-tablet.jpg 960w, Images/Products/Christmas/CranberryWhiteChocolateCookies/Mock1-desktop.jpg 1400w" sizes="(max-width: 768px) 100vw, (max-width: 1200px) 58vw, 840px">
+		  <div class="thumbs">
+			<img src="Images/Products/Christmas/CranberryWhiteChocolateCookies/Mock1-thumb.jpg" data-full="Images/Products/Christmas/CranberryWhiteChocolateCookies/Mock1.jpg" onclick="changeImage(this)" class="active" alt="Test image: Cranberry &amp; White Chocolate Cookies" loading="lazy" decoding="async">
+		  </div>
+		  <button type="button" class="info-icon test-image" onclick="toggleTooltip('testimage-cookies')" aria-label="About this image">&#9888; Test image</button>
+		  <div id="testimage-cookies" class="tooltip"><strong>Test image.</strong><br>An AI-generated stand-in used while we finish this page. It is not our bake; real photographs replace it before these products go on sale.</div>
+		</div>
+        <div class="text">
+		  <h3>Cranberry &amp; White Chocolate Cookies</h3>
+		  <p>Large, soft-centred eggless cookies with chunks of white chocolate and tart dried cranberries.</p>
+		  <p class="diet-note">Eggless &middot; made with butter &middot; no preservatives</p>
+			<ul>
+			  <li>White chocolate chunks and chopped cranberries</li>
+			  <li>Set edges with a deliberately soft centre</li>
+			  <li>Hand-portioned, like our chocolate chunk cookies</li>
+			</ul>
+		  <button class="toggle-btn">View Details &#8595;</button>
+		  <div class="details">
+			<p><strong>Ingredients</strong><br>
+			Refined wheat flour, butter, white chocolate, brown sugar, caster sugar, whole milk, dried cranberries, cornflour, natural vanilla, sea salt, raising agent (baking soda).
+			</p>
+			<p><strong>What to Expect</strong><br>
+			A rich, buttery cookie with crisp edges and a soft centre. Sweet, creamy white chocolate is balanced by the sharpness of the cranberries.</p>
+			<p><strong>Pack Profile</strong><br>
+			Pack of 5 cookies, portioned at 55 g each<br>
+			Eggless &middot; no improvers or preservatives<br>
+			Best within 3 days in an airtight container
+			</p>
+			<p>See our <a href="faq.html#storage-guide">storage guidance</a> for the best way to store your bakes across different weather conditions.</p>
+		  </div>
+        </div>
+      </div>
+
+      <div class="product">
+		<div class="image gallery">
+		  <img class="main-img" src="Images/Products/Christmas/CranberryAlmondBiscotti/Mock1.jpg" alt="Test image: Cranberry &amp; Almond Biscotti" loading="lazy" decoding="async" srcset="Images/Products/Christmas/CranberryAlmondBiscotti/Mock1-phone.jpg 560w, Images/Products/Christmas/CranberryAlmondBiscotti/Mock1-tablet.jpg 960w, Images/Products/Christmas/CranberryAlmondBiscotti/Mock1-desktop.jpg 1400w" sizes="(max-width: 768px) 100vw, (max-width: 1200px) 58vw, 840px">
+		  <div class="thumbs">
+			<img src="Images/Products/Christmas/CranberryAlmondBiscotti/Mock1-thumb.jpg" data-full="Images/Products/Christmas/CranberryAlmondBiscotti/Mock1.jpg" onclick="changeImage(this)" class="active" alt="Test image: Cranberry &amp; Almond Biscotti" loading="lazy" decoding="async">
+		  </div>
+		  <button type="button" class="info-icon test-image" onclick="toggleTooltip('testimage-biscotti')" aria-label="About this image">&#9888; Test image</button>
+		  <div id="testimage-biscotti" class="tooltip"><strong>Test image.</strong><br>An AI-generated stand-in used while we finish this page. It is not our bake; real photographs replace it before these products go on sale.</div>
+		</div>
+        <div class="text">
+		  <h3>Cranberry &amp; Almond Biscotti</h3>
+		  <p>Our twice-baked eggless biscotti with a festive turn: toasted almonds, chopped cranberries and a little fresh orange zest.</p>
+		  <p class="diet-note">Eggless &middot; made with butter &middot; contains tree nuts</p>
+			<ul>
+			  <li>Toasted almonds and tart cranberries</li>
+			  <li>A hint of fresh orange zest</li>
+			  <li>Six medium biscotti in every pack</li>
+			</ul>
+		  <button class="toggle-btn">View Details &#8595;</button>
+		  <div class="details">
+			<p><strong>Ingredients</strong><br>
+			Refined wheat flour, caster sugar, whole milk, butter, almonds (tree nuts), dried cranberries, fresh orange zest, raising agent (baking soda), sea salt, natural vanilla.
+			</p>
+			<p><strong>What to Expect</strong><br>
+			A firm, crisp biscuit made for dipping into coffee or tea, with chewy flecks of cranberry and a soft orange aroma.</p>
+			<p><strong>Pack Profile</strong><br>
+			Pack of 6 biscotti, sliced about 15 mm thick<br>
+			Eggless &middot; no improvers or preservatives<br>
+			Keeps well for 2 weeks in an airtight container
+			</p>
+			<p>See our <a href="faq.html#storage-guide">storage guidance</a> for the best way to store your bakes across different weather conditions.</p>
+		  </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
 
   <section id="bread">
 	<div class="container">
@@ -724,6 +915,38 @@
         </div>
       </div>
 
+		<div class="product-subsection" id="spreads">
+		  <p class="premium-kicker">Spreads &amp; Extras</p>
+		  <p class="subsection-copy">Small additions made in the same kitchen, meant to be eaten alongside the bread rather than on their own.</p>
+		</div>
+
+      <div class="product reverse">
+		<div class="image placeholder"></div>
+        <div class="text">
+		  <h3>Garlic &amp; Herb Butter</h3>
+		  <p>A chilled compound butter of slow-cooked garlic, olive oil and herbs, blended into softened unsalted butter.</p>
+		  <p class="diet-note">Vegetarian &middot; made with butter &middot; keep refrigerated</p>
+			<ul>
+			  <li>Garlic gently cooked in olive oil until golden</li>
+			  <li>Dried parsley, thyme and oregano</li>
+			  <li>150 g jar, ready to spread or melt over warm bread</li>
+			</ul>
+		  <button class="toggle-btn">View Details &#8595;</button>
+		  <div class="details">
+			<p><strong>Ingredients</strong><br>
+			Unsalted butter, garlic, olive oil, parsley, thyme, oregano, sea salt.
+			</p>
+			<p><strong>What to Expect</strong><br>
+			A soft, spreadable butter with mellow roasted garlic rather than a raw bite. Firms up in the fridge and softens quickly at room temperature. Good on warm toast, stirred through pasta, or melted over a fresh loaf.</p>
+			<p><strong>Jar Profile</strong><br>
+			Approximately 150 g per jar<br>
+			No preservatives, emulsifiers or flavourings<br>
+			Keep refrigerated; best within 2 weeks of packing
+			</p>
+		  </div>
+        </div>
+      </div>
+
     </div>
   </section>
 
@@ -1076,40 +1299,41 @@
     </div>
   </section>
 
-  <section id="spreads">
+  <section id="gift-hampers">
     <div class="container">
 		<h2 class="section-divider">
-		  <span>Spreads &amp; Extras</span>
+		  <span>Gift Hampers</span>
 		</h2>
-		<p class="rolls-intro">Small additions made in the same kitchen, meant to be eaten alongside the bread rather than on their own.</p>
+		<p class="rolls-intro">Our bakes, packed and ready to give &mdash; for festive celebrations, housewarmings, corporate gifting or a simple thank you. Every hamper is baked for your order and packed the morning it goes out. Pick a size and we&rsquo;ll put the selection together with you on WhatsApp.</p>
 
-      <div class="product">
-		<div class="image placeholder"></div>
-        <div class="text">
-		  <h3>Garlic &amp; Herb Butter</h3>
-		  <p>A chilled compound butter of slow-cooked garlic, olive oil and herbs, blended into softened unsalted butter.</p>
-		  <p class="diet-note">Vegetarian &middot; made with butter &middot; keep refrigerated</p>
-			<ul>
-			  <li>Garlic gently cooked in olive oil until golden</li>
-			  <li>Dried parsley, thyme and oregano</li>
-			  <li>150 g jar, ready to spread or melt over warm bread</li>
-			</ul>
-		  <button class="toggle-btn">View Details &#8595;</button>
-		  <div class="details">
-			<p><strong>Ingredients</strong><br>
-			Unsalted butter, garlic, olive oil, parsley, thyme, oregano, sea salt.
-			</p>
-			<p><strong>What to Expect</strong><br>
-			A soft, spreadable butter with mellow roasted garlic rather than a raw bite. Firms up in the fridge and softens quickly at room temperature. Good on warm toast, stirred through pasta, or melted over a fresh loaf.</p>
-			<p><strong>Jar Profile</strong><br>
-			Approximately 150 g per jar<br>
-			No preservatives, emulsifiers or flavourings<br>
-			Keep refrigerated; best within 2 weeks of packing
-			</p>
-		  </div>
-        </div>
+      <div class="hamper-grid">
+        <article class="hamper-card">
+          <p class="hamper-kicker">A little thank-you</p>
+          <h3 class="hamper-price">&#8377;1,000</h3>
+          <p>A gift box with a tea cake and a pack of biscotti &mdash; small, thoughtful and easy to hand over.</p>
+          <a class="btn" href="https://wa.me/918796770308?text=Hi%2C%20I%27d%20like%20to%20know%20about%20the%20%E2%82%B91%2C000%20gift%20hamper." target="_blank" rel="noopener">Enquire on WhatsApp</a>
+        </article>
+        <article class="hamper-card">
+          <p class="hamper-kicker">Festive box</p>
+          <h3 class="hamper-price">&#8377;1,500</h3>
+          <p>A cake, a pack of cookies and a pack of biscotti, boxed together for sharing over tea or coffee.</p>
+          <a class="btn" href="https://wa.me/918796770308?text=Hi%2C%20I%27d%20like%20to%20know%20about%20the%20%E2%82%B91%2C500%20gift%20hamper." target="_blank" rel="noopener">Enquire on WhatsApp</a>
+        </article>
+        <article class="hamper-card">
+          <p class="hamper-kicker">Classic hamper</p>
+          <h3 class="hamper-price">&#8377;2,500</h3>
+          <p>A woven basket with a cake, biscotti, cookies, brownies, garlic &amp; herb knots and a jar of garlic &amp; herb butter.</p>
+          <a class="btn" href="https://wa.me/918796770308?text=Hi%2C%20I%27d%20like%20to%20know%20about%20the%20%E2%82%B92%2C500%20gift%20hamper." target="_blank" rel="noopener">Enquire on WhatsApp</a>
+        </article>
+        <article class="hamper-card">
+          <p class="hamper-kicker">Grand hamper</p>
+          <h3 class="hamper-price">&#8377;4,000</h3>
+          <p>Our fullest basket: two cakes, babka, biscotti, cookies, brownies, knots and butter, with a few hand-picked gourmet extras.</p>
+          <a class="btn" href="https://wa.me/918796770308?text=Hi%2C%20I%27d%20like%20to%20know%20about%20the%20%E2%82%B94%2C000%20gift%20hamper." target="_blank" rel="noopener">Enquire on WhatsApp</a>
+        </article>
       </div>
 
+      <p class="hamper-fineprint"><span data-season-only="christmas">Over Christmas and New Year, hampers can include our Christmas specials. </span>Hamper prices are fixed and include packing and delivery within our local area; launch offers don&rsquo;t apply. Hampers with garlic &amp; herb butter should go into the fridge on arrival.</p>
     </div>
   </section>
 
@@ -1230,10 +1454,19 @@
 			{ label: "Pack of 2", price: 440, name: "Walnut Dark Chocolate Brownies (Pack of 2)" },
 			{ label: "Pack of 4", price: 800, name: "Walnut Dark Chocolate Brownies (Pack of 4)" }
 		  ] },
-		  "Garlic & Herb Butter":         { price: 350, unit: "per 150 g jar", dough: "butter" }
+		  "Garlic & Herb Butter":         { price: 350, unit: "per 150 g jar", dough: "butter" },
+		  // Christmas specials sell at full price: `fullPrice` keeps the intro offer off them.
+		  "Christmas Plum Cake":          { fullPrice: true, unit: "per cake", dough: "fruitcake", sizes: [
+			{ label: "Rum-soaked", price: 950, name: "Christmas Plum Cake (Rum-Soaked)" },
+			{ label: "Alcohol-free", price: 850, name: "Christmas Plum Cake (Alcohol-Free)" }
+		  ] },
+		  "Orange & Cranberry Tea Cake":  { price: 550, fullPrice: true, unit: "per cake", dough: "cake" },
+		  "Dark Chocolate Babka Loaf":    { price: 490, fullPrice: true, unit: "per loaf", dough: "high" },
+		  "Cranberry & White Chocolate Cookies": { price: 350, fullPrice: true, unit: "pack of 5", dough: "cookie" },
+		  "Cranberry & Almond Biscotti":  { price: 250, fullPrice: true, unit: "pack of 6", dough: "biscotti" }
 		};
 
-		const DOUGH_LABEL = { lean: "Lean dough", enriched: "Enriched dough", high: "High-enriched dough", cake: "Butter tea cake", cookie: "Soft-centred cookie", biscotti: "Twice-baked biscuit", brownie: "Fudgy brownie", butter: "Compound butter" };
+		const DOUGH_LABEL = { lean: "Lean dough", enriched: "Enriched dough", high: "High-enriched dough", cake: "Butter tea cake", cookie: "Soft-centred cookie", biscotti: "Twice-baked biscuit", brownie: "Fudgy brownie", butter: "Compound butter", fruitcake: "Christmas fruit cake" };
 
 		function firstTextOf(el) {
 		  for (const node of el.childNodes) {
@@ -1263,7 +1496,7 @@
 			soon.textContent = 'Pricing soon';
 			meta.appendChild(soon);
 		  } else {
-			const intro = OFFERS.intro.active;
+			const intro = OFFERS.intro.active && !info.fullPrice;
 			const variants = info.sizes || [{ label: '', price: info.price }];
 			variants.forEach(variant => {
 			  const group = document.createElement('div');
@@ -1476,8 +1709,9 @@
 
 		function getStickyOffset() {
 		  const stickyElements = Array.from(document.querySelectorAll('header, .category-nav'));
+		  const tucked = document.body.classList.contains('header-tucked');
 		  return stickyElements.reduce((total, element) => {
-			if (!element) return total;
+			if (!element || (tucked && element.tagName === 'HEADER')) return total;
 			const style = window.getComputedStyle(element);
 			if (style.position !== 'sticky' && style.position !== 'fixed') return total;
 			return total + element.offsetHeight;
@@ -1534,17 +1768,51 @@
 		  [150, 350, 700].forEach(delay => window.setTimeout(alignHashTarget, delay));
 		}
 
-	const sections = document.querySelectorAll("section[id]");
+	// Seasonal sections hidden by the switch take no space, so they must not drive the active tab.
+	const sections = Array.from(document.querySelectorAll("section[id]")).filter(section => section.getClientRects().length);
 	const navLinks = document.querySelectorAll(".category-nav a");
+	const compactQuery = window.matchMedia('(max-width: 768px)');
+	const chipStrip = document.querySelector('.category-nav .container');
+	let lastScrollY = window.scrollY;
+
+	function setHeaderTucked(on) {
+	  const tuck = on && compactQuery.matches && !document.body.classList.contains('nav-open');
+	  document.body.classList.toggle('header-tucked', tuck);
+	}
+
+	function updateChipFades() {
+	  if (!chipStrip) return;
+	  const max = chipStrip.scrollWidth - chipStrip.clientWidth;
+	  chipStrip.classList.toggle('more-left', chipStrip.scrollLeft > 4);
+	  chipStrip.classList.toggle('more-right', chipStrip.scrollLeft < max - 4);
+	}
 
 	navLinks.forEach(link => {
 	  link.addEventListener('click', event => {
 		event.preventDefault();
 		const hash = link.getAttribute('href');
+		const target = document.querySelector(hash);
+		// Settle the header first so the jump lands just below whichever bars stay visible.
+		if (target) setHeaderTucked(target.getBoundingClientRect().top > 0);
 		history.pushState(null, '', hash);
 		alignHashTarget(hash, 4);
 	  });
 	});
+
+	window.addEventListener('scroll', () => {
+	  const y = window.scrollY;
+	  const delta = y - lastScrollY;
+	  if (y < 120) setHeaderTucked(false);
+	  else if (Math.abs(delta) < 8) return;
+	  else setHeaderTucked(delta > 0);
+	  lastScrollY = y;
+	}, { passive: true });
+
+	compactQuery.addEventListener('change', () => setHeaderTucked(false));
+	chipStrip?.addEventListener('scroll', updateChipFades, { passive: true });
+	window.addEventListener('resize', updateChipFades);
+	window.addEventListener('load', updateChipFades);
+	updateChipFades();
 
 	window.addEventListener("scroll", () => {
 	  let current = sections[0]?.getAttribute('id') || '';
@@ -1573,7 +1841,7 @@
 	}
 
 	if (!window.location.hash) {
-	  setActiveCategory('bread');
+	  setActiveCategory(sections[0]?.id || 'bread');
 	}
 
 </script>

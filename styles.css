@@ -2029,7 +2029,21 @@ footer p {
 @media(max-width: 768px) {
   .category-nav {
     top: 76px;
-    padding: 10px 0;
+    padding: 8px 0;
+    transition: top 0.25s ease;
+  }
+
+  header {
+    transition: transform 0.25s ease;
+  }
+
+  /* breads.html tucks the header away while scrolling down so the chips keep the space. */
+  body.header-tucked header {
+    transform: translateY(-100%);
+  }
+
+  body.header-tucked .category-nav {
+    top: 0;
   }
 
   .category-nav .container {
@@ -2041,8 +2055,21 @@ footer p {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
     scroll-snap-type: x proximity;
+    scroll-padding-inline: 16px;
     scrollbar-width: none;
     padding: 0 16px 2px;
+    --fade-left: 0px;
+    --fade-right: 0px;
+    -webkit-mask-image: linear-gradient(to right, transparent, #000 var(--fade-left), #000 calc(100% - var(--fade-right)), transparent);
+    mask-image: linear-gradient(to right, transparent, #000 var(--fade-left), #000 calc(100% - var(--fade-right)), transparent);
+  }
+
+  .category-nav .container.more-left {
+    --fade-left: 24px;
+  }
+
+  .category-nav .container.more-right {
+    --fade-right: 36px;
   }
 
   .category-nav a {
@@ -2051,8 +2078,11 @@ footer p {
     display: flex;
     align-items: center;
     justify-content: center;
-    min-height: 40px;
-    padding: 8px 14px;
+    box-sizing: border-box;
+    min-height: 36px;
+    padding: 6px 12px;
+    font-size: 13px;
+    letter-spacing: 0.3px;
     white-space: nowrap;
     text-align: center;
     border: 1px solid rgba(90, 62, 43, 0.12);
@@ -2651,4 +2681,157 @@ body.modal-open {
     opacity: 1;
   }
   .detail-modal-grip { display: none; }
+}
+
+/* ========================================
+   GIFT HAMPERS (BREADS PAGE)
+======================================== */
+
+.hamper-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 22px;
+  margin-top: 26px;
+}
+
+.hamper-card {
+  display: flex;
+  flex-direction: column;
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid var(--border-soft);
+  border-radius: 16px;
+  padding: 26px 24px;
+  box-shadow: var(--shadow-soft);
+}
+
+.hamper-card .hamper-kicker {
+  margin: 0 0 8px;
+  font-size: 12px;
+  letter-spacing: 1.8px;
+  text-transform: uppercase;
+  color: var(--olive-deep);
+}
+
+.hamper-card .hamper-price {
+  margin: 0 0 10px;
+  font-size: 28px;
+  color: var(--primary);
+}
+
+.hamper-card p {
+  margin: 0 0 20px;
+  font-size: 14px;
+  color: rgba(43, 43, 43, 0.92);
+}
+
+.hamper-card .btn {
+  margin-top: auto;
+  align-self: flex-start;
+}
+
+.hamper-fineprint {
+  margin-top: 22px;
+  font-size: 12.5px;
+  color: rgba(43, 43, 43, 0.78);
+}
+
+/* ========================================
+   SEASONAL: CHRISTMAS
+   Switch: LIVE_SEASON in scripts/season.js (or ?preview=christmas).
+======================================== */
+
+:root {
+  --festive-red: #8c2a23;
+  --festive-gold: #b8893b;
+}
+
+html:not([data-season="christmas"]) [data-season-only="christmas"] {
+  display: none !important;
+}
+
+.festive-section,
+.festive-band {
+  background: linear-gradient(180deg, rgba(140, 42, 35, 0.05), rgba(184, 137, 59, 0.08));
+  border-top: 2px solid rgba(184, 137, 59, 0.45);
+  border-bottom: 1px solid rgba(184, 137, 59, 0.3);
+}
+
+.festive-section {
+  padding-top: 40px;
+}
+
+.festive-section .section-divider span {
+  color: var(--festive-red);
+}
+
+.festive-section .section-divider::before,
+.festive-section .section-divider::after {
+  background: rgba(184, 137, 59, 0.6);
+}
+
+.festive-section .rolls-intro {
+  margin-bottom: 10px;
+}
+
+.season-note {
+  display: inline-block;
+  margin: 0 0 36px;
+  padding: 6px 14px;
+  border: 1px solid rgba(184, 137, 59, 0.5);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.7);
+  font-size: 13px;
+  letter-spacing: 0.3px;
+  color: var(--festive-red);
+}
+
+.festive-band .image {
+  flex: 1.5 1 0;
+  min-width: 0;
+  align-self: stretch;
+}
+
+.festive-band .premium-kicker {
+  color: var(--festive-red);
+}
+
+.category-nav a.festive-link {
+  color: var(--festive-red);
+}
+
+.category-nav a.festive-link::after {
+  background: var(--festive-red);
+}
+
+@media(max-width: 768px) {
+  .category-nav a.festive-link {
+    border-color: rgba(140, 42, 35, 0.35);
+  }
+}
+
+.dough-pill.dough-fruitcake {
+  background: rgba(140, 42, 35, 0.09);
+  border-color: rgba(140, 42, 35, 0.22);
+  color: var(--festive-red);
+}
+
+/* AI-generated stand-in images used while testing a page. Never ship one without this badge. */
+.info-icon.test-image {
+  background: rgba(140, 42, 35, 0.9);
+  border-color: rgba(255, 255, 255, 0.7);
+}
+
+.info-icon.test-image:hover {
+  background: rgba(110, 30, 25, 0.95);
+}
+
+/* Top-left so it never covers the image's own "mock image" watermark (top-right). */
+.gallery .info-icon.test-image {
+  left: 12px;
+  right: auto;
+}
+
+.gallery .info-icon.test-image + .tooltip {
+  left: 12px;
+  right: auto;
 }

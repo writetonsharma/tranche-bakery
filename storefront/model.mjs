@@ -13,7 +13,10 @@ export const PRODUCT_NAMES = Object.freeze([
   'Dark Chocolate Marble Tea Cake', 'Date & Walnut Tea Cake',
   'Chocolate Chunk & Sea Salt Cookies', 'Almond Biscotti',
   'Walnut Dark Chocolate Brownies (Pack of 4)',
-  'Walnut Dark Chocolate Brownies (Pack of 2)', 'Garlic & Herb Butter'
+  'Walnut Dark Chocolate Brownies (Pack of 2)', 'Garlic & Herb Butter',
+  'Christmas Plum Cake (Rum-Soaked)', 'Christmas Plum Cake (Alcohol-Free)',
+  'Orange & Cranberry Tea Cake', 'Dark Chocolate Babka Loaf',
+  'Cranberry & White Chocolate Cookies', 'Cranberry & Almond Biscotti'
 ]);
 const positiveId = value => Number.isSafeInteger(value) && value > 0;
 export const validDate = value => typeof value === 'string' &&

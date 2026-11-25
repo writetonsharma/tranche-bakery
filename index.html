@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="scripts/season.js?v=20261125-1"></script>
   <title>TRANCHÉ Bakery | Small-Batch Bread in Gurugram</title>
   <meta name="description" content="Slow-fermented breads, buns, and sweet bakes made in small batches in Sector 15, Gurugram.">
   <meta name="robots" content="index, follow">
@@ -24,7 +25,7 @@
 
   <!-- Google Font -->
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="styles.css?v=20261125-1">
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
@@ -117,38 +118,28 @@
     </div>
   </section>
 
-  <section class="showcase-slice">
+  <section class="showcase-slice festive-band" data-season-only="christmas">
     <div class="container flex">
-      <div class="image">
-        <div class="hamper-shots">
-          <figure>
-            <img
-              src="./Images/HomePage/GiftHamper.jpg"
-              srcset="./Images/HomePage/GiftHamper-phone.jpg 560w, ./Images/HomePage/GiftHamper-tablet.jpg 960w, ./Images/HomePage/GiftHamper-desktop.jpg 1400w"
-              sizes="(max-width: 768px) 46vw, (max-width: 1200px) 27vw, 330px"
-              alt="Two woven gift hampers wrapped in gold-flecked tulle and tied with gold ribbon"
-              decoding="async"
-            >
-          </figure>
-          <figure>
-            <img
-              src="./Images/HomePage/GiftHamperOpen.jpg"
-              srcset="./Images/HomePage/GiftHamperOpen-phone.jpg 560w, ./Images/HomePage/GiftHamperOpen-tablet.jpg 960w, ./Images/HomePage/GiftHamperOpen-desktop.jpg 1400w"
-              sizes="(max-width: 768px) 46vw, (max-width: 1200px) 27vw, 330px"
-              alt="An open woven hamper seen from above, packed with Tranch&eacute; tins, glassine bags, a window box of bakes, a bag of biscotti, a ribboned box, a jar and a handwritten thank-you card"
-              decoding="async"
-            >
-          </figure>
-        </div>
+      <div class="image gallery">
+        <img
+          src="./Images/Products/Christmas/PlumCake/Mock1.jpg"
+          srcset="./Images/Products/Christmas/PlumCake/Mock1-phone.jpg 560w, ./Images/Products/Christmas/PlumCake/Mock1-tablet.jpg 960w, ./Images/Products/Christmas/PlumCake/Mock1-desktop.jpg 1400w"
+          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 58vw, 840px"
+          alt="Test image: Christmas Plum Cake"
+          loading="lazy"
+          decoding="async"
+        >
+        <button type="button" class="info-icon test-image" onclick="toggleTooltip('testimage-festive')" aria-label="About this image">&#9888; Test image</button>
+        <div id="testimage-festive" class="tooltip"><strong>Test image.</strong><br>An AI-generated stand-in used while we finish this page. It is not our bake; real photographs replace it before these products go on sale.</div>
       </div>
       <div class="text">
-        <p class="premium-kicker">Gift Hampers</p>
-        <h2>Thoughtfully curated. Beautifully packed.</h2>
-        <p>A collection of artisan bakes, gourmet treats and little indulgences, brought together in a basket that&rsquo;s ready to hand over.</p>
-        <p>Each hamper is made to order, with a selection tailored to your occasion and your budget &mdash; festive celebrations, housewarmings, corporate gifting, or a simple thank you. Everything is baked for your order and packed the morning it goes out.</p>
-        <p class="hamper-closer">Made fresh. Packed with care. Ready to gift.</p>
+        <p class="premium-kicker">Christmas Specials</p>
+        <h2>Eggless Christmas bakes, for a short season.</h2>
+        <p>A plum cake soaked in rum or, alcohol-free, in fresh orange juice. An orange &amp; cranberry tea cake, a dark chocolate babka loaf, and cranberry cookies and biscotti. All eggless, all baked in small batches.</p>
+        <p>Available every day the bakery is open, from mid-December to the first week of January &mdash; with delivery on Christmas Day too.</p>
         <div class="card-actions">
-          <a href="https://wa.me/918796770308?text=Hi%2C%20I%27d%20like%20to%20know%20about%20gift%20hampers." class="btn" target="_blank" rel="noopener">Enquire on WhatsApp</a>
+          <a href="breads.html#christmas" class="btn">See Christmas Specials</a>
+          <a href="breads.html#gift-hampers" class="btn btn-secondary">Gift Hampers</a>
         </div>
       </div>
     </div>
@@ -332,6 +323,46 @@
         <p>Choose your bakes and a delivery day, and we&rsquo;ll bring them fresh to your door every week. Pay for four weeks and the fifth is on us.</p>
         <div class="card-actions">
           <a href="subscribe.html" class="btn">Start a Subscription</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="showcase-slice">
+    <div class="container flex reverse">
+      <div class="image">
+        <div class="hamper-shots">
+          <figure>
+            <img
+              src="./Images/HomePage/GiftHamper.jpg"
+              srcset="./Images/HomePage/GiftHamper-phone.jpg 560w, ./Images/HomePage/GiftHamper-tablet.jpg 960w, ./Images/HomePage/GiftHamper-desktop.jpg 1400w"
+              sizes="(max-width: 768px) 46vw, (max-width: 1200px) 27vw, 330px"
+              alt="Two woven gift hampers wrapped in gold-flecked tulle and tied with gold ribbon"
+              loading="lazy"
+              decoding="async"
+            >
+          </figure>
+          <figure>
+            <img
+              src="./Images/HomePage/GiftHamperOpen.jpg"
+              srcset="./Images/HomePage/GiftHamperOpen-phone.jpg 560w, ./Images/HomePage/GiftHamperOpen-tablet.jpg 960w, ./Images/HomePage/GiftHamperOpen-desktop.jpg 1400w"
+              sizes="(max-width: 768px) 46vw, (max-width: 1200px) 27vw, 330px"
+              alt="An open woven hamper seen from above, packed with Tranch&eacute; tins, glassine bags, a window box of bakes, a bag of biscotti, a ribboned box, a jar and a handwritten thank-you card"
+              loading="lazy"
+              decoding="async"
+            >
+          </figure>
+        </div>
+      </div>
+      <div class="text">
+        <p class="premium-kicker">Gift Hampers</p>
+        <h2>Thoughtfully curated. Beautifully packed.</h2>
+        <p>A collection of artisan bakes, gourmet treats and little indulgences, brought together in a basket that&rsquo;s ready to hand over.</p>
+        <p>Each hamper is made to order in four sizes, from &#8377;1,000 to &#8377;4,000 &mdash; for festive celebrations, housewarmings, corporate gifting, or a simple thank you. Everything is baked for your order and packed the morning it goes out.</p>
+        <p class="hamper-closer">Made fresh. Packed with care. Ready to gift.</p>
+        <div class="card-actions">
+          <a href="breads.html#gift-hampers" class="btn">See Hamper Sizes</a>
+          <a href="https://wa.me/918796770308?text=Hi%2C%20I%27d%20like%20to%20know%20about%20gift%20hampers." class="btn btn-secondary" target="_blank" rel="noopener">Enquire on WhatsApp</a>
         </div>
       </div>
     </div>
