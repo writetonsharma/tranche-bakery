@@ -8,8 +8,8 @@
 
   <!-- Reuse same fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
-	<link rel="stylesheet" href="styles.css?v=20261125-3">
-	<link rel="stylesheet" href="storefront/storefront.css?v=20261126-1">
+	<link rel="stylesheet" href="styles.css?v=20261126-1">
+	<link rel="stylesheet" href="storefront/storefront.css?v=20261126-2">
 	<script src="storefront/config.js"></script>
 	<script type="module" src="storefront/storefront.mjs"></script>
   <!-- Privacy-friendly analytics by Plausible -->
@@ -71,7 +71,7 @@
 	  <span class="standard-pill">Photographed as baked</span>
 	</div>
 	<div class="product-guide">
-	  <p><strong>Real bread, shown as baked.</strong> Every product photograph is of bread made in our kitchen, without stock or AI-generated imagery.</p>
+	  <p><strong>Real bread, shown as baked.</strong> Every photo marked <strong>&#10003; Real photo</strong> is our own bake, photographed in our kitchen &mdash; never stock, never AI. The few images still waiting on a photo shoot are clearly marked <strong>Test image</strong>.</p>
 	  <p>Each listing shares its ingredients, flour balance, texture, and size. For keeping bread at its best, see our <a href="faq.html#storage-guide">storage guide</a>.</p>
 	</div>
 	</section>
@@ -295,7 +295,7 @@
 			<img src="Images/Products/Sandwich/Slices1-thumb.jpg" data-full="Images/Products/Sandwich/Slices1.jpg" onclick="changeImage(this)" class="active" decoding="async">
 			<img src="Images/Products/Sandwich/Slices2-thumb.jpg" data-full="Images/Products/Sandwich/Slices2.jpg" onclick="changeImage(this)" decoding="async">
 		  </div>
-		  <button type="button" class="info-icon" onclick="toggleTooltip('realphoto-loaves')" aria-label="About this photo">&#9432; Real photo</button>
+		  <button type="button" class="info-icon" onclick="toggleTooltip('realphoto-loaves')" aria-label="About this photo">&#10003; Real photo</button>
 		  <div id="realphoto-loaves" class="tooltip">
 			<strong>Real breads, photographed as they are.</strong><br>
 			Every photo is our own bake from the kitchen — no stock or AI imagery.
@@ -600,7 +600,7 @@
 			<img src="Images/Products/Rolls/WholeWheat/WholeWheat1-thumb.jpg" data-full="Images/Products/Rolls/WholeWheat/WholeWheat1.jpg" onclick="changeImage(this)" decoding="async">
 			<img src="Images/Products/Rolls/WholeWheat/WholeWheat3-thumb.jpg" data-full="Images/Products/Rolls/WholeWheat/WholeWheat3.jpg" onclick="changeImage(this)" decoding="async">
 		  </div>
-		  <button type="button" class="info-icon" onclick="toggleTooltip('realphoto-buns')" aria-label="About this photo">&#9432; Real photo</button>
+		  <button type="button" class="info-icon" onclick="toggleTooltip('realphoto-buns')" aria-label="About this photo">&#10003; Real photo</button>
 		  <div id="realphoto-buns" class="tooltip">
 			<strong>Real breads, photographed as they are.</strong><br>
 			Every photo is our own bake from the kitchen — no stock or AI imagery.
@@ -794,7 +794,7 @@
 			<img src="Images/Products/Breakfast/PlainBagel/Bagel1-thumb.jpg" data-full="Images/Products/Breakfast/PlainBagel/Bagel1.jpg" onclick="changeImage(this)" class="active" decoding="async">
 			<img src="Images/Products/Breakfast/PlainBagel/Bagel2-thumb.jpg" data-full="Images/Products/Breakfast/PlainBagel/Bagel2.jpg" onclick="changeImage(this)" decoding="async">
 		</div>
-		  <button type="button" class="info-icon" onclick="toggleTooltip('realphoto-breakfast')" aria-label="About this photo">&#9432; Real photo</button>
+		  <button type="button" class="info-icon" onclick="toggleTooltip('realphoto-breakfast')" aria-label="About this photo">&#10003; Real photo</button>
 		  <div id="realphoto-breakfast" class="tooltip">
 			<strong>Real breads, photographed as they are.</strong><br>
 			Every photo is our own bake from the kitchen — no stock or AI imagery.
@@ -964,7 +964,7 @@
 			<img src="Images/Products/SweetRolls/Cinnamon/Cinnamon2-thumb.jpg" data-full="Images/Products/SweetRolls/Cinnamon/Cinnamon2.jpg" onclick="changeImage(this)" class="active" alt="Cinnamon Rolls" decoding="async">
 			<img src="Images/Products/SweetRolls/Cinnamon/Cinnamon3-thumb.jpg" data-full="Images/Products/SweetRolls/Cinnamon/Cinnamon3.jpg" onclick="changeImage(this)" alt="Cinnamon Rolls" decoding="async">
 		  </div>
-		  <button type="button" class="info-icon" onclick="toggleTooltip('realphoto-sweet')" aria-label="About this photo">&#9432; Real photo</button>
+		  <button type="button" class="info-icon" onclick="toggleTooltip('realphoto-sweet')" aria-label="About this photo">&#10003; Real photo</button>
 		  <div id="realphoto-sweet" class="tooltip">
 			<strong>Real breads, photographed as they are.</strong><br>
 			Every photo is our own bake from the kitchen — no stock or AI imagery.
@@ -1410,7 +1410,7 @@
 	  </div>
 	</div>
 
-	<script src="scripts/site.js"></script>
+	<script src="scripts/site.js?v=20261126-1"></script>
 	<script>
 		/* ---------- Pricing, dough type & launch offers ----------
 		   Fallbacks only: the storefront replaces every price and offer number below with

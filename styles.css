@@ -2835,3 +2835,20 @@ html:not([data-season="christmas"]) [data-season-only="christmas"] {
   left: 12px;
   right: auto;
 }
+
+/* Real-photo chips added by site.js sit top-right, like the gallery chips. */
+.photo-frame {
+  position: relative;
+}
+
+.photo-frame > .info-icon.real-photo {
+  top: 12px;
+  bottom: auto;
+}
+
+.photo-frame > .real-photo-tip {
+  right: 12px;
+  top: 52px;
+  bottom: auto;
+  max-width: calc(100% - 24px);
+}

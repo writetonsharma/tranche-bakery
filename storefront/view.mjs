@@ -194,8 +194,10 @@ export function renderQuote(root, quote, mode = 'preview') {
   for (const [label, key] of [['List subtotal', 'listSubtotal'], ['Discount', 'discountAmount'],
     ['Batch discount', 'batchDiscountAmount'], ['Delivery', 'deliveryCharge'],
     ['Credit applied', 'creditApplied'], [mode === 'preview' ? 'Estimated total' : 'Checkout total', 'totalAmount']]) {
-    const row = element('p', undefined, key === 'totalAmount' ? 'sf-total' : 'sf-total-row');
-    row.append(element('span', label), element('strong', money.format(quote[key])));
+    const freeDelivery = key === 'deliveryCharge' && quote.lines.length > 0 && Number(quote[key]) === 0;
+    const row = element('p', undefined, key === 'totalAmount' ? 'sf-total' : freeDelivery ? 'sf-total-row sf-free' : 'sf-total-row');
+    row.append(element('span', freeDelivery ? 'Delivery (free on this order)' : label),
+      element('strong', freeDelivery ? 'Free' : money.format(quote[key])));
     root.append(row);
   }
   for (const key of ['discountLabel', 'batchDiscountLabel']) {

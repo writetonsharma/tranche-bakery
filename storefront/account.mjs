@@ -322,7 +322,8 @@ export function attachAccount({ root, api, win = window, doc = document }) {
     for (const line of detail.quote.lines) detailRoot.append(appendQuoteLine(node('p'), line, money, node));
     for (const [label, key] of [['List subtotal', 'listSubtotal'], ['Discount', 'discountAmount'], ['Batch discount', 'batchDiscountAmount'],
       ['Delivery', 'deliveryCharge'], ['Credit applied', 'creditApplied'], ['Original total', 'totalAmount']]) {
-      const row = node('p', undefined, 'account-total'); row.append(node('span', label), node('strong', money.format(detail.quote[key]))); detailRoot.append(row);
+      const free = key === 'deliveryCharge' && detail.quote.lines.length > 0 && Number(detail.quote[key]) === 0;
+      const row = node('p', undefined, 'account-total'); row.append(node('span', free ? 'Delivery (free on this order)' : label), node('strong', free ? 'Free' : money.format(detail.quote[key]))); detailRoot.append(row);
     }
     for (const key of ['discountLabel', 'batchDiscountLabel', 'giftLabel']) if (detail.quote[key]) detailRoot.append(node('p', detail.quote[key], 'account-note'));
     detailRoot.append(node('p', 'Original order details. Viewing them does not place another order.', 'account-note'));

@@ -5,7 +5,7 @@ import vm from 'node:vm';
 import { PRODUCT_NAMES, STORAGE_KEY, catalogBindings, offerDisplay, validateLines, readBasket,
   saveBasket, changeQuantity, LatestRequest, validDate, validateQuote, appendQuoteLine } from '../model.mjs';
 import { StorefrontApi, ApiError } from '../api.mjs';
-import { quantityControl } from '../view.mjs';
+import { quantityControl, renderQuote } from '../view.mjs';
 
 const ids = new Set([1, 2]);
 const catalog = { items: PRODUCT_NAMES.map((name, index) => ({ id: index + 1, name })), deliveryDates: ['2026-11-01'] };
@@ -246,6 +246,33 @@ test('quantity controls expose a labelled polite status; blocked + remains actio
     assert.equal(plus.disabled, false);
     control.update(0, false);
     assert.equal(minus.disabled, true);
+  } finally {
+    if (original === undefined) delete globalThis.document;
+    else globalThis.document = original;
+  }
+});
+test('review says delivery is free instead of showing a zero charge', () => {
+  const original = globalThis.document;
+  try {
+    globalThis.document = { createElement(tag) { return { tag, children: [],
+      append(...children) { this.children.push(...children); },
+      replaceChildren(...children) { this.children = children; } }; } };
+    const row = (root, label) => root.children.find(node => node.children?.[0]?.textContent?.startsWith(label));
+    const quote = { valid: true, date: '2026-11-03', lines: [], problems: [], listSubtotal: 900, discountAmount: 0,
+      batchDiscountAmount: 0, deliveryCharge: 0, creditApplied: 0, totalAmount: 900 };
+    const root = { children: [], append(...c) { this.children.push(...c); }, replaceChildren() { this.children = []; } };
+    renderQuote(root, { ...quote, lines: [{ itemId: 1, name: 'Bread', quantity: 2, unitPrice: 450, lineTotal: 900 }] }, 'prepared');
+    const free = row(root, 'Delivery');
+    assert.equal(free.children[0].textContent, 'Delivery (free on this order)');
+    assert.equal(free.children[1].textContent, 'Free');
+    assert.match(free.className, /sf-free/);
+    renderQuote(root, { ...quote, lines: [{ itemId: 1, name: 'Bread', quantity: 1, unitPrice: 300, lineTotal: 300 }],
+      deliveryCharge: 65 }, 'prepared');
+    assert.equal(row(root, 'Delivery').children[0].textContent, 'Delivery');
+    assert.match(row(root, 'Delivery').children[1].textContent, /65\.00/);
+    // An empty basket has no delivery to waive.
+    renderQuote(root, quote, 'preview');
+    assert.equal(row(root, 'Delivery').children[0].textContent, 'Delivery');
   } finally {
     if (original === undefined) delete globalThis.document;
     else globalThis.document = original;

@@ -1403,6 +1403,8 @@ test('real failed save keeps edits and offers retry only; exact authoritative qu
     f.intercept(async () => {}); f.node('#sf-prepare').click(); await settle();
     assert.match(f.node('#sf-checkout-quote').textContent, /Review your order/);
     assert.match(f.node('#sf-checkout-quote').textContent, /Checkout total/);
+    assert.match(f.node('#sf-checkout-quote').textContent, /Delivery \(free on this order\)Free/);
+    assert.doesNotMatch(f.node('#sf-checkout-quote').textContent, /Delivery₹0\.00/);
     assert.equal(f.node('#sf-totals').hidden, true);
     // Fixture final total is deliberately not the local 3 × special-rate 15.
     assert.match(f.node('#sf-checkout-quote').textContent, /40\.00/);

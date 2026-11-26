@@ -38,6 +38,8 @@ body.nav-open .sf-launcher, body.modal-open .sf-launcher { visibility: hidden; }
 .sf-auth [hidden] { display: none; }
 .sf-panel { padding-bottom: max(30px, env(safe-area-inset-bottom)); }
 .sf-gift { margin: 8px 0 12px; padding: 8px 12px; border-radius: 10px; background: #fffef9; color: #434c2b; font-weight: 500; }
+.sf-free { color: #434c2b; font-weight: 500; }
+.sf-free strong { color: #5a6b2e; text-transform: uppercase; letter-spacing: .04em; }
 .sf-start-error { color: #434c2b; font-size: 14px; }
 .sf-checkout { border-top: 1px solid #cbd2ba; margin-top: 26px; padding-top: 26px; overflow-wrap: anywhere; }
 .sf-checkout h3 { font-family: 'Playfair Display', serif; color: var(--sf-olive); font-size: 24px; }
