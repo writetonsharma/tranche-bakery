@@ -71,8 +71,27 @@ export function validatePrepared(value, cart, now = Date.now()) {
       Date.parse(value.expiresAt) > now + 10 * 60000 + 30000) throw new Error('Invalid prepared quote');
   const quote = cleanQuote(value.quote, cart.lines, cart.date);
   if (!quote.valid || !cart.date || !cart.lines.length || quote.problems.length) throw new Error('Invalid quote');
-  return immutable({ cartVersion: cart.version, quote, quoteToken: value.quoteToken, expiresAt: value.expiresAt });
+  return immutable({ cartVersion: cart.version, quote, quoteToken: value.quoteToken, expiresAt: value.expiresAt,
+    promo: validatePromo(value.promo) });
 }
+export const PROMO_CODE = /^[A-Z0-9][A-Z0-9-]{2,19}$(?![\s\S])/;
+// Codes are typed by hand; spaces and lower case are forgiven, anything else is not a code.
+export const normalizePromoCode = raw => {
+  const code = String(raw ?? '').trim().toUpperCase();
+  return PROMO_CODE.test(code) ? code : null;
+};
+function validatePromo(value) {
+  if (value == null) return null;
+  if (!['APPLIED', 'NOT_BETTER', 'INVALID'].includes(value.status) ||
+      !(value.code === null || (typeof value.code === 'string' && PROMO_CODE.test(value.code))) ||
+      (value.status !== 'INVALID' && value.code === null)) throw new Error('Invalid promo');
+  return { code: value.code, status: value.status };
+}
+export const promoMessage = promo => !promo ? '' : {
+  APPLIED: `${promo.code} applied. Your discounted total is below.`,
+  NOT_BETTER: `${promo.code} is valid, but your usual price is already lower, so we kept it.`,
+  INVALID: 'That code is not valid or has ended.'
+}[promo.status];
 export function fulfillment(value) {
   if (!value || Object.keys(value).sort().join(',') !== 'address,deliveryPreference,loafPreference,name') throw new Error('Invalid details');
   const text = (key, min, max) => {

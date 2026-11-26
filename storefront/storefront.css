@@ -45,6 +45,11 @@ body.nav-open .sf-launcher, body.modal-open .sf-launcher { visibility: hidden; }
 .sf-checkout-actions { display: grid; gap: 12px; margin: 16px 0; }
 .sf-checkout-actions button, .sf-checkout form button { width: 100%; white-space: normal; }
 .sf-checkout-review { padding: 0 8px; border-left: 2px solid #748351; }
+.sf-promo { display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: 10px; align-items: end; margin: 8px 0 16px; }
+.sf-promo .sf-field { margin: 0; }
+.sf-promo .sf-field input { text-transform: uppercase; letter-spacing: .5px; }
+.sf-checkout .sf-promo button { width: auto; min-height: 48px; }
+.sf-checkout .sf-promo #sf-promo-remove { grid-column: 1 / -1; justify-self: start; min-height: 0; margin-top: 8px; padding: 4px 0; background: none; border: 0; color: #434c2b; text-decoration: underline; text-underline-offset: 4px; }
 .sf-checkout #sf-confirm-pay { width: 100%; margin: 18px 0; background: #434c2b; color: #fffdf5; font-weight: 700; }
 .sf-payment-link { display: block; text-align: center; background: #434c2b; color: #fffdf5; padding: 16px; border-radius: 12px; line-height: 1.5; text-underline-offset: 4px; }
 .sf-pin-link { display: block; text-align: center; border: 1px solid #a4ad8f; color: #39442b; padding: 14px; border-radius: 12px; line-height: 1.5; text-underline-offset: 4px; }

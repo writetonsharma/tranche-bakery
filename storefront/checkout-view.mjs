@@ -21,6 +21,19 @@ export function attachCheckout({ api, ui, allowedIds, getBasket, onBasket, onIde
   choices.append(load, save, discardGuest, prepare);
   const accountLink = element('a', 'My account', 'sf-account-link'); accountLink.href = 'account.html';
   const quoteRoot = element('div', undefined, 'sf-totals'); quoteRoot.id = 'sf-checkout-quote';
+  const promoForm = element('form', undefined, 'sf-promo'); promoForm.id = 'sf-promo'; promoForm.autocomplete = 'off';
+  const promoLabel = element('label', 'Have a promo code?', 'sf-field');
+  const promoInput = element('input'); promoInput.id = 'sf-promo-code'; promoInput.maxLength = 20;
+  promoInput.setAttribute('autocapitalize', 'characters'); promoInput.setAttribute('spellcheck', 'false');
+  promoLabel.htmlFor = 'sf-promo-code'; promoLabel.append(promoInput);
+  const promoApply = element('button', 'Apply code'); promoApply.type = 'submit'; promoApply.id = 'sf-promo-apply';
+  const promoRemove = button('Remove code', () => { promoInput.value = ''; flow.applyPromoCode(''); });
+  promoRemove.id = 'sf-promo-remove';
+  promoForm.append(promoLabel, promoApply, promoRemove);
+  promoForm.addEventListener('submit', event => {
+    event.preventDefault();
+    flow.applyPromoCode(promoInput.value);
+  });
   const form = element('form'); form.id = 'sf-delivery'; form.autocomplete = 'off';
   const field = (label, id, tag = 'input') => {
     const wrapper = element('label', label, 'sf-field'); const input = element(tag); input.id = id;
@@ -58,7 +71,7 @@ export function attachCheckout({ api, ui, allowedIds, getBasket, onBasket, onIde
   pinPrompt.id = 'sf-pin-link'; pinPrompt.href = PIN_UPDATE_LINK;
   pinPrompt.target = '_blank'; pinPrompt.rel = 'noopener noreferrer';
   recovery.append(retry, check, payment, cancelOrder, pinPrompt, newOrder, abort);
-  root.append(title, accountLink, help, status, basketStatus, choices, quoteRoot, form, accepted, confirm, recovery, support);
+  root.append(title, accountLink, help, status, basketStatus, choices, promoForm, quoteRoot, form, accepted, confirm, recovery, support);
   ui.auth.after(root);
   let identity = null;
   let pollTimer;
@@ -133,6 +146,9 @@ export function attachCheckout({ api, ui, allowedIds, getBasket, onBasket, onIde
     load.disabled = save.disabled = !active || state.busy || sync.state.busy || Boolean(state.attempt);
     prepare.hidden = !identity || !flow.recoveryReady || Boolean(state.attempt || state.prepared);
     prepare.disabled = !active || (state.busy && !state.background) || !flow.recoveryReady || !state.cart || sync.state.retry || Boolean(state.attempt) || Boolean(getReadiness()) || !sync.writable();
+    promoForm.hidden = !identity || !flow.recoveryReady || Boolean(state.attempt);
+    promoInput.disabled = promoApply.disabled = promoRemove.disabled = prepare.disabled;
+    promoRemove.hidden = !flow.promoCode;
     const nextQuoteKey = privateVisible && !state.attempt ? JSON.stringify([
       state.prepared?.quote, state.prepared?.expiresAt]) : '';
     if (quoteKey !== nextQuoteKey) {

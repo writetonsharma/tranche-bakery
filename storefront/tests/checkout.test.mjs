@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { checkoutEnabled, validateCart, cartInput, validatePrepared, fulfillment,
-  paymentUrl, validateCheckout, problemMessage, PIN_UPDATE_LINK } from '../checkout-model.mjs';
+  paymentUrl, validateCheckout, problemMessage, PIN_UPDATE_LINK, normalizePromoCode } from '../checkout-model.mjs';
 import { CheckoutFlow } from '../checkout-flow.mjs';
 import { StorefrontApi } from '../api.mjs';
 import { attachCheckout } from '../checkout-view.mjs';
@@ -109,6 +109,59 @@ test('prepared acceptance binds owned version, exact lines/date and unexpired im
   for (const value of [{ ...prepared, cartVersion: 2 }, { ...prepared, quoteToken: '' },
     { ...prepared, expiresAt: '2026-10-26T07:59:00Z' }, { ...prepared, quote: { ...quote, valid: false } },
     { ...prepared, quote: { ...quote, date: '2026-11-02' } }]) assert.throws(() => validatePrepared(value, cart, now));
+});
+test('promo result is optional, exact and bounded; codes are normalised before sending', () => {
+  assert.equal(validatePrepared(prepared, cart, now).promo, null);
+  assert.equal(validatePrepared({ ...prepared, promo: null }, cart, now).promo, null);
+  for (const promo of [{ code: 'INSTA10', status: 'APPLIED' }, { code: 'INSTA10', status: 'NOT_BETTER' },
+    { code: null, status: 'INVALID' }]) {
+    const value = validatePrepared({ ...prepared, promo: { ...promo, extra: 'x' } }, cart, now);
+    assert.deepEqual(value.promo, promo);
+    assert.ok(Object.isFrozen(value.promo));
+  }
+  for (const promo of [{ code: 'INSTA10', status: 'USED' }, { code: null, status: 'APPLIED' },
+    { code: 'insta10', status: 'APPLIED' }, { code: '<b>', status: 'INVALID' }, { code: 'A'.repeat(21), status: 'APPLIED' }]) {
+    assert.throws(() => validatePrepared({ ...prepared, promo }, cart, now));
+  }
+  assert.equal(normalizePromoCode('  insta10 '), 'INSTA10');
+  assert.equal(normalizePromoCode('diwali-25'), 'DIWALI-25');
+  for (const raw of ['', 'AB', '-ABC', 'IN STA', 'A'.repeat(21), null, 'INSTA_10']) assert.equal(normalizePromoCode(raw), null);
+});
+test('applying a code re-prepares with it; INVALID forgets it; removal prepares without it', async () => {
+  const f = fixture();
+  await f.flow.load();
+  let promo = { code: 'INSTA10', status: 'APPLIED' };
+  const discounted = { ...quote, discountAmount: 10, discountLabel: 'INSTA10 (25% off)', totalAmount: 80 };
+  const request = f.flow.api.request;
+  f.flow.api.request = async (path, body, signal, method) => path === '/api/checkout/prepare' ?
+    (f.calls.push({ path, body: structuredClone(body) }), { ...structuredClone(prepared), quote: discounted, promo }) :
+    request(path, body, signal, method);
+  await f.flow.applyPromoCode(' insta10 ');
+  let sent = f.calls.filter(c => c.path === '/api/checkout/prepare');
+  assert.deepEqual(sent.at(-1).body, { cartVersion: 1, promoCode: 'INSTA10' });
+  assert.equal(f.flow.state.prepared.quote.totalAmount, 80);
+  assert.match(f.flow.state.message, /INSTA10 applied/);
+  await f.flow.prepare(); // Review again keeps the code.
+  sent = f.calls.filter(c => c.path === '/api/checkout/prepare');
+  assert.deepEqual(sent.at(-1).body, { cartVersion: 1, promoCode: 'INSTA10' });
+  promo = { code: null, status: 'INVALID' };
+  await f.flow.applyPromoCode('OLDCODE');
+  assert.equal(f.flow.promoCode, null);
+  assert.match(f.flow.state.message, /not valid or has ended/);
+  await f.flow.prepare();
+  sent = f.calls.filter(c => c.path === '/api/checkout/prepare');
+  assert.deepEqual(sent.at(-1).body, { cartVersion: 1 });
+  const before = sent.length;
+  await f.flow.applyPromoCode('no spaces allowed');
+  assert.equal(f.calls.filter(c => c.path === '/api/checkout/prepare').length, before);
+  assert.match(f.flow.state.message, /not valid or has ended/);
+  promo = null;
+  f.flow.promoCode = 'INSTA10';
+  await f.flow.applyPromoCode('');
+  assert.equal(f.flow.promoCode, null);
+  assert.deepEqual(f.calls.filter(c => c.path === '/api/checkout/prepare').at(-1).body, { cartVersion: 1 });
+  f.flow.setIdentity(8);
+  assert.equal(f.flow.promoCode, null);
 });
 test('fulfillment trims and snapshots exact preferences, forbids controls and bad lengths', () => {
   assert.deepEqual(fulfillment({ ...details, name: ' Customer ' }), details);

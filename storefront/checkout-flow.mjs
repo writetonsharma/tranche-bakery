@@ -1,5 +1,6 @@
 import { LatestRequest } from './model.mjs';
-import { cartInput, validateCart, validatePrepared, fulfillment, validateCheckout, immutable, problemMessage } from './checkout-model.mjs';
+import { cartInput, validateCart, validatePrepared, fulfillment, validateCheckout, immutable, problemMessage,
+  normalizePromoCode, promoMessage } from './checkout-model.mjs';
 import { validateOrderDetail, validateProfile } from './account-model.mjs';
 
 const initial = () => ({ cart: null, prepared: null, review: null, attempt: null, result: null,
@@ -24,7 +25,7 @@ export class CheckoutFlow {
     Object.assign(this, { api, enabled: enabled === true, allowedIds, getBasket, onBasket, onChange, now, uuid, onIdentityLost, onActivity });
     Object.assign(this, { accountEnabled, isActive, beforePrepare, onDefaults, onCartConflict });
     this.recoveryReady = !accountEnabled; this.defaultsRead = false; this.dismissedAttemptId = null;
-    this.resolvedAttemptId = null;
+    this.resolvedAttemptId = null; this.promoCode = null;
     this.state = initial(); this.latest = new LatestRequest(); this.identity = null; this.polls = 0;
   }
   get canEditBasket() {
@@ -36,7 +37,7 @@ export class CheckoutFlow {
   setIdentity(id) {
     const next = this.enabled && Number.isSafeInteger(id) && id > 0 ? id : null;
     if (this.identity !== next) {
-      this.resolvedAttemptId = null;
+      this.resolvedAttemptId = null; this.promoCode = null;
       this.latest.invalidate(); this.identity = next; this.state = initial(); this.polls = 0; this.emit();
       this.recoveryReady = !this.accountEnabled; this.defaultsRead = false; this.dismissedAttemptId = null;
     }
@@ -164,20 +165,35 @@ export class CheckoutFlow {
     if (this.state.busy && !await this.settled()) return;
     if (!this.state.cart || this.state.dirty || this.state.needsReload || this.state.attempt) return;
     const cart = this.state.cart;
+    const promoCode = this.promoCode;
+    const body = promoCode ? { cartVersion: cart.version, promoCode } : { cartVersion: cart.version };
     this.state.prepared = null; this.state.review = null;
     return this.run(async ({ signal, current }) => {
-      const value = validatePrepared(await this.api.request('/api/checkout/prepare', { cartVersion: cart.version }, signal), cart, this.now());
+      const value = validatePrepared(await this.api.request('/api/checkout/prepare', body, signal), cart, this.now());
       if (!current()) return;
       if (this.state.cart?.version !== cart.version || this.state.dirty || this.state.needsReload) {
         this.state.message = 'Basket changed while reviewing. Choose Review order again.';
         return;
       }
+      if (value.promo?.status === 'INVALID' && this.promoCode === promoCode) this.promoCode = null;
       if (value.quote.creditApplied > 0 || value.quote.totalAmount <= 0) {
         this.state.message = problemMessage(value.quote.creditApplied > 0 ? 'CREDIT_SUPPORT_REQUIRED' : 'ZERO_PAYABLE_SUPPORT_REQUIRED'); return;
       }
       this.state.prepared = value; this.state.suspended = false;
-      this.state.message = 'Check your total and delivery details.';
+      this.state.message = promoCode ? `${promoMessage(value.promo)} Check your total and delivery details.` :
+        'Check your total and delivery details.';
     });
+  }
+  // A code is only a request: the server decides, and keeps whichever price is lower.
+  async applyPromoCode(raw) {
+    if (this.state.busy || this.state.attempt) return;
+    const typed = String(raw ?? '').trim();
+    const code = normalizePromoCode(typed);
+    if (typed && !code) {
+      this.promoCode = null; this.state.message = promoMessage({ status: 'INVALID' }); this.emit(); return;
+    }
+    this.promoCode = code;
+    return this.prepare();
   }
   review(details) {
     if (!this.state.prepared || this.state.attempt || this.state.busy || this.state.suspended) return;
